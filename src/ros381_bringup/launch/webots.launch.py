@@ -16,7 +16,7 @@ def generate_launch_description():
     webots = WebotsLauncher(world=os.path.join(webots_pkg, "worlds", "my_world.wbt"))
 
     webots_node = WebotsController(
-        robot_name="omni-1",
+        robot_name="ros381",
         parameters=[
             {"robot_description": robot_description_path},
         ],

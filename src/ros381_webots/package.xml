@@ -7,6 +7,10 @@
   <maintainer email="l.popadic.2001@gmail.com">hostuser</maintainer>
   <license>TODO: License declaration</license>
 
+  <depend>rclpy</depend>
+  <depend>ros381_interfaces</depend>
+  <depend>webots_ros2_driver</depend>
+
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>

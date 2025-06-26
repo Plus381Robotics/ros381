@@ -2,8 +2,8 @@
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "../protos/ros381.proto"
 
 WorldInfo {
   basicTimeStep 64
@@ -11,7 +11,6 @@ WorldInfo {
 Viewpoint {
   orientation -0.5773502691896258 0.5773502691896258 0.5773502691896258 2.0944
   position 0.00018923126314355221 1.7726045865283106e-07 3.947973651965684
-  follow "ros381"
   followType "Pan and Tilt Shot"
 }
 TexturedBackground {
@@ -21,11 +20,6 @@ TexturedBackgroundLight {
 RectangleArena {
   floorSize 3 2
 }
-TurtleBot3Burger {
-  hidden rotation_8 0 1 0 5.299047527820079
-  hidden rotation_9 0.7364308551269766 -9.858926606907435e-08 0.6765128199945217 3.1415973030003568
-  translation 0 0 -0.00049
-  rotation 0.004430669798711057 -0.09854645640605289 0.9951225879734339 0
-  name "ros381"
+DEF ros381 ros381 {
   controller "<extern>"
 }

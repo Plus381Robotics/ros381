@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<robot name="ros381">
+
+  <material name="silver">
+    <color rgba="0.8 0.8 0.8 1.0"/>
+  </material>
+
+  <material name="grey">
+    <color rgba="0.4 0.4 0.4 1.0"/>
+  </material>
+
+  <material name="black">
+    <color rgba="0.2 0.2 0.2 1.0"/>
+  </material>
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.125 0.4 0.325"/>
+      </geometry>
+      <origin xyz="0 0 0.1775"/>
+      <material name="black"/>
+    </visual>
+  </link>
+  
+  <link name="bottom_plate">
+    <visual>
+      <geometry>
+        <box size="0.25 0.4 0.01"/>
+      </geometry>
+      <origin xyz="0 0 0.01"/>  <!-- 5mm iznad podloge-->
+      <material name="silver"/>
+    </visual>
+  </link>
+
+  <joint name="bottom_plate_to_base" type="fixed">
+    <parent link="base_link"/>
+    <child link="bottom_plate"/>
+    <origin xyz="0 0 0"/>
+  </joint> 
+</robot>
+
+        <!-- <box size="0.25 0.4 0.01"/> -->

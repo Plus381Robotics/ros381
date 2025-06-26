@@ -17,9 +17,9 @@ def generate_launch_description():
 
     webots_node = WebotsController(
         robot_name="ros381",
-        parameters=[
-            {"robot_description": robot_description_path},
-        ],
+        # parameters=[
+            # {"robot_description": robot_description_path},
+        # ],
     )
 
     control_loop_node = Node(

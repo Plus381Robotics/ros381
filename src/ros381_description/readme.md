@@ -1,0 +1,2 @@
+*** Creating the ros381.proto file from ros381.urdf
+python3 -m urdf2webots.importer --input=/home/hostuser/ros381/src/ros381_description/urdf/ros381.urdf --output=/home/hostuser/ros381/src/ros381_description/protos/ros381.proto

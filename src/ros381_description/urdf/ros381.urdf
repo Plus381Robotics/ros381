@@ -5,8 +5,8 @@
     <color rgba="0.8 0.8 0.8 1.0"/>
   </material>
 
-  <material name="grey">
-    <color rgba="0.4 0.4 0.4 1.0"/>
+  <material name="orange">
+    <color rgba="0.8 0.2 0.0 1.0"/>
   </material>
 
   <material name="black">
@@ -33,11 +33,49 @@
     </visual>
   </link>
 
+  <link name="wheel_right">
+    <visual>
+      <geometry>
+        <cylinder radius="0.035" length="0.039"/>
+      </geometry>
+      <origin rpy="0 0 0"/>
+      <material name="orange"/>
+    </visual>
+  </link>
+
+  <link name="wheel_left">
+    <visual>
+      <geometry>
+        <cylinder radius="0.035" length="0.039"/>
+      </geometry>
+      <origin rpy="0 0 0"/>
+      <material name="orange"/>
+    </visual>
+  </link>
+
   <joint name="bottom_plate_to_base" type="fixed">
     <parent link="base_link"/>
     <child link="bottom_plate"/>
     <origin xyz="0 0 0"/>
   </joint> 
-</robot>
 
-        <!-- <box size="0.25 0.4 0.01"/> -->
+  <joint name="wheel_right" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_right"/>
+    <axis xyz="0.0 0.0 -1.0"/>
+    <origin xyz="0.0 -0.07725 0.035" rpy="1.570796327 0 0"/>
+  </joint> 
+  
+  <joint name="wheel_left" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_left"/>
+    <axis xyz="0.0 0.0 -1.0"/>
+    <origin xyz="0.0 0.07725 0.035" rpy="1.570796327 0 0"/>
+  </joint> 
+  
+  <webots>
+    <device reference="wheel_right" type="RotationalMotor"/>
+    <device reference="wheel_left" type="RotationalMotor"/>
+    <plugin type="ros381_webots.motor_driver.MotorDriver"/>
+  </webots>
+</robot>

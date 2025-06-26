@@ -9,11 +9,11 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     webots_pkg = get_package_share_directory("ros381_webots")
-    control_pkg = get_package_share_directory("ros381_control")
+    base_pkg = get_package_share_directory("ros381_base")
     description_pkg = get_package_share_directory("ros381_description")
 
     robot_description_path = os.path.join(description_pkg, "urdf", "ros381.urdf")
-    webots = WebotsLauncher(world=os.path.join(webots_pkg, "worlds", "my_world.wbt"))
+    webots = WebotsLauncher(world=os.path.join(description_pkg, "worlds", "table.wbt"))
 
     webots_node = WebotsController(
         robot_name="ros381",
@@ -23,7 +23,7 @@ def generate_launch_description():
     )
 
     control_loop_node = Node(
-        package="ros381_control",
+        package="ros381_base",
         executable="control_loop",
         name="control_loop",
         output="screen",

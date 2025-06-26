@@ -1,10 +1,11 @@
 from setuptools import find_packages, setup
 
 package_name = 'ros381_webots'
+description_package_name = 'ros381_description'
 data_files = []
 data_files.append(('share/ament_index/resource_index/packages', ['resource/' + package_name]))
-# data_files.append(('share/' + package_name + '/worlds', ['worlds/my_world.wbt']))
-# data_files.append(('share/' + package_name + '/protos', ['protos/ros381.proto']))
+# data_files.append(('share/' + description_package_name + '/worlds', ['worlds/table.wbt']))
+# data_files.append(('share/' + description_package_name + '/protos', ['protos/ros381.proto']))
 data_files.append(('share/' + package_name, ['package.xml']))
 
 setup(

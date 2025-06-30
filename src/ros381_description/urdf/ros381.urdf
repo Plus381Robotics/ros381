@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot name="ros381">
 
-  <material name="silver">
+  <material name="steel">
     <color rgba="0.8 0.8 0.8 1.0"/>
   </material>
 
@@ -21,6 +21,11 @@
       <origin xyz="0 0 0.1775"/>
       <material name="black"/>
     </visual>
+    <inertial>
+      <origin xyz="0 0 0.1625" rpy="0 0 0"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.044" iyy="0.02" izz="0.03" ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
   </link>
   
   <link name="bottom_plate">
@@ -29,8 +34,13 @@
         <box size="0.25 0.4 0.01"/>
       </geometry>
       <origin xyz="0 0 0.01"/>  <!-- 5mm iznad podloge-->
-      <material name="silver"/>
+      <material name="steel"/>
     </visual>
+    <inertial>
+      <origin xyz="0 0 0.005" rpy="0 0 0"/>
+      <mass value="6.0"/>
+      <inertia ixx="0.08" iyy="0.03" izz="0.1" ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial> 
   </link>
 
   <link name="wheel_right">
@@ -41,6 +51,13 @@
       <origin rpy="0 0 0"/>
       <material name="orange"/>
     </visual>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia 
+        ixx="5e-5" iyy="5e-5" izz="8e-5" 
+        ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
   </link>
 
   <link name="wheel_left">
@@ -51,6 +68,13 @@
       <origin rpy="0 0 0"/>
       <material name="orange"/>
     </visual>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia 
+        ixx="5e-5" iyy="5e-5" izz="8e-5" 
+        ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
   </link>
 
   <joint name="bottom_plate_to_base" type="fixed">

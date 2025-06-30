@@ -35,7 +35,7 @@ private:
   double freq_hz_;
   int64_t period_us_;
   double x_ref, y_ref, phi_ref;
-  double w_right = 10, w_left = 10;
+  double w_right = 0, w_left = 0;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr
       motor_cmd_publisher_;

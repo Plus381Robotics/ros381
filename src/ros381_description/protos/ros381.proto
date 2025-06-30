@@ -109,6 +109,7 @@ PROTO ros381 [
               }
             }
           ]
+          contactMaterial "rubber"
           name "wheel_right"
           boundingObject Cylinder {
             radius 0.035
@@ -152,6 +153,7 @@ PROTO ros381 [
               }
             }
           ]
+          contactMaterial "rubber"
           name "wheel_left"
           boundingObject Cylinder {
             radius 0.035

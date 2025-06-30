@@ -9,7 +9,6 @@
 
   <depend>rclpy</depend>
   <depend>ros381_interfaces</depend>
-  <depend>ros381_description</depend>
   <depend>webots_ros2_driver</depend>
 
   <test_depend>ament_copyright</test_depend>

@@ -13,7 +13,7 @@
   <test_depend>ament_lint_common</test_depend>
 
   <exec_depend>ros381_interfaces</exec_depend>
-  <!-- <exec_depend>ros381_control</exec_depend> -->
+  <exec_depend>ros381_control</exec_depend>
   <exec_depend>ros381_webots</exec_depend>
 
   <export>

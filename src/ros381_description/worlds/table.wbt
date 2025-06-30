@@ -11,7 +11,7 @@ WorldInfo {
 Viewpoint {
   orientation -0.5773502691896258 0.5773502691896258 0.5773502691896258 2.0944
   position 1.041032023942012e-06 1.0410349689391468e-06 4.049804888624622
-  followType "Pan and Tilt Shot"
+  followType "None"
 }
 TexturedBackground {
 }
@@ -21,6 +21,7 @@ RectangleArena {
   floorSize 3 2
 }
 DEF ros381 ros381 {
-  translation 0 0 0.001
+  translation 0 0 1.02
+  rotation 1 0 0 3.14
   controller "<extern>"
 }

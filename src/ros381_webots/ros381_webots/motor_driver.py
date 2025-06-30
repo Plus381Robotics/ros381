@@ -15,8 +15,6 @@ class MotorDriver:
         self.motor_left_.setPosition(float("inf"))
         self.motor_left_.setVelocity(0)
 
-        self.target_motor_cmd_ = Float2()
-
         rclpy.init(args=None)
         self.node_ = rclpy.create_node("motor_driver")
         self.cmd_sub_ = self.node_.create_subscription(
@@ -38,3 +36,4 @@ class MotorDriver:
 
         self.motor_right_.setVelocity(self.motor_vel_.float2[0])
         self.motor_left_.setVelocity(self.motor_vel_.float2[1])
+        self.node_.get_logger().info("Motor velocity commands: ( " + str(self.motor_vel_.float2[0]) + ", " + str(self.motor_vel_.float2[1]) + ")")

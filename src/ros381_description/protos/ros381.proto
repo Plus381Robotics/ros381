@@ -8,7 +8,7 @@ PROTO ros381 [
   field  SFVec3f     translation     0 0 0
   field  SFRotation  rotation        0 0 1 0
   field  SFString    name            "ros381"  # Is `Robot.name`.
-  field  SFString    controller      "extern"    # Is `Robot.controller`.
+  field  SFString    controller      "void"    # Is `Robot.controller`.
   field  MFString    controllerArgs  []        # Is `Robot.controllerArgs`.
   field  SFString    customData      ""        # Is `Robot.customData`.
   field  SFBool      supervisor      FALSE     # Is `Robot.supervisor`.
@@ -32,7 +32,7 @@ PROTO ros381 [
           Shape {
             appearance DEF black PBRAppearance {
               baseColor 0.200000 0.200000 0.200000
-              roughness 0.100000
+              roughness 0.200000
               metalness 0
             }
             geometry Box {
@@ -49,8 +49,8 @@ PROTO ros381 [
               Shape {
                 appearance DEF steel PBRAppearance {
                   baseColor 0.800000 0.800000 0.800000
-                  roughness 0.500000
-                  metalness 1.0
+                  roughness 0.20000
+                  metalness 1.00
                 }
                 geometry Box {
                    size 0.250000 0.400000 0.010000
@@ -60,6 +60,14 @@ PROTO ros381 [
           }
         ]
         name "bottom_plate"
+        boundingObject Pose {
+          translation 0.000000 0.000000 0.005000
+          children [
+            Box {
+               size 0.250000 0.400000 0.010000
+            }
+          ]
+        }
         physics Physics {
           density -1
           mass 6.000000
@@ -79,6 +87,7 @@ PROTO ros381 [
           RotationalMotor {
             name "wheel_right"
             maxTorque 10000
+            maxVelocity 100.0
           }
           PositionSensor {
             name "wheel_right_sensor"
@@ -90,7 +99,7 @@ PROTO ros381 [
           children [
             Shape {
               appearance DEF orange PBRAppearance {
-                baseColor 0.800000 0.200000 0.000000
+                baseColor 0.800000 0.200000 0.500000
                 roughness 1.000000
                 metalness 0
               }
@@ -101,6 +110,10 @@ PROTO ros381 [
             }
           ]
           name "wheel_right"
+          boundingObject Cylinder {
+            radius 0.035
+            height 0.039
+          }
           physics Physics {
             density -1
             mass 0.100000
@@ -121,6 +134,7 @@ PROTO ros381 [
           RotationalMotor {
             name "wheel_left"
             maxTorque 10000
+            maxVelocity 100.0
           }
           PositionSensor {
             name "wheel_left_sensor"
@@ -139,6 +153,10 @@ PROTO ros381 [
             }
           ]
           name "wheel_left"
+          boundingObject Cylinder {
+            radius 0.035
+            height 0.039
+          }
           physics Physics {
             density -1
             mass 0.100000
@@ -152,6 +170,14 @@ PROTO ros381 [
       }
     ]
     name IS name
+    boundingObject Pose {
+      translation 0.000000 0.000000 0.162500
+      children [
+        Box {
+           size 0.125000 0.400000 0.325000
+        }
+      ]
+    }
     physics Physics {
       density -1
       mass 2.000000

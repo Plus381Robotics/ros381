@@ -26,6 +26,12 @@
       <mass value="2.0"/>
       <inertia ixx="0.044" iyy="0.02" izz="0.03" ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
+    <collision>
+      <origin xyz="0 0 0.1625" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.125 0.4 0.325"/>
+      </geometry>
+    </collision>
   </link>
   
   <link name="bottom_plate">
@@ -41,6 +47,12 @@
       <mass value="6.0"/>
       <inertia ixx="0.08" iyy="0.03" izz="0.1" ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial> 
+    <collision>
+      <origin xyz="0 0 0.005" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.25 0.4 0.01"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="wheel_right">
@@ -58,6 +70,12 @@
         ixx="5e-5" iyy="5e-5" izz="8e-5" 
         ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.039"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="wheel_left">
@@ -75,6 +93,12 @@
         ixx="5e-5" iyy="5e-5" izz="8e-5" 
         ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.039"/>
+      </geometry>
+    </collision>
   </link>
 
   <joint name="bottom_plate_to_base" type="fixed">

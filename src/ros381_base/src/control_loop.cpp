@@ -1,4 +1,3 @@
-// #include "geometry_msgs/msg/pose2_d.hpp"
 #include "ros381_interfaces/msg/float2.hpp"
 #include "rclcpp/rclcpp.hpp"
 
@@ -34,7 +33,6 @@ private:
   double p_, i_, d_;
   double freq_hz_;
   int64_t period_us_;
-  double x_ref, y_ref, phi_ref;
   double w_right = 1, w_left = 1;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr

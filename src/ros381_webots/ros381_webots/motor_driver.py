@@ -15,7 +15,10 @@ class MotorDriver:
         self.motor_left_.setPosition(float("inf"))
         self.motor_left_.setVelocity(0)
 
-        rclpy.init(args=None)
+        try:
+            rclpy.init(args=None)
+        except:
+            pass
         self.node_ = rclpy.create_node("motor_driver")
         self.cmd_sub_ = self.node_.create_subscription(
             Float2, "motor_cmd", self.cmd_vel_callback, 1

@@ -24,12 +24,12 @@
       <material name="black"/>
     </visual>
     <inertial>
-      <origin xyz="0 0 0.1625" rpy="0 0 0"/>
+      <origin xyz="0 0 0.1775"/>
       <mass value="2.0"/>
       <inertia ixx="0.044" iyy="0.02" izz="0.03" ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
     <collision>
-      <origin xyz="0 0 0.1625" rpy="0 0 0"/>
+      <origin xyz="0 0 0.1775"/>
       <geometry>
         <box size="0.125 0.4 0.325"/>
       </geometry>
@@ -50,7 +50,7 @@
       <inertia ixx="0.08" iyy="0.03" izz="0.1" ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial> 
     <collision>
-      <origin xyz="0 0 0.005" rpy="0 0 0"/>
+      <origin xyz="0 0 0.01"/>
       <geometry>
         <box size="0.25 0.4 0.01"/>
       </geometry>
@@ -111,6 +111,19 @@
       <origin xyz="0 0 0.025"/>
       <material name="steel"/>
     </visual>
+    <collision>
+      <origin xyz="0 0 0.025"/>
+      <geometry>
+        <box size="0.09 0.015 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <mass value="0.0622"/>
+      <inertia 
+        ixx="1.41e-5" iyy="5.49e-5" izz="4.31e-5" 
+        ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
   </link>
 
   <link name="left_odometry_block">
@@ -121,9 +134,66 @@
       <origin xyz="0 0 0.025"/>
       <material name="steel"/>
     </visual>
+    <collision>
+      <origin xyz="0 0 0.025"/>
+      <geometry>
+        <box size="0.09 0.015 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <mass value="0.0622"/>
+      <inertia 
+        ixx="1.41e-5" iyy="5.49e-5" izz="4.31e-5" 
+        ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
   </link>
 
-  <!-- Odometrijski tockovi: radius="0.036" length="0.002", udaljeni su 297mm, kopiraj orijentaciju i materijal od tockova-->
+  <link name="odometry_wheel_right">
+    <visual>
+      <geometry>
+        <cylinder radius="0.036" length="0.002"/>
+      </geometry>
+      <origin rpy="0 0 0"/>
+      <material name="steel"/>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.055"/>
+      <inertia 
+        ixx="1.79e-5" iyy="1.79e-5" izz="3.56e-5" 
+        ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.036" length="0.002"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="odometry_wheel_left">
+    <visual>
+      <geometry>
+        <cylinder radius="0.036" length="0.002"/>
+      </geometry>
+      <origin rpy="0 0 0"/>
+      <material name="steel"/>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.055"/>
+      <inertia 
+        ixx="1.79e-5" iyy="1.79e-5" izz="3.56e-5" 
+        ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.036" length="0.002"/>
+      </geometry>
+    </collision>
+  </link>
 
   <!-- JOINTS -->
   <joint name="bottom_plate_to_base" type="fixed">
@@ -150,7 +220,7 @@
     <parent link="base_link"/>
     <child link="right_odometry_block"/>
     <axis xyz="0 0 1"/>
-    <limit lower="0.0" upper="0.02" effort="0" velocity="100"/>
+    <limit lower="0.0" upper="0.03" effort="0" velocity="100"/>
     <dynamics damping="0.1"/>
     <origin xyz="0 -0.134 0.015"/>
   </joint>
@@ -159,11 +229,25 @@
     <parent link="base_link"/>
     <child link="left_odometry_block"/>
     <axis xyz="0 0 1"/>
-    <limit lower="0.0" upper="0.02" effort="0" velocity="100"/>
+    <limit lower="0.0" upper="0.03" effort="0" velocity="100"/>
     <dynamics damping="0.1"/>
     <origin xyz="0 0.134 0.015"/>
   </joint>
   
+  <joint name="odometry_wheel_right" type="continuous">
+    <parent link="right_odometry_block"/>
+    <child link="odometry_wheel_right"/>
+    <axis xyz="0.0 0.0 -1.0"/>
+    <origin xyz="0 -0.0145 0" rpy="1.570796327 0 0"/>
+  </joint> 
+  
+  <joint name="odometry_wheel_left" type="continuous">
+    <parent link="left_odometry_block"/>
+    <child link="odometry_wheel_left"/>
+    <axis xyz="0.0 0.0 -1.0"/>
+    <origin xyz="0 0.0145 0" rpy="1.570796327 0 0"/>
+  </joint>
+
   <webots>
     <device reference="wheel_right" type="RotationalMotor"/>
     <device reference="wheel_left" type="RotationalMotor"/>

@@ -61,7 +61,7 @@ PROTO ros381 [
         ]
         name "bottom_plate"
         boundingObject Pose {
-          translation 0.000000 0.000000 0.005000
+          translation 0.000000 0.000000 0.010000
           children [
             Box {
                size 0.250000 0.400000 0.010000
@@ -86,8 +86,7 @@ PROTO ros381 [
         device [
           RotationalMotor {
             name "wheel_right"
-            maxTorque 10000
-            maxVelocity 100.0
+            maxTorque 10
           }
           PositionSensor {
             name "wheel_right_sensor"
@@ -134,8 +133,7 @@ PROTO ros381 [
         device [
           RotationalMotor {
             name "wheel_left"
-            maxTorque 10000
-            maxVelocity 100.0
+            maxTorque 10
           }
           PositionSensor {
             name "wheel_left_sensor"
@@ -170,10 +168,200 @@ PROTO ros381 [
           }
         }
       }
+      SliderJoint {
+        jointParameters JointParameters {
+          axis 0.000000 0.000000 1.000000
+          dampingConstant 0.1
+          maxStop 0.03
+        }
+        device [
+          LinearMotor {
+            name "right_odometry_slider"
+            maxVelocity 100.0
+            maxPosition 0.03
+            maxForce 1
+          }
+          PositionSensor {
+            name "right_odometry_slider_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.000000 -0.134000 0.015000
+          children [
+            Pose {
+              translation 0.000000 0.000000 0.025000
+              children [
+                Shape {
+                  appearance USE steel
+                  geometry Box {
+                     size 0.090000 0.015000 0.050000
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                axis 0.000000 1.000000 0.000000
+                anchor 0.000000 -0.014500 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "odometry_wheel_right"
+                  maxTorque 0
+                }
+                PositionSensor {
+                  name "odometry_wheel_right_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 -0.014500 0.000000
+                rotation 1.000000 0.000000 0.000000 1.570796
+                children [
+                  Shape {
+                    appearance USE steel
+                    geometry Cylinder {
+                      radius 0.036
+                      height 0.002
+                    }
+                  }
+                ]
+                contactMaterial "rubber"
+                name "odometry_wheel_right"
+                boundingObject Cylinder {
+                  radius 0.036
+                  height 0.002
+                }
+                physics Physics {
+                  density -1
+                  mass 0.055000
+                  centerOfMass [ 0.000000 0.000000 0.000000 ]
+                  inertiaMatrix [
+                    1.790000e-05 1.790000e-05 3.560000e-05
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "right_odometry_block"
+          boundingObject Pose {
+            translation 0.000000 0.000000 0.025000
+            children [
+              Box {
+                 size 0.090000 0.015000 0.050000
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 0.062200
+            centerOfMass [ 0.000000 0.000000 0.025000 ]
+            inertiaMatrix [
+              1.410000e-05 5.490000e-05 4.310000e-05
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      SliderJoint {
+        jointParameters JointParameters {
+          axis 0.000000 0.000000 1.000000
+          dampingConstant 0.1
+          maxStop 0.03
+        }
+        device [
+          LinearMotor {
+            name "left_odometry_slider"
+            maxVelocity 100.0
+            maxPosition 0.03
+            maxForce 1
+          }
+          PositionSensor {
+            name "left_odometry_slider_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.000000 0.134000 0.015000
+          children [
+            Pose {
+              translation 0.000000 0.000000 0.025000
+              children [
+                Shape {
+                  appearance USE steel
+                  geometry Box {
+                     size 0.090000 0.015000 0.050000
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                axis 0.000000 1.000000 0.000000
+                anchor 0.000000 0.014500 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "odometry_wheel_left"
+                  maxTorque 0
+                }
+                PositionSensor {
+                  name "odometry_wheel_left_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 0.014500 0.000000
+                rotation 1.000000 0.000000 0.000000 1.570796
+                children [
+                  Shape {
+                    appearance USE steel
+                    geometry Cylinder {
+                      radius 0.036
+                      height 0.002
+                    }
+                  }
+                ]
+                contactMaterial "rubber"
+                name "odometry_wheel_left"
+                boundingObject Cylinder {
+                  radius 0.036
+                  height 0.002
+                }
+                physics Physics {
+                  density -1
+                  mass 0.055000
+                  centerOfMass [ 0.000000 0.000000 0.000000 ]
+                  inertiaMatrix [
+                    1.790000e-05 1.790000e-05 3.560000e-05
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "left_odometry_block"
+          boundingObject Pose {
+            translation 0.000000 0.000000 0.025000
+            children [
+              Box {
+                 size 0.090000 0.015000 0.050000
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 0.062200
+            centerOfMass [ 0.000000 0.000000 0.025000 ]
+            inertiaMatrix [
+              1.410000e-05 5.490000e-05 4.310000e-05
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
     ]
     name IS name
     boundingObject Pose {
-      translation 0.000000 0.000000 0.162500
+      translation 0.000000 0.000000 0.177500
       children [
         Box {
            size 0.125000 0.400000 0.325000
@@ -183,7 +371,7 @@ PROTO ros381 [
     physics Physics {
       density -1
       mass 2.000000
-      centerOfMass [ 0.000000 0.000000 0.162500 ]
+      centerOfMass [ 0.000000 0.000000 0.177500 ]
       inertiaMatrix [
         4.400000e-02 2.000000e-02 3.000000e-02
         0.000000e+00 0.000000e+00 0.000000e+00

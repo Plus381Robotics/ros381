@@ -26,5 +26,8 @@
         "editor.defaultColorDecorators": "never",
         "editor.formatOnType": true,
         "editor.wordBasedSuggestions": "off"
+    },
+    "files.associations": {
+        "array": "cpp"
     }
 }

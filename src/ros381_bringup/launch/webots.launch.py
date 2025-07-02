@@ -13,7 +13,7 @@ def generate_launch_description():
     description_pkg = get_package_share_directory("ros381_description")
     robot_description_path = os.path.join(description_pkg, "urdf", "ros381.urdf")
 
-    webots = WebotsLauncher(world=os.path.join(description_pkg, "worlds", "table.wbt"))
+    webots = WebotsLauncher(world=os.path.join(description_pkg, "worlds", "table.wbt"), ros2_supervisor=True)
 
     webots_node = WebotsController(
         robot_name="ros381",
@@ -38,12 +38,14 @@ def generate_launch_description():
         name="odometry",
         output="screen",
         # Add parameters if needed:
+        parameters=[{'use_sim_time': True}],
         # parameters=[os.path.join(control_pkg, 'config', 'control_params.yaml')]
     )
 
     return LaunchDescription(
         [
             webots,
+            webots._supervisor,
             webots_node,
             control_loop_node,
             odometry_node,

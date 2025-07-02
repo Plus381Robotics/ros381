@@ -32,11 +32,21 @@ def generate_launch_description():
         # parameters=[os.path.join(control_pkg, 'config', 'control_params.yaml')]
     )
 
+    odometry_node = Node(
+        package="ros381_base",
+        executable="odometry",
+        name="odometry",
+        output="screen",
+        # Add parameters if needed:
+        # parameters=[os.path.join(control_pkg, 'config', 'control_params.yaml')]
+    )
+
     return LaunchDescription(
         [
             webots,
             webots_node,
             control_loop_node,
+            odometry_node,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

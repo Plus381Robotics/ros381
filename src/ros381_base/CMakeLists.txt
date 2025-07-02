@@ -8,12 +8,13 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(ros381_interfaces REQUIRED)
 
 add_executable(control_loop src/control_loop.cpp)
 ament_target_dependencies(control_loop rclcpp ros381_interfaces)
+
+add_executable(odometry src/odometry.cpp)
 ament_target_dependencies(odometry rclcpp ros381_interfaces nav_msgs)
 
 if(BUILD_TESTING)

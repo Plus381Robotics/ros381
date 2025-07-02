@@ -1,4 +1,4 @@
-#include "nav_msgs/msgs/odometry.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "ros381_interfaces/msg/float2.hpp"
 
@@ -14,29 +14,36 @@ public:
                        std::placeholders::_1));
 
     odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry> ("odom", 10);
-    
+
     RCLCPP_INFO (this->get_logger (), "Odometry node is running.");
   }
 
 private:
-  rclcpp::Subscription<ros381_interfaces::msg::Float2>::SharedPtr
-      passive_vel_sub_;
-  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
-
   void
   callbackPassiveVel (const ros381_interfaces::msg::Float2::SharedPtr msg)
   {
-    RCLCPP_INFO (this->get_logger (), "Got passive vel! (%.2f, %.2f)", msg.float2[0], msg.float2[1]);
-    // TODO: ovde da pozove odometriju
+    v = *msg;
+    // RCLCPP_INFO (this->get_logger (), "Got passive vel! (%.4f, %.4f)",
+    //              v.float2[0], v.float2[1]);
+    odometry ();
   }
 
   void
   odometry ()
   {
-    // input:   float2 (passive vel)
 
-    // output:  odometry (of base)
-    this->publish_odom ();
+    if (odom_initialized_)
+      {
+        // input:   v (passive wheel velocities)
+
+        // output:  odometry (of base)
+        this->publish_odom ();
+      }
+    else
+      {
+        odom_initialized_ = true;
+        RCLCPP_INFO (this->get_logger(), "Odometry initialized!");
+      }
   }
 
   void
@@ -45,6 +52,13 @@ private:
     auto msg = nav_msgs::msg::Odometry ();
     odom_pub_->publish (msg);
   }
+
+  ros381_interfaces::msg::Float2 v;
+  bool odom_initialized_ = false;
+
+  rclcpp::Subscription<ros381_interfaces::msg::Float2>::SharedPtr
+      passive_vel_sub_;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 };
 
 int

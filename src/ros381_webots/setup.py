@@ -20,7 +20,7 @@ setup(
     entry_points={
         'console_scripts': [
             'motor_driver = ros381_webots.motor_driver:main',
-            'passive_vel = ros381_webots.passive_vel:main',
+            'encoder_reader = ros381_webots.encoder_reader:main',
         ]
     },
 )

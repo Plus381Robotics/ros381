@@ -9,9 +9,9 @@ class OdometryNode : public rclcpp::Node
 public:
   OdometryNode () : Node ("odometry")
   {
-    this->declare_parameter ("d_right", 0.076);
+    this->declare_parameter ("d_right", 0.072);
     r_right_ = this->get_parameter ("d_right").as_double () * 0.5f;
-    this->declare_parameter ("d_left", 0.076);
+    this->declare_parameter ("d_left", 0.072);
     r_left_ = this->get_parameter ("d_left").as_double () * 0.5f;
     this->declare_parameter ("L", 0.297);
     L_ = this->get_parameter ("L").as_double ();
@@ -21,7 +21,7 @@ public:
 
     passive_vel_sub_
         = this->create_subscription<ros381_interfaces::msg::Float2> (
-            "passive_vel", 10,
+            "base_encoders", 10,
             std::bind (&OdometryNode::callbackPassiveVel, this,
                        std::placeholders::_1));
 

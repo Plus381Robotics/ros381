@@ -1,0 +1,30 @@
+{
+    "files.autoSave": "afterDelay",
+    "git.openRepositoryInParentFolders": "never",
+    "telemetry.telemetryLevel": "off",
+    "security.workspace.trust.untrustedFiles": "open",
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.clang_format_fallbackStyle": "GNU",
+    "editor.formatOnSave": true,
+    "dev.containers.dockerPath": "podman",
+    "python.analysis.extraPaths": [
+        "/opt/ros/humble/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/home/hostuser/ros381/install/ros381_webots/lib/python3.10/site-packages"
+    ],
+    "explorer.confirmDragAndDrop": false,
+    "terminal.integrated.enableMultiLinePasteWarning": "never",
+    "git.enableSmartCommit": true,
+    "extensions.ignoreRecommendations": true,
+    "git.confirmSync": false,
+    "window.title": "${dirty}${activeEditorShort}${separator}${appName}",
+    "[python]": {
+        "diffEditor.ignoreTrimWhitespace": false,
+        "editor.defaultColorDecorators": "never",
+        "editor.formatOnType": true,
+        "editor.wordBasedSuggestions": "off"
+    }
+}

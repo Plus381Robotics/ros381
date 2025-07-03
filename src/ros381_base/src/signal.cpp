@@ -47,15 +47,6 @@ get_sign (double num)
 }
 
 void
-saturation (volatile double *signal, double max, double min)
-{
-  if (*signal > max)
-    *signal = max;
-  else if (*signal < min)
-    *signal = min;
-}
-
-void
 scale_vel_ref (volatile double *ref_1, volatile double *ref_2, double limit)
 {
   double abs_max_var = abs_max (*ref_1, *ref_2);

@@ -7,8 +7,6 @@ wrap180(double signal);
 short
 get_sign(double num);
 void
-saturation(volatile double *signal, double max, double min);
-void
 scale_vel_ref(volatile double *ref_1, volatile double *ref_2, double limit);
 double
 abs_max(double a, double b);

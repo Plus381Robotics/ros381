@@ -55,7 +55,7 @@ private:
         wrapPi_ptr (&phi_base_);
 
         RCLCPP_INFO (this->get_logger (),
-                     "\nv = %.6f\nw = %.6f\nx = %.6f\ny = %.6f\nphi = %.6f",
+                     "\nv = %.3f\nw = %.3f\nx = %.3f\ny = %.3f\nphi = %.3f",
                      v_base_, w_base_, x_base_, y_base_, phi_base_);
         this->publish_odometry ();
       }

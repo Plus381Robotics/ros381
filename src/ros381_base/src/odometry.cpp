@@ -1,7 +1,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "../include/signal.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "ros381_interfaces/msg/float2.hpp"
+#include "ros381_interfaces/msg/float3.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 
 class OdometryNode : public rclcpp::Node
@@ -9,34 +9,29 @@ class OdometryNode : public rclcpp::Node
 public:
   OdometryNode () : Node ("odometry")
   {
-    this->declare_parameter ("d_right", 0.072);
-    r_right_ = this->get_parameter ("d_right").as_double () * 0.5f;
-    this->declare_parameter ("d_left", 0.072);
-    r_left_ = this->get_parameter ("d_left").as_double () * 0.5f;
     this->declare_parameter ("L", 0.297);
     L_ = this->get_parameter ("L").as_double ();
     L_recip_ = 1 / L_;
-
     this->set_parameter (rclcpp::Parameter ("use_sim_time", true));
 
     passive_vel_sub_
-        = this->create_subscription<ros381_interfaces::msg::Float2> (
+        = this->create_subscription<ros381_interfaces::msg::Float3> (
             "base_encoders", 10,
             std::bind (&OdometryNode::callbackPassiveVel, this,
                        std::placeholders::_1));
 
     odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry> ("odom", 10);
 
-    clock_ = this->get_clock ();
-
     RCLCPP_INFO (this->get_logger (), "Odometry node is running.");
   }
 
 private:
   void
-  callbackPassiveVel (const ros381_interfaces::msg::Float2::SharedPtr msg)
+  callbackPassiveVel (const ros381_interfaces::msg::Float3::SharedPtr msg)
   {
-    delta_phi_wheels_ = *msg;
+    v_right_ = msg->float3[0];
+    v_left_ = msg->float3[1];
+    dt_ = msg->float3[2];
     calculate_odometry ();
   }
 
@@ -45,19 +40,13 @@ private:
   {
     if (odom_initialized_)
       {
-        current_time_ = clock_->now ();
-        dt_ = (current_time_ - previous_time_).seconds ();
         // RCLCPP_INFO (this->get_logger(), "dt_ = %f", dt_);
 
-        w_wheels_.float2[0] = delta_phi_wheels_.float2[0] / dt_; // [rad/s]
-        w_wheels_.float2[1] = delta_phi_wheels_.float2[1] / dt_; // [rad/s]
-        v_wheels_.float2[0] = w_wheels_.float2[0] * r_right_;    // [m/s]
-        v_wheels_.float2[1] = w_wheels_.float2[1] * r_left_;     // [m/s]
         // RCLCPP_INFO (this->get_logger (), "Got passive vel! (%.4f, %.4f)",
         //              v.float2[0], v.float2[1]);
 
-        v_base_ = (v_wheels_.float2[0] + v_wheels_.float2[1]) * 0.5;
-        w_base_ = (v_wheels_.float2[0] - v_wheels_.float2[1]) * L_recip_;
+        v_base_ = (v_right_ + v_left_) * 0.5;
+        w_base_ = (v_right_ - v_left_) * L_recip_;
         mid_angle_ = phi_base_ + w_base_ * dt_ * 0.5;
 
         x_base_ += v_base_ * cos (mid_angle_) * dt_;
@@ -65,7 +54,6 @@ private:
         phi_base_ += w_base_ * dt_;
         wrapPi_ptr (&phi_base_);
 
-        previous_time_ = current_time_;
         RCLCPP_INFO (this->get_logger (),
                      "\nv = %.6f\nw = %.6f\nx = %.6f\ny = %.6f\nphi = %.6f",
                      v_base_, w_base_, x_base_, y_base_, phi_base_);
@@ -74,7 +62,6 @@ private:
     else
       {
         odom_initialized_ = true;
-        previous_time_ = clock_->now ();
         RCLCPP_INFO (this->get_logger (), "Odometry initialized!");
       }
   }
@@ -84,7 +71,7 @@ private:
   {
     auto msg = nav_msgs::msg::Odometry ();
     // Set the header
-    msg.header.stamp = current_time_;
+    msg.header.stamp = now ();
     msg.header.frame_id = "odom";     // Adjust as needed
     msg.child_frame_id = "base_link"; // Adjust as needed
 
@@ -112,27 +99,20 @@ private:
     odom_pub_->publish (msg);
   }
 
-  double r_right_;                                  // [m]
-  double r_left_;                                   // [m]
-  double L_;                                        // [m]
-  double L_recip_;                                  // [1/m]
-  double rad2deg = 180 / M_PI;                      // [deg/rad]
-  double deg2rad = M_PI / 180;                      // [rad/deg]
-  double dt_;                                       // [s]
-  double v_base_;                                   // [m/s]
-  double w_base_;                                   // [rad/s]
-  double phi_base_ = 0;                             // [rad]
-  double mid_angle_;                                // [rad]
-  double x_base_ = 0;                               // [m]
-  double y_base_ = 0;                               // [m]
-  ros381_interfaces::msg::Float2 delta_phi_wheels_; // [rad]
-  ros381_interfaces::msg::Float2 w_wheels_;         // [rad/s]
-  ros381_interfaces::msg::Float2 v_wheels_;         // [m/s]
+  double L_;            // [m]
+  double L_recip_;      // [1/m]
+  double v_right_;      // [m/s]
+  double v_left_;       // [m/s]
+  double dt_;           // [s]
+  double v_base_;       // [m/s]
+  double w_base_;       // [rad/s]
+  double phi_base_ = 0; // [rad]
+  double mid_angle_;    // [rad]
+  double x_base_ = 0;   // [m]
+  double y_base_ = 0;   // [m]
   bool odom_initialized_ = false;
 
-  rclcpp::Time current_time_, previous_time_;
-  rclcpp::Clock::SharedPtr clock_;
-  rclcpp::Subscription<ros381_interfaces::msg::Float2>::SharedPtr
+  rclcpp::Subscription<ros381_interfaces::msg::Float3>::SharedPtr
       passive_vel_sub_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 };

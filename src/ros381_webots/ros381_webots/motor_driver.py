@@ -1,8 +1,6 @@
 import rclpy
 from ros381_interfaces.msg import Float2
 
-WHEEL_RADIUS = 0.035
-
 class MotorDriver:
     def init(self, webots_node, properties):
         self.robot_ = webots_node.robot

@@ -7,15 +7,22 @@ class EncoderReader:
     def init(self, webots_node, properties):
         self.robot_ = webots_node.robot
 
-        self.ros_node = Node('encoder_reader')
-        
+        try:
+            rclpy.init(args=None)
+        except:
+            pass
+        self.node_ = rclpy.create_node("encoder_reader")
+        self.ros_node = Node("encoder_reader")
+
         self.ros_node.declare_parameter("d_right", 0.072)
         self.r_right_ = (
-            self.ros_node.get_parameter("d_right").get_parameter_value().double_value * 0.5
+            self.ros_node.get_parameter("d_right").get_parameter_value().double_value
+            * 0.5
         )
         self.ros_node.declare_parameter("d_left", 0.072)
         self.r_left_ = (
-            self.ros_node.get_parameter("d_left").get_parameter_value().double_value * 0.5
+            self.ros_node.get_parameter("d_left").get_parameter_value().double_value
+            * 0.5
         )
 
         self.wheel_right_ = self.robot_.getDevice("odometry_wheel_right")
@@ -26,11 +33,6 @@ class EncoderReader:
         self.right_encoder_.enable(int(self.robot_.getBasicTimeStep()))
         self.left_encoder_.enable(int(self.robot_.getBasicTimeStep()))
 
-        try:
-            rclpy.init(args=None)
-        except:
-            pass
-        self.node_ = rclpy.create_node("encoder_reader")
         self.encoders_pub_ = self.node_.create_publisher(Float3, "base_encoders", 10)
 
         self.encoders_ = Float3()

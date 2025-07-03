@@ -87,6 +87,7 @@ PROTO ros381 [
           RotationalMotor {
             name "wheel_right"
             maxTorque 10
+            maxVelocity 60
           }
           PositionSensor {
             name "wheel_right_sensor"
@@ -134,6 +135,7 @@ PROTO ros381 [
           RotationalMotor {
             name "wheel_left"
             maxTorque 10
+            maxVelocity 60
           }
           PositionSensor {
             name "wheel_left_sensor"

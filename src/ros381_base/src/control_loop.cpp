@@ -1,5 +1,5 @@
-#include "ros381_interfaces/msg/float2.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "ros381_interfaces/msg/float2.hpp"
 
 class ControlLoopNode : public rclcpp::Node
 {
@@ -23,8 +23,8 @@ public:
         std::chrono::microseconds (period_us_),
         std::bind (&ControlLoopNode::control_loop, this));
     motor_cmd_publisher_
-        = this->create_publisher<ros381_interfaces::msg::Float2> (
-            "motor_cmd", 10);
+        = this->create_publisher<ros381_interfaces::msg::Float2> ("motor_cmd",
+                                                                  10);
 
     RCLCPP_INFO (this->get_logger (), "Control loop node is running.");
   }
@@ -33,7 +33,7 @@ private:
   double p_, i_, d_;
   double freq_hz_;
   int64_t period_us_;
-  double w_right = 1, w_left = 1;
+  double v_right = 2.5, v_left = 2.5; // [m/s]
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr
       motor_cmd_publisher_;
@@ -41,9 +41,11 @@ private:
   void
   control_loop ()
   {
-    // input:   reference velocities            (vx, vy, w)
+    // input:         reference positions     (x_ref, y_ref [m], phi_ref [rad])
 
-    // output:  reference motor commands  (ω60, ω180, ω300)
+    // intermediate:  reference velocities    (v_ref [m/s], w_ref [rad/s])
+
+    // output:      reference motor commands  (v_right, v_left) [m/s]
     this->publish_motor_cmd ();
   }
 
@@ -51,8 +53,8 @@ private:
   publish_motor_cmd ()
   {
     auto msg = ros381_interfaces::msg::Float2 ();
-    msg.float2[0] = w_right;
-    msg.float2[1] = w_left;
+    msg.float2[0] = v_right;
+    msg.float2[1] = v_left;
     motor_cmd_publisher_->publish (msg);
   }
 };

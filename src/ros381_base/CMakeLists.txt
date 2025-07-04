@@ -11,9 +11,10 @@ find_package(rclcpp REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(ros381_interfaces REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 add_executable(control_loop src/control_loop.cpp)
-ament_target_dependencies(control_loop rclcpp ros381_interfaces)
+ament_target_dependencies(control_loop rclcpp ros381_interfaces nav_msgs tf2 tf2_geometry_msgs)
 
 add_executable(odometry src/odometry.cpp src/signal.cpp)
 ament_target_dependencies(odometry rclcpp ros381_interfaces nav_msgs tf2)

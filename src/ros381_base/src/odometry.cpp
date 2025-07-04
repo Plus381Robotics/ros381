@@ -17,7 +17,7 @@ public:
     passive_vel_sub_
         = this->create_subscription<ros381_interfaces::msg::Float3> (
             "base_encoders", 10,
-            std::bind (&OdometryNode::callbackPassiveVel, this,
+            std::bind (&OdometryNode::callback_passive_vel, this,
                        std::placeholders::_1));
 
     odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry> ("odom", 10);
@@ -27,7 +27,7 @@ public:
 
 private:
   void
-  callbackPassiveVel (const ros381_interfaces::msg::Float3::SharedPtr msg)
+  callback_passive_vel (const ros381_interfaces::msg::Float3::SharedPtr msg)
   {
     v_right_ = msg->float3[0];
     v_left_ = msg->float3[1];
@@ -54,9 +54,9 @@ private:
         phi_base_ += w_base_ * dt_;
         wrapPi_ptr (&phi_base_);
 
-        RCLCPP_INFO (this->get_logger (),
-                     "\nv = %.3f\nw = %.3f\nx = %.3f\ny = %.3f\nphi = %.3f",
-                     v_base_, w_base_, x_base_, y_base_, phi_base_);
+        // RCLCPP_INFO (this->get_logger (),
+        //              "\nv = %.3f\nw = %.3f\nx = %.3f\ny = %.3f\nphi = %.3f",
+        //              v_base_, w_base_, x_base_, y_base_, phi_base_);
         this->publish_odometry ();
       }
     else

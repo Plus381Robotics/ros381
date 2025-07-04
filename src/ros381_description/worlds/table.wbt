@@ -16,11 +16,10 @@ WorldInfo {
       ]
     }
   ]
-  synchronization TRUE
 }
 Viewpoint {
   orientation -0.5773502691896258 0.5773502691896258 0.5773502691896258 2.0944
-  position 1.041032023942012e-06 1.0410349689391468e-06 4.049804888624622
+  position 9.265185013121173e-07 9.265211224916428e-07 4.009306839738994
   followType "None"
 }
 TexturedBackground {
@@ -29,12 +28,8 @@ TexturedBackgroundLight {
 }
 RectangleArena {
   floorSize 3 2
-  wallThickness 0.2
+  wallThickness 0.022
   wallHeight 0.07
-}
-Ros2Supervisor {
-  name "ros2_supervisor"
-  controller "ros2_supervisor"
 }
 DEF ros381 ros381 {
   translation 0 0 0.02

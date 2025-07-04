@@ -51,4 +51,4 @@ class MotorDriver:
 
         self.motor_right_.setVelocity(self.w_right_)
         self.motor_left_.setVelocity(self.w_left_)
-        self.node_.get_logger().info("Motor velocity commands: ( " + str(self.w_right_) + ", " + str(self.w_left_) + ")")
+        # self.node_.get_logger().info("Motor velocity commands: ( " + str(self.w_right_) + ", " + str(self.w_left_) + ")")

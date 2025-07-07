@@ -12,7 +12,7 @@ WorldInfo {
     ContactProperties {
       material1 "rubber"
       coulombFriction [
-        -1
+    	2
       ]
     }
   ]

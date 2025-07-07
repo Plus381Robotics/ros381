@@ -86,6 +86,7 @@ PROTO ros381 [
         device [
           RotationalMotor {
             name "wheel_right"
+			acceleration 600
             maxTorque 10
             maxVelocity 60
           }
@@ -134,6 +135,7 @@ PROTO ros381 [
         device [
           RotationalMotor {
             name "wheel_left"
+			acceleration 600
             maxTorque 10
             maxVelocity 60
           }

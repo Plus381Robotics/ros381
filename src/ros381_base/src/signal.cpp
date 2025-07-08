@@ -8,32 +8,22 @@
 #include "../include/signal.hpp"
 #include <cmath>
 
-void
-wrap180_ptr (volatile double *signal)
-{
-  if (*signal > 180)
-    *signal -= 360;
-  if (*signal < -180)
-    *signal += 360;
-}
-
-void
-wrapPi_ptr (volatile double *signal)
-{
-  if (*signal > M_PI)
-    *signal -= 2 * M_PI;
-  if (*signal < -M_PI)
-    *signal += 2 * M_PI;
-}
-
 double
-wrap180 (double signal)
+wrap(double signal, double max, double min)
 {
-  if (signal > 180)
-    return signal - 360;
-  if (signal < -180)
-    return signal + 360;
-  return signal;
+	double temp = signal;
+	wrap_ptr(&temp, max, min);
+	return temp;
+}
+
+void
+wrap_ptr (double *signal, double max, double min)
+{
+  double diff = max - min;
+  while (*signal > max)
+    *signal -= diff;
+  while (*signal < min)
+    *signal += diff;
 }
 
 short

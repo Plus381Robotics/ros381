@@ -1,9 +1,7 @@
-void
-wrap180_ptr(volatile double*);
-void
-wrapPi_ptr(volatile double*);
 double
-wrap180(double signal);
+wrap(double signal, double max, double min);
+void
+wrap_ptr (double *signal, double max, double min);
 short
 get_sign(double num);
 void

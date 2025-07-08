@@ -36,20 +36,20 @@ public:
 
 private:
   double L_;
-  double phi_base_;                                           // [rad]
-  double x_base_, y_base_;                                    // [m]
-  double v_base_, V_MAX_ = 2.0, v_ref_ = 0.0, prev_v_;        // [m/s]
-  double w_base_, W_MAX_ = 0.5 * 12.6, w_ref_ = 0.0, prev_w_; // [rad/s]
-  double x_ref_ = 0.0, y_ref_ = 0.0, phi_ref_ = -1.57;        // [m], [rad]
-  double x_error_, y_error_;                                  // [m]
-  double phi_error_;                                          // [rad]
-  double distance_;                                           // [m]
-  double distance_proj_;                                      //[m]
-  double stopping_distance_ = 0.5;                            // [m]
-  double stopping_angle_ = 0.77;                              //[rad]
+  double phi_base_;                                         // [rad]
+  double x_base_, y_base_;                                  // [m]
+  double v_base_, V_MAX_ = 2.0, v_ref_ = 0.0, prev_v_;      // [m/s]
+  double w_base_, W_MAX_ = 12.6, w_ref_ = 0.0, prev_w_;     // [rad/s]
+  double x_ref_ = 1.25, y_ref_ = 0.0, phi_ref_ = 0*1.57 ; // [m], [rad]
+  double x_error_, y_error_;                                // [m]
+  double phi_error_;                                        // [rad]
+  double distance_;                                         // [m]
+  double distance_proj_;                                    //[m]
+  double stopping_distance_ = 0.5;                          // [m]
+  double stopping_angle_ = 0.77;                            //[rad]
   double a_, alpha_;                                 // [m/s^2], [rad/s^2]
-  double j_max_ = 20.0, j_max_stop_ = 40.0;          // [m/s^3]
-  double j_rot_max = 120.0, j_rot_max_stop_ = 240.0; // [rad/s^3]
+  double j_max_ = 40.0, j_max_stop_ = 120.0;         // [m/s^3]
+  double j_rot_max = 240.0, j_rot_max_stop_ = 720.0; // [rad/s^3]
   unsigned long time_ns_, prev_time_;                // [ns]
   double dt_;                                        // [s]
   double freq_;                                      // [Hz]
@@ -73,17 +73,18 @@ private:
         x_error_ = x_ref_ - x_base_;
         y_error_ = y_ref_ - y_base_;
         phi_error_ = wrap (phi_ref_ - phi_base_, M_PI, -M_PI);
-        RCLCPP_INFO (this->get_logger (), "phi_base = %.2f, phi_error = %.2f",
-                     phi_base_, phi_error_);
+        // RCLCPP_INFO (this->get_logger (), "phi_base = %.2f, phi_error =
+        // %.2f",
+        //              phi_base_, phi_error_);
 
         distance_ = sqrt (x_error_ * x_error_ + y_error_ * y_error_);
         distance_proj_ = distance_ * cos (phi_error_);
 
         // intermediate:  reference velocities    (v_ref [m/s], w_ref [rad/s])
-        v_ref_ = synthesis_7 (distance_proj_, v_base_, a_, stopping_distance_,
-                              j_max_, V_MAX_, dt_);
-        w_ref_ = synthesis_7 (phi_error_, w_base_, alpha_, stopping_angle_,
-                              j_rot_max, W_MAX_, dt_);
+        v_ref_ = synthesis_7 (distance_proj_, v_base_, a_, j_max_, j_max_stop_,
+                              V_MAX_, dt_, 1.0);
+        w_ref_ = synthesis_7 (phi_error_, w_base_, alpha_, j_rot_max,
+                              j_rot_max_stop_, W_MAX_, dt_, 1.0);
         RCLCPP_INFO (this->get_logger (), "v_ref_ = %.2f, w_ref_ = %.2f",
                      v_ref_, w_ref_);
 
@@ -140,20 +141,25 @@ private:
 
   double
   synthesis_7 (double distance, double velocity, double acceleration,
-               double stopping_distance, double J_MAX, double v_max, double dt)
+               double J_MAX, double J_MAX_STOP, double v_max, double dt,
+               double stopping_coeff)
   {
     double abs_distance = fabs (distance);
     double abs_velocity = fabs (velocity);
     double abs_acceleration = fabs (acceleration);
-    double v_ref_ = 0;
+    double v_ref = 0;
     if (dt <= 0 || std::isnan (dt))
-      return velocity;
+      return 0.0;
+
+    double stopping_distance = 5 * pow (v_max, 1.5) / 3 / sqrt (J_MAX_STOP);
+    stopping_distance *= stopping_coeff; // Apply scaling factor
+    // RCLCPP_INFO (this->get_logger (), "stopping_distance = %.4f",
+    //              stopping_distance);
 
     if (abs_distance <= stopping_distance)
       {
-        // abs_distance = std::clamp (abs_distance, 0.0, stopping_distance);
         double x = abs_distance / stopping_distance; // Decel phase
-        v_ref_
+        v_ref
             = (double)get_sign (distance)
               * std::clamp (v_max
                                 * (35.0f * pow (x, 4) - 84.0f * pow (x, 5)
@@ -162,17 +168,16 @@ private:
       }
     else
       {
+        double j_step = J_MAX * dt;
         if (abs_velocity < v_max * 0.5f)
-          v_ref_
-              = velocity
-                + get_sign (distance) * (abs_acceleration + J_MAX * dt) * dt;
+          v_ref = abs_velocity + (abs_acceleration + j_step) * dt;
+        else if (j_step < abs_acceleration * 1.05)
+          v_ref = abs_velocity + (abs_acceleration - j_step) * dt;
         else
-          v_ref_
-              = velocity
-                + get_sign (distance) * (abs_acceleration - J_MAX * dt) * dt;
+          v_ref = v_max;
       }
 
-    return std::clamp (v_ref_, -v_max, v_max);
+    return std::clamp (get_sign (distance) * v_ref, -v_max, v_max);
   }
 };
 

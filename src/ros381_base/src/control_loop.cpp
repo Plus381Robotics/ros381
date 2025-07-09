@@ -37,8 +37,8 @@ public:
 private:
   double L_;                                                       // [m]
   double phi_base_, phi_error_, PHI_TOL_ = 0.009, phi_ref_ = 3.14; // [rad]
-  double x_base_, x_error_, x_ref_ = -1.0;                          // [m]
-  double y_base_, y_error_, y_ref_ = 0.5;                          // [m]
+  double x_base_, x_error_, x_ref_ = -1.0;                         // [m]
+  double y_base_, y_error_, y_ref_ = -0.5;                         // [m]
   // TODO: povecaj max brzine
   double v_base_, V_MAX_ = 1.0, V_MIN_ = 0.04, v_ref_ = 0.0, prev_v_; // [m/s]
   double w_base_, W_MAX_ = 6.28, W_MIN_ = 0.251, w_ref_ = 0.0,
@@ -51,7 +51,7 @@ private:
   unsigned long time_ns_, prev_time_;                    // [ns]
   double dt_;                                            // [s]
   double freq_;                                          // [Hz]
-  short reg_type_ = 1, reg_phase_ = 0, movement_state_ = 0;
+  short reg_type_ = 1, reg_phase_ = 0, movement_state_ = 0, direction_ = -1;
   unsigned long period_;              // [us]
   double v_right = 0.0, v_left = 0.0; // [m/s]
   bool odom_initialized_ = false;
@@ -109,8 +109,9 @@ private:
     v_ref_ = 0;
     w_ref_ = synthesis_7 (phi_error_, w_base_, alpha_, j_rot_max,
                           j_rot_max_stop_, W_MAX_, W_MIN_, dt_, 1.0);
-    RCLCPP_INFO (this->get_logger (), "Phi error = %.4f, Phi tolerance = %.3f",
-                 phi_error_, PHI_TOL_);
+    // RCLCPP_INFO (this->get_logger (), "Phi error = %.4f, Phitolerance =
+    // %.3f",
+    //              phi_error_, PHI_TOL_);
     if (fabs (phi_error_) < PHI_TOL_)
       {
         reg_type_ = 0;
@@ -124,17 +125,18 @@ private:
     movement_state_ = 1;
     x_error_ = x_ref_ - x_base_;
     y_error_ = y_ref_ - y_base_;
-    phi_error_ = wrap (atan2 (y_error_, x_error_) - phi_base_, -M_PI,
-                       M_PI); // TODO: + (direction - 1) * M_PI * 0.5
+    phi_error_ = wrap (atan2 (y_error_, x_error_) - phi_base_
+                           + (direction_ - 1) * M_PI * 0.5,
+                       -M_PI, M_PI);
     switch (reg_phase_)
       {
       case 0:
         v_ref_ = 0;
         w_ref_ = synthesis_7 (phi_error_, w_base_, alpha_, j_rot_max,
                               j_rot_max_stop_, W_MAX_, W_MIN_, dt_, 1.0);
-        RCLCPP_INFO (this->get_logger (),
-                     "Phi error = %.4f, Phi tolerance = %.3f", phi_error_,
-                     PHI_TOL_);
+        // RCLCPP_INFO (this->get_logger (),
+        //              "Phi error = %.4f, Phi tolerance = %.3f", phi_error_,
+        //              PHI_TOL_);
         if (fabs (phi_error_) < PHI_TOL_)
           {
             reg_phase_ = 1;
@@ -144,21 +146,21 @@ private:
         distance_ = sqrt (x_error_ * x_error_ + y_error_ * y_error_);
         distance_proj_ = distance_ * cos (phi_error_);
 
-        v_ref_ = synthesis_7 (distance_proj_, v_base_, a_, j_max_, j_max_stop_,
-                              V_MAX_, V_MIN_, dt_, 1.0);
+        v_ref_ = synthesis_7 (distance_proj_ * direction_, v_base_, a_, j_max_,
+                              j_max_stop_, V_MAX_, V_MIN_, dt_, 1.0);
         if (distance_proj_ > D_LONG_TOL_)
           w_ref_ = synthesis_7 (phi_error_, w_base_, alpha_, j_rot_max,
                                 j_rot_max_stop_, W_MAX_, W_MIN_, dt_, 1.0);
         else
           w_ref_ = 0;
 
-        RCLCPP_INFO (this->get_logger (),
-                     "Distance = %.4f, Distance tolerance = %.3f", distance_,
-                     D_TOL_);
-        RCLCPP_INFO (
-            this->get_logger (),
-            "Distance projected = %.4f, Distance projected tolerance = %.3f",
-            distance_proj_, D_PROJ_TOL_);
+        // RCLCPP_INFO (this->get_logger (),
+        //              "Distance = %.4f, Distance tolerance = %.3f",
+        //              distance_, D_TOL_);
+        // RCLCPP_INFO (
+        //     this->get_logger (),
+        //     "Distance projected = %.4f, Distance projected tolerance =
+        //     %.3f", distance_proj_, D_PROJ_TOL_);
         if (distance_proj_ < D_PROJ_TOL_ && fabs (distance_) < D_TOL_)
           {
             reg_type_ = 0;

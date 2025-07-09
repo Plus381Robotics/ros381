@@ -12,7 +12,7 @@ public:
   {
     this->declare_parameter ("freq_hz", 25.0);
     freq_ = this->get_parameter ("freq_hz").as_double ();
-    period_us_ = 1000000 / freq_;
+    period_ = 1000000 / freq_;
 
     this->declare_parameter ("L", 0.1545);
     L_ = this->get_parameter ("L").as_double ();
@@ -20,7 +20,7 @@ public:
     // TODO:
     // - uzima mete: action
     timer_ = this->create_wall_timer (
-        std::chrono::microseconds (period_us_),
+        std::chrono::microseconds (period_),
         std::bind (&ControlLoopNode::control_loop, this));
     motor_cmd_publisher_
         = this->create_publisher<ros381_interfaces::msg::Float2> ("motor_cmd",
@@ -35,25 +35,24 @@ public:
   }
 
 private:
-  double L_;
-  double phi_base_;                                         // [rad]
-  double x_base_, y_base_;                                  // [m]
-  double v_base_, V_MAX_ = 2.0, v_ref_ = 0.0, prev_v_;      // [m/s]
-  double w_base_, W_MAX_ = 12.6, w_ref_ = 0.0, prev_w_;     // [rad/s]
-  double x_ref_ = 1.25, y_ref_ = 0.0, phi_ref_ = 0*1.57 ; // [m], [rad]
-  double x_error_, y_error_;                                // [m]
-  double phi_error_;                                        // [rad]
-  double distance_;                                         // [m]
-  double distance_proj_;                                    //[m]
-  double stopping_distance_ = 0.5;                          // [m]
-  double stopping_angle_ = 0.77;                            //[rad]
-  double a_, alpha_;                                 // [m/s^2], [rad/s^2]
-  double j_max_ = 40.0, j_max_stop_ = 120.0;         // [m/s^3]
-  double j_rot_max = 240.0, j_rot_max_stop_ = 720.0; // [rad/s^3]
-  unsigned long time_ns_, prev_time_;                // [ns]
-  double dt_;                                        // [s]
-  double freq_;                                      // [Hz]
-  int64_t period_us_;
+  double L_;                                                       // [m]
+  double phi_base_, phi_error_, PHI_TOL_ = 0.009, phi_ref_ = 3.14; // [rad]
+  double x_base_, x_error_, x_ref_ = -1.0;                          // [m]
+  double y_base_, y_error_, y_ref_ = 0.5;                          // [m]
+  // TODO: povecaj max brzine
+  double v_base_, V_MAX_ = 1.0, V_MIN_ = 0.04, v_ref_ = 0.0, prev_v_; // [m/s]
+  double w_base_, W_MAX_ = 6.28, W_MIN_ = 0.251, w_ref_ = 0.0,
+                  prev_w_; // [rad/s]
+  double distance_, distance_proj_, D_TOL_ = 0.005, D_LONG_TOL_ = 0.08,
+                                    D_PROJ_TOL_ = 0.002; // [m]
+  double a_, alpha_;                                     // [m/s^2], [rad/s^2]
+  double j_max_ = 40.0, j_max_stop_ = 120.0;             // [m/s^3]
+  double j_rot_max = 650.0, j_rot_max_stop_ = 1950.0;    // [rad/s^3]
+  unsigned long time_ns_, prev_time_;                    // [ns]
+  double dt_;                                            // [s]
+  double freq_;                                          // [Hz]
+  short reg_type_ = 1, reg_phase_ = 0, movement_state_ = 0;
+  unsigned long period_;              // [us]
   double v_right = 0.0, v_left = 0.0; // [m/s]
   bool odom_initialized_ = false;
   rclcpp::TimerBase::SharedPtr timer_;
@@ -67,30 +66,23 @@ private:
   {
     if (odom_initialized_)
       {
-        // input:         reference positions     (x_ref, y_ref [m], phi_ref
-        // [rad])
-        // TODO: ovde ide mali fsm: rotate, go_to_xy, 0
-        x_error_ = x_ref_ - x_base_;
-        y_error_ = y_ref_ - y_base_;
-        phi_error_ = wrap (phi_ref_ - phi_base_, M_PI, -M_PI);
-        // RCLCPP_INFO (this->get_logger (), "phi_base = %.2f, phi_error =
-        // %.2f",
-        //              phi_base_, phi_error_);
-
-        distance_ = sqrt (x_error_ * x_error_ + y_error_ * y_error_);
-        distance_proj_ = distance_ * cos (phi_error_);
-
-        // intermediate:  reference velocities    (v_ref [m/s], w_ref [rad/s])
-        v_ref_ = synthesis_7 (distance_proj_, v_base_, a_, j_max_, j_max_stop_,
-                              V_MAX_, dt_, 1.0);
-        w_ref_ = synthesis_7 (phi_error_, w_base_, alpha_, j_rot_max,
-                              j_rot_max_stop_, W_MAX_, dt_, 1.0);
-        RCLCPP_INFO (this->get_logger (), "v_ref_ = %.2f, w_ref_ = %.2f",
-                     v_ref_, w_ref_);
+        switch (reg_type_)
+          {
+          case -1:
+            rotate ();
+            break;
+          case 0:
+            v_ref_ = 0;
+            w_ref_ = 0;
+            break;
+          case 1:
+            go_to_xy ();
+            break;
+          }
 
         // output:      reference motor commands  (v_right, v_left) [m/s]
-        v_right = v_ref_ + w_ref_ * L_;
-        v_left = v_ref_ - w_ref_ * L_;
+        v_right = v_ref_ + w_ref_ * L_ * 0.5;
+        v_left = v_ref_ - w_ref_ * L_ * 0.5;
         // RCLCPP_INFO (this->get_logger (), "v_right = %.2f, v_left = %.2f",
         // v_right,
         //              v_left);
@@ -100,15 +92,80 @@ private:
         a_ = (v_base_ - prev_v_) / dt_;
         alpha_ = (w_base_ - prev_w_) / dt_;
 
-        // RCLCPP_INFO (this->get_logger (), "a = %.3f, alpha = %.3f", a_,
-        //              alpha_);
-
         // Previous
         prev_v_ = v_base_;
         prev_w_ = w_base_;
         prev_time_ = time_ns_;
 
         this->publish_motor_cmd ();
+      }
+  }
+
+  void
+  rotate ()
+  {
+    movement_state_ = 1;
+    phi_error_ = wrap (phi_ref_ - phi_base_, -M_PI, M_PI);
+    v_ref_ = 0;
+    w_ref_ = synthesis_7 (phi_error_, w_base_, alpha_, j_rot_max,
+                          j_rot_max_stop_, W_MAX_, W_MIN_, dt_, 1.0);
+    RCLCPP_INFO (this->get_logger (), "Phi error = %.4f, Phi tolerance = %.3f",
+                 phi_error_, PHI_TOL_);
+    if (fabs (phi_error_) < PHI_TOL_)
+      {
+        reg_type_ = 0;
+        movement_state_ = -1;
+      }
+  }
+
+  void
+  go_to_xy ()
+  {
+    movement_state_ = 1;
+    x_error_ = x_ref_ - x_base_;
+    y_error_ = y_ref_ - y_base_;
+    phi_error_ = wrap (atan2 (y_error_, x_error_) - phi_base_, -M_PI,
+                       M_PI); // TODO: + (direction - 1) * M_PI * 0.5
+    switch (reg_phase_)
+      {
+      case 0:
+        v_ref_ = 0;
+        w_ref_ = synthesis_7 (phi_error_, w_base_, alpha_, j_rot_max,
+                              j_rot_max_stop_, W_MAX_, W_MIN_, dt_, 1.0);
+        RCLCPP_INFO (this->get_logger (),
+                     "Phi error = %.4f, Phi tolerance = %.3f", phi_error_,
+                     PHI_TOL_);
+        if (fabs (phi_error_) < PHI_TOL_)
+          {
+            reg_phase_ = 1;
+          }
+        break;
+      case 1:
+        distance_ = sqrt (x_error_ * x_error_ + y_error_ * y_error_);
+        distance_proj_ = distance_ * cos (phi_error_);
+
+        v_ref_ = synthesis_7 (distance_proj_, v_base_, a_, j_max_, j_max_stop_,
+                              V_MAX_, V_MIN_, dt_, 1.0);
+        if (distance_proj_ > D_LONG_TOL_)
+          w_ref_ = synthesis_7 (phi_error_, w_base_, alpha_, j_rot_max,
+                                j_rot_max_stop_, W_MAX_, W_MIN_, dt_, 1.0);
+        else
+          w_ref_ = 0;
+
+        RCLCPP_INFO (this->get_logger (),
+                     "Distance = %.4f, Distance tolerance = %.3f", distance_,
+                     D_TOL_);
+        RCLCPP_INFO (
+            this->get_logger (),
+            "Distance projected = %.4f, Distance projected tolerance = %.3f",
+            distance_proj_, D_PROJ_TOL_);
+        if (distance_proj_ < D_PROJ_TOL_ && fabs (distance_) < D_TOL_)
+          {
+            reg_type_ = 0;
+            movement_state_ = -1;
+          }
+
+        break;
       }
   }
 
@@ -141,8 +198,8 @@ private:
 
   double
   synthesis_7 (double distance, double velocity, double acceleration,
-               double J_MAX, double J_MAX_STOP, double v_max, double dt,
-               double stopping_coeff)
+               double J_MAX, double J_MAX_STOP, double v_max, double v_min,
+               double dt, double stopping_coeff)
   {
     double abs_distance = fabs (distance);
     double abs_velocity = fabs (velocity);
@@ -159,12 +216,11 @@ private:
     if (abs_distance <= stopping_distance)
       {
         double x = abs_distance / stopping_distance; // Decel phase
-        v_ref
-            = (double)get_sign (distance)
-              * std::clamp (v_max
-                                * (35.0f * pow (x, 4) - 84.0f * pow (x, 5)
-                                   + 70.0f * pow (x, 6) - 20.0f * pow (x, 7)),
-                            0.0, abs_velocity);
+        v_ref = v_max
+                * (35.0f * pow (x, 4) - 84.0f * pow (x, 5) + 70.0f * pow (x, 6)
+                   - 20.0f * pow (x, 7));
+        // v_ref = std::clamp (v_ref, 0.0, abs_velocity);
+        // v_ref = 0;
       }
     else
       {
@@ -176,6 +232,7 @@ private:
         else
           v_ref = v_max;
       }
+    v_ref = std::clamp (v_ref, v_min, v_max);
 
     return std::clamp (get_sign (distance) * v_ref, -v_max, v_max);
   }

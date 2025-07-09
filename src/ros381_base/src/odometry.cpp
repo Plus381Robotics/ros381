@@ -52,7 +52,7 @@ private:
         x_base_ += v_base_ * cos (mid_angle_) * dt_;
         y_base_ += v_base_ * sin (mid_angle_) * dt_;
         phi_base_ += w_base_ * dt_;
-        wrap_ptr (&phi_base_, M_PI, -M_PI);
+        wrap_ptr (&phi_base_, -M_PI, M_PI);
 
         // RCLCPP_INFO (this->get_logger (),
         //              "\nv = %.3f\nw = %.3f\nx = %.3f\ny = %.3f\nphi = %.3f",

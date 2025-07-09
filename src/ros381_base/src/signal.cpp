@@ -9,15 +9,15 @@
 #include <cmath>
 
 double
-wrap(double signal, double max, double min)
+wrap(double signal, double min, double max)
 {
 	double temp = signal;
-	wrap_ptr(&temp, max, min);
+	wrap_ptr(&temp, min, max);
 	return temp;
 }
 
 void
-wrap_ptr (double *signal, double max, double min)
+wrap_ptr (double *signal, double min, double max)
 {
   double diff = max - min;
   while (*signal > max)

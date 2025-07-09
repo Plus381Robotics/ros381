@@ -1,5 +1,5 @@
 double
-wrap(double signal, double max, double min);
+wrap(double signal, double min, double max);
 void
 wrap_ptr (double *signal, double max, double min);
 short

@@ -10,13 +10,8 @@ class ControlLoopNode : public rclcpp::Node
 public:
   ControlLoopNode () : Node ("control_loop")
   {
-    this->declare_parameter ("freq_hz", 25.0);
-    freq_ = this->get_parameter ("freq_hz").as_double ();
-    period_ = 1000000 / freq_;
 
-    this->declare_parameter ("L", 0.1545);
-    L_ = this->get_parameter ("L").as_double ();
-
+    this->declare_parameters ();
     // TODO:
     // - uzima mete: action
     timer_ = this->create_wall_timer (
@@ -35,30 +30,30 @@ public:
   }
 
 private:
-  double L_;                                                       // [m]
-  double phi_base_, phi_error_, PHI_TOL_ = 0.002, phi_ref_ = 3.14; // [rad]
-  double x_base_, x_error_, x_ref_ = 1.25;                         // [m]
-  double y_base_, y_error_, y_ref_ = 0.75;                         // [m]
+  double L_;                                               // [m]
+  double phi_base_, phi_error_, PHI_TOL_, phi_ref_ = 3.14; // [rad]
+  double x_base_, x_error_, x_ref_ = 1.0;                  // [m]
+  double y_base_, y_error_, y_ref_ = 0.5;                  // [m]
   // TODO: povecaj max brzine
-  double v_base_, V_MAX_ = 2.0, V_MIN_ = 0.08, v_ref_ = 0.0, prev_v_; // [m/s]
-  double MOTOR_V_MAX = 2.0;                                           // [m/s]
-  double w_base_, W_MAX_ = 12.6, W_MIN_ = 0.126, w_ref_ = 0.0,
-                  prev_w_;     // [rad/s]
-  double v_max_temp_ = V_MAX_; // [m/s]
-  double w_max_temp_ = W_MAX_; // [rad/s]
-  double distance_, distance_proj_, D_TOL_ = 0.005, D_LONG_TOL_ = 0.10,
-                                    D_PROJ_TOL_ = 0.002,
-                                    D_SHORT_BLEND_TOL_ = 0.05; // [m]
-  double stopping_distance_ = 0, starting_distance_ = 0;       // [m]
-  double stopping_angle_ = 0, starting_angle_ = 0;             // [rad]
+  double v_base_, V_MAX_, V_MIN_, v_ref_ = 0.0, prev_v_; // [m/s]
+  double MOTOR_V_MAX_;                                   // [m/s]
+  double w_base_, W_MAX_, W_MIN_, w_ref_ = 0.0,
+                                  prev_w_; // [rad/s]
+  double v_max_temp_;                      // [m/s]
+  double w_max_temp_;                      // [rad/s]
+  double distance_, distance_proj_;        // [m]
+  double D_TOL_, D_LONG_TOL_, D_PROJ_TOL_,
+      D_SHORT_TOL_;                                      // [m]
+  double stopping_distance_ = 0, starting_distance_ = 0; // [m]
+  double stopping_angle_ = 0, starting_angle_ = 0;       // [rad]
   double stopping_coeff_w_ = 1.0, starting_coeff_w_ = 1.0;
   double stopping_coeff_v_ = 1.0, starting_coeff_v_ = 1.0;
   double slowing_coeff_ = 1.0;
-  double P_w_ = 10.0;
-  double a_, alpha_; // [m/s^2], [rad/s^2]
-  double J_MAX_ = 40.0, j_max_temp_ = J_MAX_, j_max_stop_ = 120.0; // [m/s^3]
-  double J_ROT_MAX_ = 650.0, j_rot_max_temp_ = J_ROT_MAX_,
-         j_rot_max_stop_ = 1950.0;    // [rad/s^3]
+  double P_w_;
+  double a_, alpha_;                       // [m/s^2], [rad/s^2]
+  double J_MAX_, j_max_temp_, J_MAX_STOP_; // [m/s^3]
+  double J_ROT_MAX_, j_rot_max_temp_,
+      J_ROT_MAX_STOP_;                // [rad/s^3]
   unsigned long time_ns_, prev_time_; // [ns]
   double dt_;                         // [s]
   double freq_;                       // [Hz]
@@ -91,11 +86,11 @@ private:
             break;
           }
 
-        v_right_ = std::clamp (v_ref_ + w_ref_ * L_ * 0.5, -MOTOR_V_MAX,
-                               MOTOR_V_MAX);
-        v_left_ = std::clamp (v_ref_ - w_ref_ * L_ * 0.5, -MOTOR_V_MAX,
-                              MOTOR_V_MAX);
-        scale_vel_ref (&v_right_, &v_left_, MOTOR_V_MAX);
+        v_right_ = std::clamp (v_ref_ + w_ref_ * L_ * 0.5, -MOTOR_V_MAX_,
+                               MOTOR_V_MAX_);
+        v_left_ = std::clamp (v_ref_ - w_ref_ * L_ * 0.5, -MOTOR_V_MAX_,
+                              MOTOR_V_MAX_);
+        scale_vel_ref (&v_right_, &v_left_, MOTOR_V_MAX_);
 
         dt_ = (time_ns_ - prev_time_) * 0.000000001;
         a_ = (v_base_ - prev_v_) / dt_;
@@ -117,7 +112,7 @@ private:
         starting_angle_ = 5 * pow (w_max_temp_, 1.5) / 3
                           / sqrt (j_rot_max_temp_) * starting_coeff_w_;
         stopping_angle_ = 5 * pow (w_max_temp_, 1.5) / 3
-                          / sqrt (j_rot_max_stop_) * stopping_coeff_w_;
+                          / sqrt (J_ROT_MAX_STOP_) * stopping_coeff_w_;
 
         slowing_coeff_ = std::clamp (
             pow (fabs (phi_error_) / (starting_angle_ + stopping_angle_),
@@ -126,7 +121,7 @@ private:
 
         w_max_temp_ *= slowing_coeff_;
         stopping_angle_ = 5 * pow (w_max_temp_, 1.5) / 3
-                          / sqrt (j_rot_max_stop_) * stopping_coeff_w_;
+                          / sqrt (J_ROT_MAX_STOP_) * stopping_coeff_w_;
 
         movement_state_ = 1;
       }
@@ -164,7 +159,7 @@ private:
         starting_angle_ = 5 * pow (w_max_temp_, 1.5) / 3
                           / sqrt (j_rot_max_temp_) * starting_coeff_w_;
         stopping_angle_ = 5 * pow (w_max_temp_, 1.5) / 3
-                          / sqrt (j_rot_max_stop_) * stopping_coeff_w_;
+                          / sqrt (J_ROT_MAX_STOP_) * stopping_coeff_w_;
 
         slowing_coeff_ = std::clamp (
             pow (fabs (phi_error_) / (starting_angle_ + stopping_angle_),
@@ -174,7 +169,7 @@ private:
         // Calculate new parameters
         w_max_temp_ *= slowing_coeff_;
         stopping_angle_ = 5 * pow (w_max_temp_, 1.5) / 3
-                          / sqrt (j_rot_max_stop_) * stopping_coeff_w_;
+                          / sqrt (J_ROT_MAX_STOP_) * stopping_coeff_w_;
 
         reg_phase_ = 1;
         break;
@@ -195,7 +190,7 @@ private:
         starting_distance_ = 5 * pow (v_max_temp_, 1.5) / 3
                              / sqrt (j_max_temp_) * starting_coeff_v_;
         stopping_distance_ = 5 * pow (v_max_temp_, 1.5) / 3
-                             / sqrt (j_max_stop_) * stopping_coeff_v_;
+                             / sqrt (J_MAX_STOP_) * stopping_coeff_v_;
 
         slowing_coeff_ = std::clamp (
             pow (distance_ / (starting_distance_ + stopping_distance_),
@@ -205,7 +200,7 @@ private:
         // Calculate new parameters
         v_max_temp_ *= slowing_coeff_;
         stopping_distance_ = 5 * pow (v_max_temp_, 1.5) / 3
-                             / sqrt (j_max_stop_) * stopping_coeff_v_;
+                             / sqrt (J_MAX_STOP_) * stopping_coeff_v_;
 
         reg_phase_ = 3;
         break;
@@ -217,8 +212,8 @@ private:
                               j_max_temp_, stopping_distance_, v_max_temp_,
                               V_MIN_, dt_);
         w_ref_ = P_w_
-                 * std::clamp ((distance_ - D_SHORT_BLEND_TOL_)
-                                   / (D_LONG_TOL_ - D_SHORT_BLEND_TOL_),
+                 * std::clamp ((distance_ - D_SHORT_TOL_)
+                                   / (D_LONG_TOL_ - D_SHORT_TOL_),
                                0.0, 1.0)
                  * phi_error_;
 
@@ -289,6 +284,71 @@ private:
     v_ref = std::clamp (v_ref, v_min, v_max);
 
     return std::clamp (get_sign (distance) * v_ref, -v_max, v_max);
+  }
+
+  void
+  declare_parameters ()
+  {
+    this->declare_parameter ("FREQ", 25.0);
+    freq_ = this->get_parameter ("FREQ").as_double ();
+    period_ = 1000000 / freq_;
+    this->declare_parameter ("L", 0.1545);
+    L_ = this->get_parameter ("L").as_double ();
+    this->declare_parameter ("V_MAX", 1.0);
+    V_MAX_ = this->get_parameter ("V_MAX").as_double ();
+    this->declare_parameter ("V_MIN", 0.1);
+    V_MIN_ = this->get_parameter ("V_MIN").as_double ();
+    this->declare_parameter ("W_MAX", 6.28);
+    W_MAX_ = this->get_parameter ("W_MAX").as_double ();
+    this->declare_parameter ("W_MIN", 0.126);
+    W_MIN_ = this->get_parameter ("W_MIN").as_double ();
+    this->declare_parameter ("MOTOR_V_MAX", 1.0);
+    MOTOR_V_MAX_ = this->get_parameter ("MOTOR_V_MAX").as_double ();
+    this->declare_parameter ("P_w", 1.0);
+    P_w_ = this->get_parameter ("P_w").as_double ();
+    this->declare_parameter ("J_MAX", 40.0);
+    J_MAX_ = this->get_parameter ("J_MAX").as_double ();
+    this->declare_parameter ("J_MAX_STOP", 120.0);
+    J_MAX_STOP_ = this->get_parameter ("J_MAX_STOP").as_double ();
+    this->declare_parameter ("J_ROT_MAX", 650.0);
+    J_ROT_MAX_ = this->get_parameter ("J_ROT_MAX").as_double ();
+    this->declare_parameter ("J_ROT_MAX_STOP", 1950.0);
+    J_ROT_MAX_STOP_ = this->get_parameter ("J_ROT_MAX_STOP").as_double ();
+    this->declare_parameter ("D_TOL", 0.005);
+    D_TOL_ = this->get_parameter ("D_TOL").as_double ();
+    this->declare_parameter ("D_PROJ_TOL", 0.002);
+    D_PROJ_TOL_ = this->get_parameter ("D_PROJ_TOL").as_double ();
+    this->declare_parameter ("D_LONG_TOL", 0.1);
+    D_LONG_TOL_ = this->get_parameter ("D_LONG_TOL").as_double ();
+    this->declare_parameter ("D_SHORT_TOL", 0.05);
+    D_SHORT_TOL_ = this->get_parameter ("D_SHORT_TOL").as_double ();
+    this->declare_parameter ("PHI_TOL", 0.002);
+    PHI_TOL_ = this->get_parameter ("PHI_TOL").as_double ();
+
+    RCLCPP_INFO (this->get_logger (), "Parameters:");
+    RCLCPP_INFO (this->get_logger (), "  FREQ: %.2f", freq_);
+    RCLCPP_INFO (this->get_logger (), "  L: %.4f", L_);
+    RCLCPP_INFO (this->get_logger (), "  V_MAX: %.2f", V_MAX_);
+    RCLCPP_INFO (this->get_logger (), "  V_MIN: %.2f", V_MIN_);
+    RCLCPP_INFO (this->get_logger (), "  W_MAX: %.2f", W_MAX_);
+    RCLCPP_INFO (this->get_logger (), "  W_MIN: %.3f", W_MIN_);
+    RCLCPP_INFO (this->get_logger (), "  MOTOR_V_MAX: %.2f", MOTOR_V_MAX_);
+    RCLCPP_INFO (this->get_logger (), "  P_w: %.2f", P_w_);
+    RCLCPP_INFO (this->get_logger (), "  J_MAX: %.2f", J_MAX_);
+    RCLCPP_INFO (this->get_logger (), "  J_MAX_STOP: %.2f", J_MAX_STOP_);
+    RCLCPP_INFO (this->get_logger (), "  J_ROT_MAX: %.2f", J_ROT_MAX_);
+    RCLCPP_INFO (this->get_logger (), "  J_ROT_MAX_STOP: %.2f",
+                 J_ROT_MAX_STOP_);
+    RCLCPP_INFO (this->get_logger (), "  D_TOL: %.3f", D_TOL_);
+    RCLCPP_INFO (this->get_logger (), "  D_PROJ_TOL: %.3f", D_PROJ_TOL_);
+    RCLCPP_INFO (this->get_logger (), "  D_LONG_TOL: %.2f", D_LONG_TOL_);
+    RCLCPP_INFO (this->get_logger (), "  D_SHORT_TOL: %.3f", D_SHORT_TOL_);
+    RCLCPP_INFO (this->get_logger (), "  PHI_TOL: %.3f", PHI_TOL_);
+
+    v_max_temp_ = V_MAX_;
+    w_max_temp_ = W_MAX_;
+    j_max_temp_ = J_MAX_;
+    j_rot_max_temp_ = J_ROT_MAX_;
   }
 };
 

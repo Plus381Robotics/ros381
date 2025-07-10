@@ -41,6 +41,7 @@ private:
   double y_base_, y_error_, y_ref_ = 0.75;                         // [m]
   // TODO: povecaj max brzine
   double v_base_, V_MAX_ = 2.0, V_MIN_ = 0.08, v_ref_ = 0.0, prev_v_; // [m/s]
+  double MOTOR_V_MAX = 2.0;                                           // [m/s]
   double w_base_, W_MAX_ = 12.6, W_MIN_ = 0.126, w_ref_ = 0.0,
                   prev_w_;     // [rad/s]
   double v_max_temp_ = V_MAX_; // [m/s]
@@ -53,7 +54,7 @@ private:
   double stopping_coeff_w_ = 1.0, starting_coeff_w_ = 1.0;
   double stopping_coeff_v_ = 1.0, starting_coeff_v_ = 1.0;
   double slowing_coeff_ = 1.0;
-  double P_w_ = 1.0;
+  double P_w_ = 10.0;
   double a_, alpha_; // [m/s^2], [rad/s^2]
   double J_MAX_ = 40.0, j_max_temp_ = J_MAX_, j_max_stop_ = 120.0; // [m/s^3]
   double J_ROT_MAX_ = 650.0, j_rot_max_temp_ = J_ROT_MAX_,
@@ -62,8 +63,8 @@ private:
   double dt_;                         // [s]
   double freq_;                       // [Hz]
   short reg_type_ = 1, reg_phase_ = 0, movement_state_ = 0, direction_ = 1;
-  unsigned long period_;              // [us]
-  double v_right = 0.0, v_left = 0.0; // [m/s]
+  unsigned long period_;                // [us]
+  double v_right_ = 0.0, v_left_ = 0.0; // [m/s]
   bool odom_initialized_ = false;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr
@@ -90,8 +91,11 @@ private:
             break;
           }
 
-        v_right = v_ref_ + w_ref_ * L_ * 0.5;
-        v_left = v_ref_ - w_ref_ * L_ * 0.5;
+        v_right_ = std::clamp (v_ref_ + w_ref_ * L_ * 0.5, -MOTOR_V_MAX,
+                               MOTOR_V_MAX);
+        v_left_ = std::clamp (v_ref_ - w_ref_ * L_ * 0.5, -MOTOR_V_MAX,
+                              MOTOR_V_MAX);
+        scale_vel_ref (&v_right_, &v_left_, MOTOR_V_MAX);
 
         dt_ = (time_ns_ - prev_time_) * 0.000000001;
         a_ = (v_base_ - prev_v_) / dt_;
@@ -234,8 +238,8 @@ private:
   publish_motor_cmd ()
   {
     auto msg = ros381_interfaces::msg::Float2 ();
-    msg.float2[0] = v_right;
-    msg.float2[1] = v_left;
+    msg.float2[0] = v_right_;
+    msg.float2[1] = v_left_;
     motor_cmd_publisher_->publish (msg);
   }
 

@@ -24,3 +24,15 @@ control_loop:
     D_LONG_TOL: 0.1 # distance before rotation is used fully
     D_SHORT_TOL: 0.05 # minimal distance for rotation during translation
     PHI_TOL: 0.0087 # absolute angle from target
+
+odometry:
+  ros__parameters:
+    use_sim_time: True
+    # Distance between encoder wheels: [m]
+    L: 0.297
+
+encoder_reader:
+  ros__parameters:
+    # Diameters of encoder wheels: [m]
+    D_RIGHT: 0.72
+    D_LEFT: 1.72

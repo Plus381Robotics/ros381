@@ -2,6 +2,8 @@ import rclpy
 from rclpy.node import Node
 from ros381_interfaces.msg import Float3
 
+R_RIGHT = 0.072 * 0.5
+R_LEFT = 0.072 * 0.5
 
 class EncoderReader:
     def init(self, webots_node, properties):
@@ -12,18 +14,6 @@ class EncoderReader:
         except:
             pass
         self.node_ = rclpy.create_node("encoder_reader")
-        self.ros_node = Node("encoder_reader")
-
-        self.ros_node.declare_parameter("d_right", 0.072)
-        self.r_right_ = (
-            self.ros_node.get_parameter("d_right").get_parameter_value().double_value
-            * 0.5
-        )
-        self.ros_node.declare_parameter("d_left", 0.072)
-        self.r_left_ = (
-            self.ros_node.get_parameter("d_left").get_parameter_value().double_value
-            * 0.5
-        )
 
         self.wheel_right_ = self.robot_.getDevice("odometry_wheel_right")
         self.wheel_left_ = self.robot_.getDevice("odometry_wheel_left")
@@ -53,22 +43,16 @@ class EncoderReader:
         if dt_ > 0:
             self.encoders_.float3[0] = (
                 (self.right_encoder_.getValue() - self.prev_right_pos_)
-                * self.r_right_
+                * R_RIGHT
                 / dt_
             )
             self.encoders_.float3[1] = (
                 (self.left_encoder_.getValue() - self.prev_left_pos_)
-                * self.r_left_
+                * R_LEFT
                 / dt_
             )
             self.encoders_.float3[2] = dt_
 
-            # Update previous values
-            self.prev_right_pos_ = self.right_encoder_.getValue()
-            self.prev_left_pos_ = self.left_encoder_.getValue()
-            self.prev_time_ = current_time_
-
-            # Publish encoders
             self.encoders_pub_.publish(self.encoders_)
 
     def step(self):

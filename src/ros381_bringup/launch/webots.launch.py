@@ -40,9 +40,9 @@ def generate_launch_description():
         executable="odometry",
         name="odometry",
         output="screen",
-        # Add parameters if needed:
-        parameters=[{"use_sim_time": True}],
-        # parameters=[os.path.join(control_pkg, 'config', 'control_params.yaml')]
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+        ],
     )
 
     return LaunchDescription(

@@ -2,6 +2,8 @@ import rclpy
 from rclpy.node import Node
 from ros381_interfaces.msg import Float2
 
+R_RIGHT = 0.035
+R_LEFT = 0.035
 
 class MotorDriver:
     def init(self, webots_node, properties):
@@ -12,18 +14,6 @@ class MotorDriver:
         except:
             pass
         self.node_ = rclpy.create_node("motor_driver")
-        self.ros_node = Node("motor_driver")
-
-        self.ros_node.declare_parameter("d_right", 0.07)
-        self.r_right_ = (
-            self.ros_node.get_parameter("d_right").get_parameter_value().double_value
-            * 0.5
-        )
-        self.ros_node.declare_parameter("d_left", 0.07)
-        self.r_left_ = (
-            self.ros_node.get_parameter("d_left").get_parameter_value().double_value
-            * 0.5
-        )
 
         self.motor_right_ = self.robot_.getDevice("wheel_right")
         self.motor_left_ = self.robot_.getDevice("wheel_left")
@@ -43,12 +33,11 @@ class MotorDriver:
         self.node_.get_logger().info("Webots motor driver is initialized.")
 
     def cmd_vel_callback(self, motor_cmd):
-        self.w_right_ = motor_cmd.float2[0] / self.r_right_
-        self.w_left_ = motor_cmd.float2[1] / self.r_left_
+        self.w_right_ = motor_cmd.float2[0] / R_RIGHT
+        self.w_left_ = motor_cmd.float2[1] / R_LEFT
 
     def step(self):
         rclpy.spin_once(self.node_, timeout_sec=0)
 
         self.motor_right_.setVelocity(self.w_right_)
         self.motor_left_.setVelocity(self.w_left_)
-        # self.node_.get_logger().info("Motor velocity commands: ( " + str(self.w_right_) + ", " + str(self.w_left_) + ")")

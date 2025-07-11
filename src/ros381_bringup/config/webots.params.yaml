@@ -30,9 +30,3 @@ odometry:
     use_sim_time: True
     # Distance between encoder wheels: [m]
     L: 0.297
-
-encoder_reader:
-  ros__parameters:
-    # Diameters of encoder wheels: [m]
-    D_RIGHT: 0.72
-    D_LEFT: 1.72

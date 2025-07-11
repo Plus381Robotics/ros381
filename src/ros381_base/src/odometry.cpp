@@ -40,11 +40,6 @@ private:
   {
     if (odom_initialized_)
       {
-        // RCLCPP_INFO (this->get_logger(), "dt_ = %f", dt_);
-
-        // RCLCPP_INFO (this->get_logger (), "Got passive vel! (%.4f, %.4f)",
-        //              v.float2[0], v.float2[1]);
-
         v_base_ = (v_right_ + v_left_) * 0.5;
         w_base_ = (v_right_ - v_left_) * L_recip_;
         mid_angle_ = phi_base_ + w_base_ * dt_ * 0.5;

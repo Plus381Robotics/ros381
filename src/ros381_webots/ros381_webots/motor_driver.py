@@ -13,6 +13,7 @@ class MotorDriver:
             rclpy.init(args=None)
         except:
             pass
+        
         self.node_ = rclpy.create_node("motor_driver")
 
         self.motor_right_ = self.robot_.getDevice("wheel_right")
@@ -27,8 +28,8 @@ class MotorDriver:
             Float2, "motor_cmd", self.cmd_vel_callback, 1
         )
 
-        self.w_right_ = 0  # Right motor velocity   [rad/s]
-        self.w_left_ = 0  # Left motor velocity    [rad/s]
+        self.w_right_ = 0.0  # Right motor velocity   [rad/s]
+        self.w_left_ = 0.0  # Left motor velocity    [rad/s]
 
         self.node_.get_logger().info("Webots motor driver is initialized.")
 

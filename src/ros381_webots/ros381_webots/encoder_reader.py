@@ -42,17 +42,17 @@ class EncoderReader:
 
         if dt_ > 0:
             self.encoders_.float3[0] = (
-                (self.right_encoder_.getValue() - self.prev_right_pos_)
-                * R_RIGHT
-                / dt_
+                (self.right_encoder_.getValue() - self.prev_right_pos_) * R_RIGHT / dt_
             )
             self.encoders_.float3[1] = (
-                (self.left_encoder_.getValue() - self.prev_left_pos_)
-                * R_LEFT
-                / dt_
+                (self.left_encoder_.getValue() - self.prev_left_pos_) * R_LEFT / dt_
             )
             self.encoders_.float3[2] = dt_
 
+            self.prev_right_pos_ = self.right_encoder_.getValue()
+            self.prev_left_pos_ = self.left_encoder_.getValue()
+            self.prev_time_ = current_time_
+            
             self.encoders_pub_.publish(self.encoders_)
 
     def step(self):

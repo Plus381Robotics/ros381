@@ -154,6 +154,7 @@ class ControlLoopNode : public rclcpp::Node
             d_tol_perc_ = 1.0;
             phi_tol_perc_ = 1.0;
             reg_type_ = 0;
+            reg_phase_ = 0;
             goal_handle->succeed(result);
             RCLCPP_INFO(this->get_logger(), "Goal succeeded");
         }
@@ -285,6 +286,7 @@ class ControlLoopNode : public rclcpp::Node
             if (distance_proj_ < D_PROJ_TOL_ * d_tol_perc_ && fabs(distance_) < D_TOL_ * d_tol_perc_)
             {
                 reg_type_ = 0;
+                reg_phase_ = 0;
                 w_max_temp_ = W_MAX_;
                 v_max_temp_ = V_MAX_;
                 movement_state_ = -1;

@@ -13,6 +13,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Float2.msg"
   "msg/Float3.msg"
   "srv/UpdatePose.srv"
+  "action/Move.action"
 )
 
 ament_export_dependencies(rosidl_default_generators)

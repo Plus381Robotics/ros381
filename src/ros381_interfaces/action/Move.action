@@ -1,0 +1,23 @@
+int8 type
+float64 x
+float64 y
+float64 phi
+int8 direction
+float64 v_max
+float64 w_max
+float64 distance_tolerance_percentage
+float64 angle_tolerance_percentage
+float64 start_coeff_v
+float64 start_coeff_w
+float64 stop_coeff_v
+float64 stop_coeff_w
+---
+int8 status
+# TODO: dodaj u enum
+# -1 = success
+# -2 = canceled
+# -3 = interrupted
+# -4 = timed out
+---
+float64 distance_remaininig
+float64 angle_remaining

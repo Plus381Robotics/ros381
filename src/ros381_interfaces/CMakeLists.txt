@@ -12,6 +12,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Float2.msg"
   "msg/Float3.msg"
+  "srv/UpdatePose.srv"
 )
 
 ament_export_dependencies(rosidl_default_generators)

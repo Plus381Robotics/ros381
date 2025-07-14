@@ -7,7 +7,7 @@
 		"editor.defaultFormatter": "ms-vscode.cpptools"
 	},
 	"C_Cpp.formatting": "clangFormat",
-	"C_Cpp.clang_format_fallbackStyle": "GNU",
+	"C_Cpp.clang_format_fallbackStyle": "LLVM",
 	"editor.formatOnSave": true,
 	"dev.containers.dockerPath": "podman",
 	"python.analysis.extraPaths": [

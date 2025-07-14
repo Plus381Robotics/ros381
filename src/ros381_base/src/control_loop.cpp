@@ -70,11 +70,17 @@ class ControlLoopNode : public rclcpp::Node
     rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_subscription_;
     rclcpp_action::Server<Move>::SharedPtr move_action_server_;
+    std::shared_ptr<GoalHandleMove> current_goal_handle_;
 
     rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const Move::Goal> goal)
     {
         RCLCPP_INFO(this->get_logger(), "Received move request of type: %d", goal->type);
         (void)uuid;
+        if (current_goal_handle_ && current_goal_handle_->is_active())
+        {
+            RCLCPP_INFO(get_logger(), "A goal is already active—rejecting new one.");
+            return rclcpp_action::GoalResponse::REJECT;
+        }
         // TODO:
         // postavi reference ovde na osnovu tipa kretnje
         // limituj ogranicenja
@@ -110,6 +116,7 @@ class ControlLoopNode : public rclcpp::Node
 
     void handle_accepted(const std::shared_ptr<GoalHandleMove> goal_handle)
     {
+        current_goal_handle_ = goal_handle;
         std::thread{std::bind(&ControlLoopNode::move, this, _1), goal_handle}.detach();
     }
 

@@ -66,6 +66,7 @@ class ControlLoopNode : public rclcpp::Node
     unsigned long period_;                // [us]
     double v_right_ = 0.0, v_left_ = 0.0; // [m/s]
     bool odom_initialized_ = false;
+    unsigned stacked_cnt_ = 0;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_subscription_;
@@ -145,39 +146,35 @@ class ControlLoopNode : public rclcpp::Node
         while (movement_state_ > -1)
         {
             if (goal_handle->is_canceling())
-            {
-                result->status = -2;
-                goal_handle->canceled(result);
-                RCLCPP_INFO(this->get_logger(), "Goal canceled");
-                return;
-            }
+                movement_state_ = -2;
+
             feedback->angle_remaining = phi_error_;
             feedback->distance_remaininig = distance_proj_;
             goal_handle->publish_feedback(feedback);
             loop_rate.sleep();
         }
-
+        result->status = movement_state_;
+        reset_movement();
         if (rclcpp::ok())
         {
-            movement_state_ = 0;
-            result->status = -1;
-            x_ref_ = x_base_;
-            y_ref_ = y_base_;
-            phi_ref_ = phi_base_;
-            direction_ = 1;
-            v_max_temp_ = V_MAX_;
-            w_max_temp_ = W_MAX_;
-            starting_coeff_v_ = 1.0;
-            stopping_coeff_v_ = 1.0;
-            starting_coeff_w_ = 1.0;
-            stopping_coeff_w_ = 1.0;
-            d_tol_perc_ = 1.0;
-            phi_tol_perc_ = 1.0;
-            reg_type_ = 0;
-            reg_phase_ = 0;
+            switch (result->status)
+            {
+            case -1:
+                RCLCPP_INFO(this->get_logger(), "Move succeeded...");
+                break;
+            case -2:
+                goal_handle->canceled(result);
+                RCLCPP_INFO(this->get_logger(), "Move canceled...");
+                return;
+                break;
+            case -3:
+                RCLCPP_INFO(this->get_logger(), "Move stacked...");
+                break;
+            }
             goal_handle->succeed(result);
-            RCLCPP_INFO(this->get_logger(), "Goal succeeded");
         }
+        else
+            result->status = -100;
     }
 
     void control_loop()
@@ -235,9 +232,7 @@ class ControlLoopNode : public rclcpp::Node
         w_ref_ = synthesis_7(phi_error_, w_base_, alpha_, j_rot_max_temp_, stopping_angle_, w_max_temp_, W_MIN_, dt_);
         if (fabs(phi_error_) < PHI_TOL_ * phi_tol_perc_)
         {
-            reg_type_ = 0;
-            w_max_temp_ = W_MAX_;
-            j_rot_max_temp_ = J_ROT_MAX_;
+            reset_movement();
             movement_state_ = -1;
         }
     }
@@ -304,11 +299,13 @@ class ControlLoopNode : public rclcpp::Node
 
             if (distance_proj_ < D_PROJ_TOL_ * d_tol_perc_ && fabs(distance_) < D_TOL_ * d_tol_perc_)
             {
-                reg_type_ = 0;
-                reg_phase_ = 0;
-                w_max_temp_ = W_MAX_;
-                v_max_temp_ = V_MAX_;
+                reset_movement();
                 movement_state_ = -1;
+            }
+            else if (stacked(0.1))
+            {
+                reset_movement();
+                movement_state_ = -3;
             }
 
             break;
@@ -364,6 +361,39 @@ class ControlLoopNode : public rclcpp::Node
         v_ref = std::clamp(v_ref, v_min, v_max);
 
         return std::clamp(get_sign(distance) * v_ref, -v_max, v_max);
+    }
+
+    uint8_t stacked(double time_limit)
+    {
+        if (fabs(v_base_) < V_MIN_ * 0.5)
+            stacked_cnt_++;
+        else
+            stacked_cnt_ = 0;
+        if (stacked_cnt_ / freq_ >= time_limit)
+            return 1;
+        return 0;
+    }
+
+    void reset_movement()
+    {
+        movement_state_ = 0;
+        stacked_cnt_ = 0;
+        x_ref_ = x_base_;
+        y_ref_ = y_base_;
+        phi_ref_ = phi_base_;
+        direction_ = 1;
+        j_max_temp_ = J_MAX_;
+        j_rot_max_temp_ = J_ROT_MAX_;
+        v_max_temp_ = V_MAX_;
+        w_max_temp_ = W_MAX_;
+        starting_coeff_v_ = 1.0;
+        stopping_coeff_v_ = 1.0;
+        starting_coeff_w_ = 1.0;
+        stopping_coeff_w_ = 1.0;
+        d_tol_perc_ = 1.0;
+        phi_tol_perc_ = 1.0;
+        reg_type_ = 0;
+        reg_phase_ = 0;
     }
 
     void declare_parameters()

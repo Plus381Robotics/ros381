@@ -6,18 +6,18 @@ control_loop:
     V_MAX: 2.0
     V_MIN: 0.1
     W_MAX: 12.6
-    W_MIN: 0.0628
+    W_MIN: 0.314
     # Max motor velocities: [m/s]
     MOTOR_V_MAX: 2.0
     # Distance between drive wheels: [m]
-    L: 0.1545
+    L: 0.1935
     # P value for rotation during translation
     P_w: 20.0
     # Max base jerk values: [m/s^3], [rad/s^3]
-    J_MAX: 40.0
+    J_MAX: 60.0
     J_MAX_STOP: 120.0
-    J_ROT_MAX: 320.0
-    J_ROT_MAX_STOP: 1920.0
+    J_ROT_MAX: 480.0
+    J_ROT_MAX_STOP: 640.0
     # End of movement tolerances: [m], [rad]
     D_TOL: 0.005 # absolute distance from target
     D_PROJ_TOL: 0.0025 # projected distance from target

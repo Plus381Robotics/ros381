@@ -84,9 +84,24 @@ class ControlLoopNode : public rclcpp::Node
         // TODO:
         // postavi reference ovde na osnovu tipa kretnje
         // limituj ogranicenja
-        // rclcpp_info
         switch (goal->type)
         {
+        // Rotate to Phi
+        case -1:
+            x_ref_ = x_base_;
+            y_ref_ = y_base_;
+            phi_ref_ = goal->phi;
+            direction_ = 1;
+            v_max_temp_ = V_MAX_;
+            w_max_temp_ = goal->w_max;
+            starting_coeff_v_ = goal->start_coeff_v;
+            stopping_coeff_v_ = goal->stop_coeff_v;
+            starting_coeff_w_ = goal->start_coeff_w;
+            stopping_coeff_w_ = goal->stop_coeff_w;
+            d_tol_perc_ = 1.0;
+            phi_tol_perc_ = goal->angle_tolerance_percentage;
+            reg_type_ = -1;
+            break;
         // Move to XY
         case 1:
             x_ref_ = goal->x;
@@ -94,7 +109,6 @@ class ControlLoopNode : public rclcpp::Node
             phi_ref_ = 0.0;
             direction_ = goal->direction;
             v_max_temp_ = goal->v_max;
-            w_max_temp_ = goal->w_max;
             starting_coeff_v_ = goal->start_coeff_v;
             stopping_coeff_v_ = goal->stop_coeff_v;
             starting_coeff_w_ = goal->start_coeff_w;
@@ -143,7 +157,6 @@ class ControlLoopNode : public rclcpp::Node
             loop_rate.sleep();
         }
 
-        // Check if goal is done
         if (rclcpp::ok())
         {
             movement_state_ = 0;
@@ -203,6 +216,8 @@ class ControlLoopNode : public rclcpp::Node
 
     void rotate()
     {
+        phi_error_ = wrap(phi_ref_ - phi_base_, -M_PI, M_PI);
+
         if (movement_state_ == 0)
         {
             starting_angle_ = 5 * pow(w_max_temp_, 1.5) / 3 / sqrt(j_rot_max_temp_) * starting_coeff_w_;
@@ -216,11 +231,8 @@ class ControlLoopNode : public rclcpp::Node
 
             movement_state_ = 1;
         }
-
-        phi_error_ = wrap(phi_ref_ - phi_base_, -M_PI, M_PI);
         v_ref_ = 0;
         w_ref_ = synthesis_7(phi_error_, w_base_, alpha_, j_rot_max_temp_, stopping_angle_, w_max_temp_, W_MIN_, dt_);
-
         if (fabs(phi_error_) < PHI_TOL_ * phi_tol_perc_)
         {
             reg_type_ = 0;

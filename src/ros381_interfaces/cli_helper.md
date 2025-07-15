@@ -1,2 +1,0 @@
-## Move action
-ros2 action send_goal /move ros381_interfaces/action/Move "{type: 1, x: 1.0, y: 0.5, phi: 0.0, direction: 1, v_max: 2.0, w_max: 12.6, distance_tolerance_percentage: 1.0, angle_tolerance_percentage: 1.0, start_coeff_v: 1.0, start_coeff_w: 1.0, stop_coeff_v: 1.0, stop_coeff_w: 1.0}" --feedback

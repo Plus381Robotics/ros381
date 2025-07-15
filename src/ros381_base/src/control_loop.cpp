@@ -195,8 +195,8 @@ class ControlLoopNode : public rclcpp::Node
                 break;
             }
 
-            v_right_ = std::clamp(v_ref_ + w_ref_ * L_ * 0.5, -MOTOR_V_MAX_, MOTOR_V_MAX_);
-            v_left_ = std::clamp(v_ref_ - w_ref_ * L_ * 0.5, -MOTOR_V_MAX_, MOTOR_V_MAX_);
+            v_right_ = v_ref_ + w_ref_ * L_ * 0.5;
+            v_left_ = v_ref_ - w_ref_ * L_ * 0.5;
             scale_vel_ref(&v_right_, &v_left_, MOTOR_V_MAX_);
 
             dt_ = (time_ns_ - prev_time_) * 0.000000001;

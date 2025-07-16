@@ -103,11 +103,72 @@ class ControlLoopNode : public rclcpp::Node
             phi_tol_perc_ = goal->angle_tolerance_percentage;
             reg_type_ = -1;
             break;
+            // Rotate to XY
+        case -2:
+            x_ref_ = x_base_;
+            y_ref_ = y_base_;
+            phi_ref_ = wrap(atan2(goal->y, goal->x) + (goal->direction - 1) * M_PI * 0.5, -M_PI, M_PI);
+            direction_ = goal->direction;
+            v_max_temp_ = V_MAX_;
+            w_max_temp_ = goal->w_max;
+            starting_coeff_v_ = goal->start_coeff_v;
+            stopping_coeff_v_ = goal->stop_coeff_v;
+            starting_coeff_w_ = goal->start_coeff_w;
+            stopping_coeff_w_ = goal->stop_coeff_w;
+            d_tol_perc_ = 1.0;
+            phi_tol_perc_ = goal->angle_tolerance_percentage;
+            reg_type_ = -1;
+            break;
         // Move to XY
         case 1:
             x_ref_ = goal->x;
             y_ref_ = goal->y;
             phi_ref_ = 0.0;
+            direction_ = goal->direction;
+            v_max_temp_ = goal->v_max;
+            starting_coeff_v_ = goal->start_coeff_v;
+            stopping_coeff_v_ = goal->stop_coeff_v;
+            starting_coeff_w_ = goal->start_coeff_w;
+            stopping_coeff_w_ = goal->stop_coeff_w;
+            d_tol_perc_ = goal->distance_tolerance_percentage;
+            phi_tol_perc_ = goal->angle_tolerance_percentage;
+            reg_type_ = 1;
+            break;
+            // Move on Direction
+        case 2:
+            x_ref_ = x_base_ + goal->direction * goal->x * cos(phi_base_);
+            y_ref_ = y_base_ + goal->direction * goal->x * sin(phi_base_);
+            phi_ref_ = phi_base_;
+            direction_ = goal->direction;
+            v_max_temp_ = goal->v_max;
+            starting_coeff_v_ = goal->start_coeff_v;
+            stopping_coeff_v_ = goal->stop_coeff_v;
+            starting_coeff_w_ = goal->start_coeff_w;
+            stopping_coeff_w_ = goal->stop_coeff_w;
+            d_tol_perc_ = goal->distance_tolerance_percentage;
+            phi_tol_perc_ = goal->angle_tolerance_percentage;
+            reg_type_ = 1;
+            break;
+        // Move on Direction Snapped
+        case 3:
+            x_ref_ = x_base_ + goal->direction * goal->x * cos(snap_angle(phi_base_, goal->phi));
+            y_ref_ = y_base_ + goal->direction * goal->x * sin(snap_angle(phi_base_, goal->phi));
+            phi_ref_ = phi_base_;
+            direction_ = goal->direction;
+            v_max_temp_ = goal->v_max;
+            starting_coeff_v_ = goal->start_coeff_v;
+            stopping_coeff_v_ = goal->stop_coeff_v;
+            starting_coeff_w_ = goal->start_coeff_w;
+            stopping_coeff_w_ = goal->stop_coeff_w;
+            d_tol_perc_ = goal->distance_tolerance_percentage;
+            phi_tol_perc_ = goal->angle_tolerance_percentage;
+            reg_type_ = 1;
+            break;
+        // Move on Angle
+        case 4:
+            x_ref_ = x_base_ + goal->direction * goal->x * cos(goal->phi);
+            y_ref_ = y_base_ + goal->direction * goal->x * sin(goal->phi);
+            phi_ref_ = goal->phi;
             direction_ = goal->direction;
             v_max_temp_ = goal->v_max;
             starting_coeff_v_ = goal->start_coeff_v;
@@ -302,7 +363,7 @@ class ControlLoopNode : public rclcpp::Node
                 reset_movement();
                 movement_state_ = -1;
             }
-            else if (stacked(0.1))
+            else if (stacked(0.1, v_base_, V_MIN_, freq_, &stacked_cnt_))
             {
                 reset_movement();
                 movement_state_ = -3;
@@ -331,47 +392,6 @@ class ControlLoopNode : public rclcpp::Node
         time_ns_ = rclcpp::Time(msg->header.stamp).nanoseconds();
         if (!odom_initialized_)
             odom_initialized_ = true;
-    }
-
-    double synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double stopping_distance,
-                       double v_max, double v_min, double dt)
-    {
-        double abs_distance = fabs(distance);
-        double abs_velocity = fabs(velocity);
-        double abs_acceleration = fabs(acceleration);
-        double v_ref = 0;
-        if (dt <= 0 || std::isnan(dt))
-            return 0.0;
-
-        if (abs_distance <= stopping_distance)
-        {
-            double x = abs_distance / stopping_distance;
-            v_ref = v_max * (35.0f * pow(x, 4) - 84.0f * pow(x, 5) + 70.0f * pow(x, 6) - 20.0f * pow(x, 7));
-        }
-        else
-        {
-            double j_step = J_MAX * dt;
-            if (abs_velocity < v_max * 0.5f)
-                v_ref = abs_velocity + (abs_acceleration + j_step) * dt;
-            else if (j_step < abs_acceleration * 1.05)
-                v_ref = abs_velocity + (abs_acceleration - j_step) * dt;
-            else
-                v_ref = v_max;
-        }
-        v_ref = std::clamp(v_ref, v_min, v_max);
-
-        return std::clamp(get_sign(distance) * v_ref, -v_max, v_max);
-    }
-
-    uint8_t stacked(double time_limit)
-    {
-        if (fabs(v_base_) < V_MIN_ * 0.5)
-            stacked_cnt_++;
-        else
-            stacked_cnt_ = 0;
-        if (stacked_cnt_ / freq_ >= time_limit)
-            return 1;
-        return 0;
     }
 
     void reset_movement()
@@ -434,24 +454,24 @@ class ControlLoopNode : public rclcpp::Node
         this->declare_parameter("PHI_TOL", 0.002);
         PHI_TOL_ = this->get_parameter("PHI_TOL").as_double();
 
-        RCLCPP_INFO(this->get_logger(), "Parameters:");
-        RCLCPP_INFO(this->get_logger(), "  FREQ: %.2f", freq_);
-        RCLCPP_INFO(this->get_logger(), "  L: %.4f", L_);
-        RCLCPP_INFO(this->get_logger(), "  V_MAX: %.2f", V_MAX_);
-        RCLCPP_INFO(this->get_logger(), "  V_MIN: %.2f", V_MIN_);
-        RCLCPP_INFO(this->get_logger(), "  W_MAX: %.2f", W_MAX_);
-        RCLCPP_INFO(this->get_logger(), "  W_MIN: %.3f", W_MIN_);
-        RCLCPP_INFO(this->get_logger(), "  MOTOR_V_MAX: %.2f", MOTOR_V_MAX_);
-        RCLCPP_INFO(this->get_logger(), "  P_w: %.2f", P_w_);
-        RCLCPP_INFO(this->get_logger(), "  J_MAX: %.2f", J_MAX_);
-        RCLCPP_INFO(this->get_logger(), "  J_MAX_STOP: %.2f", J_MAX_STOP_);
-        RCLCPP_INFO(this->get_logger(), "  J_ROT_MAX: %.2f", J_ROT_MAX_);
-        RCLCPP_INFO(this->get_logger(), "  J_ROT_MAX_STOP: %.2f", J_ROT_MAX_STOP_);
-        RCLCPP_INFO(this->get_logger(), "  D_TOL: %.3f", D_TOL_);
-        RCLCPP_INFO(this->get_logger(), "  D_PROJ_TOL: %.3f", D_PROJ_TOL_);
-        RCLCPP_INFO(this->get_logger(), "  D_LONG_TOL: %.2f", D_LONG_TOL_);
-        RCLCPP_INFO(this->get_logger(), "  D_SHORT_TOL: %.3f", D_SHORT_TOL_);
-        RCLCPP_INFO(this->get_logger(), "  PHI_TOL: %.3f", PHI_TOL_);
+        RCLCPP_DEBUG(this->get_logger(), "Parameters:");
+        RCLCPP_DEBUG(this->get_logger(), "  FREQ: %.2f", freq_);
+        RCLCPP_DEBUG(this->get_logger(), "  L: %.4f", L_);
+        RCLCPP_DEBUG(this->get_logger(), "  V_MAX: %.2f", V_MAX_);
+        RCLCPP_DEBUG(this->get_logger(), "  V_MIN: %.2f", V_MIN_);
+        RCLCPP_DEBUG(this->get_logger(), "  W_MAX: %.2f", W_MAX_);
+        RCLCPP_DEBUG(this->get_logger(), "  W_MIN: %.3f", W_MIN_);
+        RCLCPP_DEBUG(this->get_logger(), "  MOTOR_V_MAX: %.2f", MOTOR_V_MAX_);
+        RCLCPP_DEBUG(this->get_logger(), "  P_w: %.2f", P_w_);
+        RCLCPP_DEBUG(this->get_logger(), "  J_MAX: %.2f", J_MAX_);
+        RCLCPP_DEBUG(this->get_logger(), "  J_MAX_STOP: %.2f", J_MAX_STOP_);
+        RCLCPP_DEBUG(this->get_logger(), "  J_ROT_MAX: %.2f", J_ROT_MAX_);
+        RCLCPP_DEBUG(this->get_logger(), "  J_ROT_MAX_STOP: %.2f", J_ROT_MAX_STOP_);
+        RCLCPP_DEBUG(this->get_logger(), "  D_TOL: %.3f", D_TOL_);
+        RCLCPP_DEBUG(this->get_logger(), "  D_PROJ_TOL: %.3f", D_PROJ_TOL_);
+        RCLCPP_DEBUG(this->get_logger(), "  D_LONG_TOL: %.2f", D_LONG_TOL_);
+        RCLCPP_DEBUG(this->get_logger(), "  D_SHORT_TOL: %.3f", D_SHORT_TOL_);
+        RCLCPP_DEBUG(this->get_logger(), "  PHI_TOL: %.3f", PHI_TOL_);
 
         v_max_temp_ = V_MAX_;
         w_max_temp_ = W_MAX_;

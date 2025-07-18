@@ -82,9 +82,17 @@ class ControlLoopNode : public rclcpp::Node
             RCLCPP_INFO(get_logger(), "A goal is already active—rejecting new one.");
             return rclcpp_action::GoalResponse::REJECT;
         }
-        // TODO:
-        // postavi reference ovde na osnovu tipa kretnje
-        // limituj ogranicenja
+
+        v_max_temp_ = std::clamp(goal->v_max, V_MIN_, V_MAX_);
+        w_max_temp_ = std::clamp(goal->w_max, W_MIN_, W_MAX_);
+        starting_coeff_v_ = std::clamp(goal->start_coeff_v, 1.0, 10.0);
+        stopping_coeff_v_ = std::clamp(goal->stop_coeff_v, 1.0, 10.0);
+        starting_coeff_w_ = std::clamp(goal->start_coeff_w, 1.0, 10.0);
+        stopping_coeff_w_ = std::clamp(goal->stop_coeff_w, 1.0, 10.0);
+        d_tol_perc_ = std::clamp(goal->distance_tolerance_percentage, 1.0, 10.0);
+        phi_tol_perc_ = std::clamp(goal->angle_tolerance_percentage, 1.0, 10.0);
+        direction_ = goal->direction;
+
         switch (goal->type)
         {
         // Rotate to Phi
@@ -92,31 +100,14 @@ class ControlLoopNode : public rclcpp::Node
             x_ref_ = x_base_;
             y_ref_ = y_base_;
             phi_ref_ = goal->phi;
-            direction_ = 1;
-            v_max_temp_ = V_MAX_;
-            w_max_temp_ = goal->w_max;
-            starting_coeff_v_ = goal->start_coeff_v;
-            stopping_coeff_v_ = goal->stop_coeff_v;
-            starting_coeff_w_ = goal->start_coeff_w;
-            stopping_coeff_w_ = goal->stop_coeff_w;
-            d_tol_perc_ = 1.0;
-            phi_tol_perc_ = goal->angle_tolerance_percentage;
             reg_type_ = -1;
             break;
             // Rotate to XY
         case -2:
             x_ref_ = x_base_;
             y_ref_ = y_base_;
-            phi_ref_ = wrap(atan2(goal->y, goal->x) + (goal->direction - 1) * M_PI * 0.5, -M_PI, M_PI);
-            direction_ = goal->direction;
-            v_max_temp_ = V_MAX_;
-            w_max_temp_ = goal->w_max;
-            starting_coeff_v_ = goal->start_coeff_v;
-            stopping_coeff_v_ = goal->stop_coeff_v;
-            starting_coeff_w_ = goal->start_coeff_w;
-            stopping_coeff_w_ = goal->stop_coeff_w;
-            d_tol_perc_ = 1.0;
-            phi_tol_perc_ = goal->angle_tolerance_percentage;
+            phi_ref_ =
+                wrap(atan2(goal->y - y_base_, goal->x - x_base_) + (goal->direction - 1) * M_PI * 0.5, -M_PI, M_PI);
             reg_type_ = -1;
             break;
         // Move to XY
@@ -124,14 +115,6 @@ class ControlLoopNode : public rclcpp::Node
             x_ref_ = goal->x;
             y_ref_ = goal->y;
             phi_ref_ = 0.0;
-            direction_ = goal->direction;
-            v_max_temp_ = goal->v_max;
-            starting_coeff_v_ = goal->start_coeff_v;
-            stopping_coeff_v_ = goal->stop_coeff_v;
-            starting_coeff_w_ = goal->start_coeff_w;
-            stopping_coeff_w_ = goal->stop_coeff_w;
-            d_tol_perc_ = goal->distance_tolerance_percentage;
-            phi_tol_perc_ = goal->angle_tolerance_percentage;
             reg_type_ = 1;
             break;
             // Move on Direction
@@ -139,29 +122,13 @@ class ControlLoopNode : public rclcpp::Node
             x_ref_ = x_base_ + goal->direction * goal->x * cos(phi_base_);
             y_ref_ = y_base_ + goal->direction * goal->x * sin(phi_base_);
             phi_ref_ = phi_base_;
-            direction_ = goal->direction;
-            v_max_temp_ = goal->v_max;
-            starting_coeff_v_ = goal->start_coeff_v;
-            stopping_coeff_v_ = goal->stop_coeff_v;
-            starting_coeff_w_ = goal->start_coeff_w;
-            stopping_coeff_w_ = goal->stop_coeff_w;
-            d_tol_perc_ = goal->distance_tolerance_percentage;
-            phi_tol_perc_ = goal->angle_tolerance_percentage;
             reg_type_ = 1;
             break;
         // Move on Direction Snapped
         case 3:
             x_ref_ = x_base_ + goal->direction * goal->x * cos(snap_angle(phi_base_, goal->phi));
             y_ref_ = y_base_ + goal->direction * goal->x * sin(snap_angle(phi_base_, goal->phi));
-            phi_ref_ = phi_base_;
-            direction_ = goal->direction;
-            v_max_temp_ = goal->v_max;
-            starting_coeff_v_ = goal->start_coeff_v;
-            stopping_coeff_v_ = goal->stop_coeff_v;
-            starting_coeff_w_ = goal->start_coeff_w;
-            stopping_coeff_w_ = goal->stop_coeff_w;
-            d_tol_perc_ = goal->distance_tolerance_percentage;
-            phi_tol_perc_ = goal->angle_tolerance_percentage;
+            phi_ref_ = snap_angle(phi_base_, goal->phi);
             reg_type_ = 1;
             break;
         // Move on Angle
@@ -169,14 +136,6 @@ class ControlLoopNode : public rclcpp::Node
             x_ref_ = x_base_ + goal->direction * goal->x * cos(goal->phi);
             y_ref_ = y_base_ + goal->direction * goal->x * sin(goal->phi);
             phi_ref_ = goal->phi;
-            direction_ = goal->direction;
-            v_max_temp_ = goal->v_max;
-            starting_coeff_v_ = goal->start_coeff_v;
-            stopping_coeff_v_ = goal->stop_coeff_v;
-            starting_coeff_w_ = goal->start_coeff_w;
-            stopping_coeff_w_ = goal->stop_coeff_w;
-            d_tol_perc_ = goal->distance_tolerance_percentage;
-            phi_tol_perc_ = goal->angle_tolerance_percentage;
             reg_type_ = 1;
             break;
         }
@@ -368,7 +327,6 @@ class ControlLoopNode : public rclcpp::Node
                 reset_movement();
                 movement_state_ = -3;
             }
-
             break;
         }
     }
@@ -383,7 +341,6 @@ class ControlLoopNode : public rclcpp::Node
 
     void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)
     {
-        // Current
         x_base_ = msg->pose.pose.position.x;
         y_base_ = msg->pose.pose.position.y;
         phi_base_ = tf2::getYaw(msg->pose.pose.orientation);

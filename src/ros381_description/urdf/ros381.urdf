@@ -14,45 +14,23 @@
     <color rgba="0.2 0.2 0.2 1.0"/>
   </material>
 
-  <!-- LINKS -->
   <link name="base_link">
     <visual>
       <geometry>
-        <box size="0.125 0.4 0.325"/>
+		<mesh filename="package://ros381_description/meshes/base.stl"/>
       </geometry>
-      <origin xyz="0 0 0.1775"/>
-      <material name="black"/>
+      <origin xyz="0 0 0" rpy="0 0 1.570796327"/>
+      <material name="steel"/>
     </visual>
     <inertial>
-      <origin xyz="0 0 0.1775"/>
+      <origin xyz="0 0 0.1675"/>
       <mass value="2.0"/>
       <inertia ixx="0.044" iyy="0.02" izz="0.03" ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
     <collision>
-      <origin xyz="0 0 0.1775"/>
+      <origin xyz="0 0 0" rpy="0 0 1.570796327"/>
       <geometry>
-        <box size="0.125 0.4 0.325"/>
-      </geometry>
-    </collision>
-  </link>
-  
-  <link name="bottom_plate">
-    <visual>
-      <geometry>
-        <box size="0.25 0.4 0.01"/>
-      </geometry>
-      <origin xyz="0 0 0.01"/>  <!-- 5mm iznad podloge-->
-      <material name="steel"/>
-    </visual>
-    <inertial>
-      <origin xyz="0 0 0.005" rpy="0 0 0"/>
-      <mass value="6.0"/>
-      <inertia ixx="0.08" iyy="0.03" izz="0.1" ixy="0.0" iyz="0.0" ixz="0.0"/>
-    </inertial> 
-    <collision>
-      <origin xyz="0 0 0.01"/>
-      <geometry>
-        <box size="0.25 0.4 0.01"/>
+        <mesh filename="package://ros381_description/meshes/base.stl"/>
       </geometry>
     </collision>
   </link>
@@ -195,25 +173,18 @@
     </collision>
   </link>
 
-  <!-- JOINTS -->
-  <joint name="bottom_plate_to_base" type="fixed">
-    <parent link="base_link"/>
-    <child link="bottom_plate"/>
-    <origin xyz="0 0 0"/>
-  </joint> 
-
   <joint name="wheel_right" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_right"/>
     <axis xyz="0.0 0.0 -1.0"/>
-    <origin xyz="0.0 -0.07725 0.035" rpy="1.570796327 0 0"/>
+    <origin xyz="0.0 -0.07725 0.032" rpy="1.570796327 0 0"/>
   </joint> 
   
   <joint name="wheel_left" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_left"/>
     <axis xyz="0.0 0.0 -1.0"/>
-    <origin xyz="0.0 0.07725 0.035" rpy="1.570796327 0 0"/>
+    <origin xyz="0.0 0.07725 0.032" rpy="1.570796327 0 0"/>
   </joint>
 
   <joint name="right_odometry_slider" type="prismatic">

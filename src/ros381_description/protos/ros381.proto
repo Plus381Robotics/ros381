@@ -327,14 +327,14 @@ PROTO ros381 [
       }
     ]
     name IS name
+	contactMaterial "teflon"
     boundingObject Pose {
-      translation 0.000000 0.000000 0.162500
+      rotation 0.000000 0.000000 1.000000 1.570796
       children [
-		Cylinder {
-      		radius 0.17
-      		height 0.325
-		}
-	  ]
+        DEF base_collision Mesh {
+          url "/home/hostuser/ros381/src/ros381_description/meshes/base_collision.stl"
+        }
+      ]
     }
     physics Physics {
       density -1

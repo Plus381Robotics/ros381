@@ -15,6 +15,12 @@ WorldInfo {
     	2
       ]
     }
+	ContactProperties {
+      material1 "teflon"
+      coulombFriction [
+    	0
+      ]
+    }
   ]
 }
 Viewpoint {

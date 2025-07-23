@@ -28,9 +28,9 @@
       <inertia ixx="0.044" iyy="0.02" izz="0.03" ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
     <collision>
-      <origin xyz="0 0 0.1675" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 1.570796327"/>
       <geometry>
-        <cylinder radius="0.16" length="0.325"/>
+		<mesh filename="package://ros381_description/meshes/base_collision.stl"/>
       </geometry>
     </collision>
   </link>

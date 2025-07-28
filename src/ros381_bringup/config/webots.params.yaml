@@ -1,7 +1,7 @@
 control_loop:
   ros__parameters:
     # Control loop frequency [Hz]
-    FREQ: 25.0
+    FREQ: 12.5
     # Max base velocities: [m/s], [rad/s]
     V_MAX: 2.0
     V_MIN: 0.1
@@ -11,13 +11,16 @@ control_loop:
     MOTOR_V_MAX: 2.0
     # Distance between drive wheels: [m]
     L: 0.1935
+    L_MAX: 0.2135
+    L_MIN: 0.0955
+    eta: 0.005
     # P value for rotation during translation
     P_w: 20.0
     # Max base jerk values: [m/s^3], [rad/s^3]
-    J_MAX: 60.0
-    J_MAX_STOP: 120.0
-    J_ROT_MAX: 480.0
-    J_ROT_MAX_STOP: 640.0
+    J_MAX: 30.0
+    J_MAX_STOP: 60.0
+    J_ROT_MAX: 240.0
+    J_ROT_MAX_STOP: 320.0
     # End of movement tolerances: [m], [rad]
     D_TOL: 0.005 # absolute distance from target
     D_PROJ_TOL: 0.0025 # projected distance from target

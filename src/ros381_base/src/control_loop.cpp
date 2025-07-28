@@ -35,7 +35,8 @@ class ControlLoopNode : public rclcpp::Node
     }
 
   private:
-    double L_;                                              // [m]
+    double L_, L_MIN_, L_MAX_; // [m]
+    double eta_;
     double phi_base_, phi_error_, PHI_TOL_, phi_ref_ = 0.0; // [rad]
     double x_base_, x_error_, x_ref_ = 0.0;                 // [m]
     double y_base_, y_error_, y_ref_ = 0.0;                 // [m]
@@ -201,6 +202,8 @@ class ControlLoopNode : public rclcpp::Node
     {
         if (odom_initialized_)
         {
+            L_ = correct_param(L_, fabs(w_ref_) - fabs(w_base_), eta_, L_MIN_, L_MAX_);
+
             switch (reg_type_)
             {
             case -1:
@@ -410,25 +413,31 @@ class ControlLoopNode : public rclcpp::Node
         D_SHORT_TOL_ = this->get_parameter("D_SHORT_TOL").as_double();
         this->declare_parameter("PHI_TOL", 0.002);
         PHI_TOL_ = this->get_parameter("PHI_TOL").as_double();
+        this->declare_parameter("L_MIN", 0.1055);
+        L_MIN_ = this->get_parameter("L_MIN").as_double();
+        this->declare_parameter("L_MAX", 0.2035);
+        L_MAX_ = this->get_parameter("L_MAX").as_double();
+        this->declare_parameter("eta", 0.0);
+        eta_ = this->get_parameter("eta").as_double();
 
-        RCLCPP_DEBUG(this->get_logger(), "Parameters:");
-        RCLCPP_DEBUG(this->get_logger(), "  FREQ: %.2f", freq_);
-        RCLCPP_DEBUG(this->get_logger(), "  L: %.4f", L_);
-        RCLCPP_DEBUG(this->get_logger(), "  V_MAX: %.2f", V_MAX_);
-        RCLCPP_DEBUG(this->get_logger(), "  V_MIN: %.2f", V_MIN_);
-        RCLCPP_DEBUG(this->get_logger(), "  W_MAX: %.2f", W_MAX_);
-        RCLCPP_DEBUG(this->get_logger(), "  W_MIN: %.3f", W_MIN_);
-        RCLCPP_DEBUG(this->get_logger(), "  MOTOR_V_MAX: %.2f", MOTOR_V_MAX_);
-        RCLCPP_DEBUG(this->get_logger(), "  P_w: %.2f", P_w_);
-        RCLCPP_DEBUG(this->get_logger(), "  J_MAX: %.2f", J_MAX_);
-        RCLCPP_DEBUG(this->get_logger(), "  J_MAX_STOP: %.2f", J_MAX_STOP_);
-        RCLCPP_DEBUG(this->get_logger(), "  J_ROT_MAX: %.2f", J_ROT_MAX_);
-        RCLCPP_DEBUG(this->get_logger(), "  J_ROT_MAX_STOP: %.2f", J_ROT_MAX_STOP_);
-        RCLCPP_DEBUG(this->get_logger(), "  D_TOL: %.3f", D_TOL_);
-        RCLCPP_DEBUG(this->get_logger(), "  D_PROJ_TOL: %.3f", D_PROJ_TOL_);
-        RCLCPP_DEBUG(this->get_logger(), "  D_LONG_TOL: %.2f", D_LONG_TOL_);
-        RCLCPP_DEBUG(this->get_logger(), "  D_SHORT_TOL: %.3f", D_SHORT_TOL_);
-        RCLCPP_DEBUG(this->get_logger(), "  PHI_TOL: %.3f", PHI_TOL_);
+        // RCLCPP_DEBUG(this->get_logger(), "Parameters:");
+        // RCLCPP_DEBUG(this->get_logger(), "  FREQ: %.2f", freq_);
+        // RCLCPP_DEBUG(this->get_logger(), "  L: %.4f", L_);
+        // RCLCPP_DEBUG(this->get_logger(), "  V_MAX: %.2f", V_MAX_);
+        // RCLCPP_DEBUG(this->get_logger(), "  V_MIN: %.2f", V_MIN_);
+        // RCLCPP_DEBUG(this->get_logger(), "  W_MAX: %.2f", W_MAX_);
+        // RCLCPP_DEBUG(this->get_logger(), "  W_MIN: %.3f", W_MIN_);
+        // RCLCPP_DEBUG(this->get_logger(), "  MOTOR_V_MAX: %.2f", MOTOR_V_MAX_);
+        // RCLCPP_DEBUG(this->get_logger(), "  P_w: %.2f", P_w_);
+        // RCLCPP_DEBUG(this->get_logger(), "  J_MAX: %.2f", J_MAX_);
+        // RCLCPP_DEBUG(this->get_logger(), "  J_MAX_STOP: %.2f", J_MAX_STOP_);
+        // RCLCPP_DEBUG(this->get_logger(), "  J_ROT_MAX: %.2f", J_ROT_MAX_);
+        // RCLCPP_DEBUG(this->get_logger(), "  J_ROT_MAX_STOP: %.2f", J_ROT_MAX_STOP_);
+        // RCLCPP_DEBUG(this->get_logger(), "  D_TOL: %.3f", D_TOL_);
+        // RCLCPP_DEBUG(this->get_logger(), "  D_PROJ_TOL: %.3f", D_PROJ_TOL_);
+        // RCLCPP_DEBUG(this->get_logger(), "  D_LONG_TOL: %.2f", D_LONG_TOL_);
+        // RCLCPP_DEBUG(this->get_logger(), "  D_SHORT_TOL: %.3f", D_SHORT_TOL_);
+        // RCLCPP_DEBUG(this->get_logger(), "  PHI_TOL: %.3f", PHI_TOL_);
 
         v_max_temp_ = V_MAX_;
         w_max_temp_ = W_MAX_;

@@ -9,6 +9,21 @@
 #include <algorithm>
 #include <cmath>
 
+/**
+ * @brief Adjusts a control parameter based on error feedback with clamped correction.
+ * @param param Current parameter value to adjust (e.g., track width L)
+ * @param error Control error (desired - actual)
+ * @param eta Learning rate/gain (small positive value, e.g., 0.0001f) [unitless]
+ * @param min Minimum allowable parameter value
+ * @param max Maximum allowable parameter value
+ * @return float Updated parameter value
+ */
+
+double correct_param(double param, double error, double eta, double min, double max)
+{
+    return std::clamp(param + eta * error, min, max);
+}
+
 unsigned char stacked(double time_limit, double v, double v_min, double freq, unsigned *cnt)
 {
     if (fabs(v) < v_min * 0.5)

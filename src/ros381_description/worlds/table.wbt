@@ -6,8 +6,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "../protos/ros381.proto"
 
 WorldInfo {
-  basicTimeStep 8
-  FPS 320
+  basicTimeStep 5
+  FPS 200
   contactProperties [
     ContactProperties {
       material1 "rubber"

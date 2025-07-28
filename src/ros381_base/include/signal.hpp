@@ -5,7 +5,7 @@ double synthesis_7(double distance, double velocity, double acceleration, double
 double wrap(double signal, double min, double max);
 void wrap_ptr(double *signal, double max, double min);
 short get_sign(double num);
-void scale_vel_ref(volatile double *ref_1, volatile double *ref_2, double limit);
+double scale_vel_ref(volatile double *ref_1, volatile double *ref_2, double limit);
 double abs_max(double a, double b);
 double abs_min(double a, double b);
 unsigned long unsigned_min(unsigned long a, unsigned long b);

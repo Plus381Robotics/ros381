@@ -90,15 +90,18 @@ short get_sign(double num)
     return 0;
 }
 
-void scale_vel_ref(volatile double *ref_1, volatile double *ref_2, double limit)
+double scale_vel_ref(volatile double *ref_1, volatile double *ref_2, double limit)
 {
+    double factor;
     double abs_max_var = abs_max(*ref_1, *ref_2);
     if (abs_max_var > limit)
     {
-        double factor = limit / abs_max_var;
+        factor = limit / abs_max_var;
         *ref_1 *= factor;
         *ref_2 *= factor;
+        return factor;
     }
+    return 1.0;
 }
 
 double abs_max(double a, double b)

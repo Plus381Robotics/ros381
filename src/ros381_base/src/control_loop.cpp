@@ -202,7 +202,11 @@ class ControlLoopNode : public rclcpp::Node
     {
         if (odom_initialized_)
         {
+			RCLCPP_INFO(this->get_logger(), "prev = %.4f", L_ );
+			RCLCPP_INFO(this->get_logger(), "|w_ref| = %.4f", fabs(w_ref_) );
+			RCLCPP_INFO(this->get_logger(), "|w_base| = %.4f", fabs(w_base_) );
             L_ = correct_param(L_, fabs(w_ref_) - fabs(w_base_), eta_, L_MIN_, L_MAX_);
+			RCLCPP_INFO(this->get_logger(), "new = %.4f\n", L_ );
 
             switch (reg_type_)
             {
@@ -220,7 +224,9 @@ class ControlLoopNode : public rclcpp::Node
 
             v_right_ = v_ref_ + w_ref_ * L_ * 0.5;
             v_left_ = v_ref_ - w_ref_ * L_ * 0.5;
-            scale_vel_ref(&v_right_, &v_left_, MOTOR_V_MAX_);
+            double scale_factor = scale_vel_ref(&v_right_, &v_left_, MOTOR_V_MAX_);
+            v_ref_ *= scale_factor;
+            w_ref_ *= scale_factor;
 
             dt_ = (time_ns_ - prev_time_) * 0.000000001;
             a_ = (v_base_ - prev_v_) / dt_;

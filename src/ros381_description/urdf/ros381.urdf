@@ -32,9 +32,9 @@
       <inertia ixx="0.044" iyy="0.02" izz="0.03" ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
     <collision>
-      <origin xyz="0 0 0.1605" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.001" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.16" length="0.325"/>
+        <box size="0.268 0.126 0.002"/>
       </geometry>
     </collision>
   </link>
@@ -222,7 +222,7 @@
       <geometry>
 		<mesh filename="package://ros381_description/meshes/armor.stl"/>
       </geometry>
-      <origin xyz="0 0 0" rpy="0 0 1.570796327"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <material name="black_plexi"/>
     </visual>
     <inertial>
@@ -231,15 +231,16 @@
       <inertia ixx="0.044" iyy="0.02" izz="0.03" ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
     <collision>
-      <origin xyz="0 0 0.1605" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.01" length="0.01"/>
+        <mesh filename="package://ros381_description/meshes/base_collision.stl"/>
       </geometry>
     </collision>
   </link>
   <joint name="armor_joint" type="fixed">
 	<parent link="base_link"/>
 	<child link="armor"/>
+    <origin xyz="0 0 0" rpy="0 0 1.570796327"/>
   </joint>
 
   <webots>

@@ -357,10 +357,11 @@ PROTO ros381 [
     name IS name
 	contactMaterial "teflon"
     boundingObject Pose {
-      translation 0.000000 0.000000 -0.001000
+      translation 0.000000 0.000000 0.000000
       children [
-        Box {
-           size 0.268000 0.126000 0.002000
+        Cylinder {
+      		radius 0.14
+        	height 0.004
         }
       ]
     }

@@ -6,7 +6,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "../protos/ros381.proto"
 
 WorldInfo {
-  basicTimeStep 5
+  basicTimeStep 10
   FPS 200
   contactProperties [
     ContactProperties {

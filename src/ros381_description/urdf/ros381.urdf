@@ -14,6 +14,10 @@
     <color rgba="0.2 0.2 0.2 1.0"/>
   </material>
 
+  <material name="black_plexi">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+
   <link name="base_link">
     <visual>
       <geometry>
@@ -57,7 +61,13 @@
       </geometry>
     </collision>
   </link>
-
+  <joint name="wheel_right" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_right"/>
+    <axis xyz="0.0 0.0 -1.0"/>
+    <origin xyz="0.0 -0.07725 0.032" rpy="1.570796327 0 0"/>
+  </joint> 
+  
   <link name="wheel_left">
     <visual>
       <geometry>
@@ -80,6 +90,12 @@
       </geometry>
     </collision>
   </link>
+  <joint name="wheel_left" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_left"/>
+    <axis xyz="0.0 0.0 -1.0"/>
+    <origin xyz="0.0 0.07725 0.032" rpy="1.570796327 0 0"/>
+  </joint>
 
   <link name="right_odometry_block">
     <visual>
@@ -103,6 +119,14 @@
         ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
   </link>
+  <joint name="right_odometry_slider" type="prismatic">
+    <parent link="base_link"/>
+    <child link="right_odometry_block"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="0.0" upper="0.03" effort="0" velocity="100"/>
+    <dynamics damping="0.1"/>
+    <origin xyz="0 -0.134 0.015"/>
+  </joint>
 
   <link name="left_odometry_block">
     <visual>
@@ -126,6 +150,14 @@
         ixy="0.0" iyz="0.0" ixz="0.0"/>
     </inertial>
   </link>
+  <joint name="left_odometry_slider" type="prismatic">
+    <parent link="base_link"/>
+    <child link="left_odometry_block"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="0.0" upper="0.03" effort="0" velocity="100"/>
+    <dynamics damping="0.1"/>
+    <origin xyz="0 0.134 0.015"/>
+  </joint>
 
   <link name="odometry_wheel_right">
     <visual>
@@ -149,6 +181,12 @@
       </geometry>
     </collision>
   </link>
+  <joint name="odometry_wheel_right" type="continuous">
+    <parent link="right_odometry_block"/>
+    <child link="odometry_wheel_right"/>
+    <axis xyz="0.0 0.0 -1.0"/>
+    <origin xyz="0 -0.0145 0" rpy="1.570796327 0 0"/>
+  </joint> 
 
   <link name="odometry_wheel_left">
     <visual>
@@ -172,46 +210,6 @@
       </geometry>
     </collision>
   </link>
-
-  <joint name="wheel_right" type="continuous">
-    <parent link="base_link"/>
-    <child link="wheel_right"/>
-    <axis xyz="0.0 0.0 -1.0"/>
-    <origin xyz="0.0 -0.07725 0.032" rpy="1.570796327 0 0"/>
-  </joint> 
-  
-  <joint name="wheel_left" type="continuous">
-    <parent link="base_link"/>
-    <child link="wheel_left"/>
-    <axis xyz="0.0 0.0 -1.0"/>
-    <origin xyz="0.0 0.07725 0.032" rpy="1.570796327 0 0"/>
-  </joint>
-
-  <joint name="right_odometry_slider" type="prismatic">
-    <parent link="base_link"/>
-    <child link="right_odometry_block"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="0.0" upper="0.03" effort="0" velocity="100"/>
-    <dynamics damping="0.1"/>
-    <origin xyz="0 -0.134 0.015"/>
-  </joint>
-  
-  <joint name="left_odometry_slider" type="prismatic">
-    <parent link="base_link"/>
-    <child link="left_odometry_block"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="0.0" upper="0.03" effort="0" velocity="100"/>
-    <dynamics damping="0.1"/>
-    <origin xyz="0 0.134 0.015"/>
-  </joint>
-  
-  <joint name="odometry_wheel_right" type="continuous">
-    <parent link="right_odometry_block"/>
-    <child link="odometry_wheel_right"/>
-    <axis xyz="0.0 0.0 -1.0"/>
-    <origin xyz="0 -0.0145 0" rpy="1.570796327 0 0"/>
-  </joint> 
-  
   <joint name="odometry_wheel_left" type="continuous">
     <parent link="left_odometry_block"/>
     <child link="odometry_wheel_left"/>
@@ -219,9 +217,58 @@
     <origin xyz="0 0.0145 0" rpy="1.570796327 0 0"/>
   </joint>
 
+  <link name="armor">
+    <visual>
+      <geometry>
+		<mesh filename="package://ros381_description/meshes/armor.stl"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 1.570796327"/>
+      <material name="black_plexi"/>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0.1675"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.044" iyy="0.02" izz="0.03" ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
+    <collision>
+      <origin xyz="0 0 0.1605" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="0.01"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="armor_joint" type="fixed">
+	<parent link="base_link"/>
+	<child link="armor"/>
+  </joint>
+
   <webots>
-    <device reference="wheel_right" type="RotationalMotor"/>
-    <device reference="wheel_left" type="RotationalMotor"/>
+	<device reference="wheel_right" type="RotationalMotor">
+      <maxTorque>10</maxTorque>
+      <maxVelocity>60</maxVelocity>
+      <acceleration>600</acceleration>
+    </device>
+    <device reference="wheel_left" type="RotationalMotor">
+      <maxTorque>10</maxTorque>
+      <maxVelocity>60</maxVelocity>
+      <acceleration>600</acceleration>
+    </device>
+    <device reference="right_odometry_slider" type="LinearMotor">
+      <maxForce>1</maxForce>
+      <maxVelocity>100</maxVelocity>
+      <maxPosition>0.03</maxPosition>
+    </device>
+    <device reference="left_odometry_slider" type="LinearMotor">
+      <maxForce>1</maxForce>
+      <maxVelocity>100</maxVelocity>
+      <maxPosition>0.03</maxPosition>
+    </device>
+    <device reference="odometry_wheel_right" type="RotationalMotor">
+      <maxTorque>0</maxTorque>
+    </device>
+    <device reference="odometry_wheel_left" type="RotationalMotor">
+      <maxTorque>0</maxTorque>
+    </device>
     <plugin type="ros381_webots.motor_driver.MotorDriver"/>
     <plugin type="ros381_webots.encoder_reader.EncoderReader"/>
   </webots>

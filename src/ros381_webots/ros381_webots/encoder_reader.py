@@ -8,12 +8,17 @@ R_LEFT = 0.072 * 0.5
 class EncoderReader:
     def init(self, webots_node, properties):
         self.robot_ = webots_node.robot
+        self.robot_name = self.robot_.getName()
 
         try:
             rclpy.init(args=None)
         except:
             pass
-        self.node_ = rclpy.create_node("encoder_reader")
+        
+        self.node_ = rclpy.create_node(
+            "encoder_reader",
+            namespace=f"/{self.robot_name}"
+        )
 
         self.wheel_right_ = self.robot_.getDevice("odometry_wheel_right")
         self.wheel_left_ = self.robot_.getDevice("odometry_wheel_left")
@@ -23,7 +28,9 @@ class EncoderReader:
         self.right_encoder_.enable(int(self.robot_.getBasicTimeStep()))
         self.left_encoder_.enable(int(self.robot_.getBasicTimeStep()))
 
-        self.encoders_pub_ = self.node_.create_publisher(Float3, "base_encoders", 10)
+        self.encoders_pub_ = self.node_.create_publisher(
+            Float3, f"/{self.robot_name}/base_encoders", 10
+        )
 
         self.encoders_ = Float3()
         self.encoders_.float3[0] = 0  # Right passive wheel encoder [m/s]
@@ -34,7 +41,7 @@ class EncoderReader:
         self.prev_right_pos_ = self.right_encoder_.getValue()
         self.prev_left_pos_ = self.left_encoder_.getValue()
 
-        self.node_.get_logger().info("Webots encoder reader is initialized.")
+        self.node_.get_logger().info(f"Webots encoder reader for {self.robot_name} is initialized.")
 
     def pub_encoders(self):
         current_time_ = self.robot_.getTime()

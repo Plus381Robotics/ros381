@@ -11,34 +11,69 @@ def generate_launch_description():
     webots_pkg = get_package_share_directory("ros381_webots")
     base_pkg = get_package_share_directory("ros381_base")
     description_pkg = get_package_share_directory("ros381_description")
-    robot_description_path = os.path.join(description_pkg, "urdf", "ros381.urdf")
+    blue_description_path = os.path.join(description_pkg, "urdf", "blue.urdf")
+    yellow_description_path = os.path.join(description_pkg, "urdf", "yellow.urdf")
 
     webots = WebotsLauncher(
         world=os.path.join(description_pkg, "worlds", "table.wbt"), ros2_supervisor=True
     )
 
-    webots_node = WebotsController(
-        robot_name="ros381",
+    webots_node_1 = WebotsController(
+        robot_name="blue",
+        namespace="blue",
         parameters=[
-            {"robot_description": robot_description_path},
+            {"robot_description": blue_description_path},
             {"use_sim_time": True},
         ],
     )
 
-    control_loop_node = Node(
+    webots_node_2 = WebotsController(
+        robot_name="yellow",
+        namespace="yellow",
+        parameters=[
+            {"robot_description": yellow_description_path},
+            {"use_sim_time": True},
+        ],
+    )
+
+    control_loop_node_1 = Node(
         package="ros381_base",
         executable="control_loop",
         name="control_loop",
+        namespace="blue",
         output="screen",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
         ],
     )
 
-    odometry_node = Node(
+    odometry_node_1 = Node(
         package="ros381_base",
         executable="odometry",
         name="odometry",
+        namespace="blue",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+        ],
+    )
+
+    control_loop_node_2 = Node(
+        package="ros381_base",
+        executable="control_loop",
+        name="control_loop",
+        namespace="yellow",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+        ],
+    )
+
+    odometry_node_2 = Node(
+        package="ros381_base",
+        executable="odometry",
+        name="odometry",
+        namespace="yellow",
         output="screen",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
@@ -49,9 +84,12 @@ def generate_launch_description():
         [
             webots,
             webots._supervisor,
-            webots_node,
-            control_loop_node,
-            odometry_node,
+            webots_node_1,
+            webots_node_2,
+            control_loop_node_1,
+            odometry_node_1,
+            control_loop_node_2,
+            odometry_node_2,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

@@ -4,10 +4,10 @@
 # This is a proto file for Webots for the ros381
 # Extracted from: /home/hostuser/ros381/src/ros381_description/urdf/ros381.urdf
 
-PROTO ros381 [
+PROTO yellow [
   field  SFVec3f     translation     0 0 0
   field  SFRotation  rotation        0 0 1 0
-  field  SFString    name            "ros381"  # Is `Robot.name`.
+  field  SFString    name            "yellow"  # Is `Robot.name`.
   field  SFString    controller      "void"    # Is `Robot.controller`.
   field  MFString    controllerArgs  []        # Is `Robot.controllerArgs`.
   field  SFString    customData      ""        # Is `Robot.customData`.

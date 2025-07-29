@@ -8,13 +8,17 @@ R_LEFT = 0.035
 class MotorDriver:
     def init(self, webots_node, properties):
         self.robot_ = webots_node.robot
+        self.robot_name = self.robot_.getName()
 
         try:
             rclpy.init(args=None)
         except:
             pass
         
-        self.node_ = rclpy.create_node("motor_driver")
+        self.node_ = rclpy.create_node(
+            "motor_driver",
+            namespace=f"/{self.robot_name}"
+        )
 
         self.motor_right_ = self.robot_.getDevice("wheel_right")
         self.motor_left_ = self.robot_.getDevice("wheel_left")
@@ -25,13 +29,13 @@ class MotorDriver:
         self.motor_left_.setVelocity(0)
 
         self.cmd_sub_ = self.node_.create_subscription(
-            Float2, "motor_cmd", self.cmd_vel_callback, 1
+            Float2, f"/{self.robot_name}/motor_cmd", self.cmd_vel_callback, 1
         )
 
         self.w_right_ = 0.0  # Right motor velocity   [rad/s]
         self.w_left_ = 0.0  # Left motor velocity    [rad/s]
 
-        self.node_.get_logger().info("Webots motor driver is initialized.")
+        self.node_.get_logger().info(f"Webots motor driver for {self.robot_name} is initialized.")
 
     def cmd_vel_callback(self, motor_cmd):
         self.w_right_ = motor_cmd.float2[0] / R_RIGHT
@@ -39,6 +43,5 @@ class MotorDriver:
 
     def step(self):
         rclpy.spin_once(self.node_, timeout_sec=0)
-
         self.motor_right_.setVelocity(self.w_right_)
         self.motor_left_.setVelocity(self.w_left_)

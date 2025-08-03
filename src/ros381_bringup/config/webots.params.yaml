@@ -33,3 +33,8 @@ odometry:
     use_sim_time: True
     # Distance between encoder wheels: [m]
     L: 0.297
+
+tactic_global:
+  ros__parameters:
+    # Desired frequency for tactics tick: [Hz]
+    tick_freq: 100

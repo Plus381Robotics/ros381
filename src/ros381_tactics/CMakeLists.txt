@@ -8,13 +8,18 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
-
+find_package(example_interfaces REQUIRED)
 find_package(rclpy REQUIRED)
 
 add_executable(talker src/talker.cpp)
 ament_target_dependencies(talker rclcpp std_msgs)
 
-install(TARGETS talker
+add_executable(global src/global.cpp)
+ament_target_dependencies(global rclcpp example_interfaces)
+
+install(TARGETS
+  talker
+  global
   DESTINATION lib/${PROJECT_NAME})
 
 install(PROGRAMS

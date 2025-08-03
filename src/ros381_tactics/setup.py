@@ -17,9 +17,4 @@ setup(
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
-    entry_points={
-        'console_scripts': [
-			'listener = ros381_tactics.listener:main',
-        ]
-    },
 )

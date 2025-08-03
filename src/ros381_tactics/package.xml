@@ -14,6 +14,7 @@
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
   <depend>example_interfaces</depend>
+  <depend>ros381_interfaces</depend>
 
   <exec_depend>ament_index_python</exec_depend>
 

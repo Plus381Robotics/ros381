@@ -37,4 +37,4 @@ odometry:
 tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
-    tick_freq: 100
+    tick_freq: 50.0

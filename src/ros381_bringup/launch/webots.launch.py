@@ -10,6 +10,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     webots_pkg = get_package_share_directory("ros381_webots")
     base_pkg = get_package_share_directory("ros381_base")
+    tactics_pkg = get_package_share_directory("ros381_tactics")
     description_pkg = get_package_share_directory("ros381_description")
     robot_description_path = os.path.join(description_pkg, "urdf", "ros381.urdf")
 
@@ -44,6 +45,16 @@ def generate_launch_description():
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
         ],
     )
+    
+    tactics_node = Node(
+        package="ros381_tactics",
+        executable="global",
+        name="tactic_global",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+		],
+	)
 
     return LaunchDescription(
         [
@@ -52,6 +63,7 @@ def generate_launch_description():
             webots_node,
             control_loop_node,
             odometry_node,
+            tactics_node,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

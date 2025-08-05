@@ -5,10 +5,14 @@
 #include "ros381_interfaces/action/move.hpp"
 #include "ros381_interfaces/srv/update_pose.hpp"
 #include "ros381_tactics/defines.hpp"
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <pybind11/embed.h>
 
 using namespace std::placeholders;
 using Move = ros381_interfaces::action::Move;
 using GoalHandleMove = rclcpp_action::ClientGoalHandle<Move>;
+
+namespace py = pybind11;
 
 class TacticGlobalNode : public rclcpp::Node
 {
@@ -25,6 +29,28 @@ class TacticGlobalNode : public rclcpp::Node
             "chich_service", std::bind(&TacticGlobalNode::chich_trigger, this, _1, _2));
         pose_client_ = this->create_client<ros381_interfaces::srv::UpdatePose>("update_pose");
         move_client_ = rclcpp_action::create_client<Move>(this, "move");
+
+        try
+        {
+            std::string install_path = ament_index_cpp::get_package_share_directory("ros381_tactics");
+            py::module sys = py::module::import("sys");
+            sys.attr("path").attr("append")(install_path + "/../lib/python3.10/site-packages");
+            tactics_module_ = py::module::import("ros381_tactics.individual_tactics");
+            tactics_module_.attr("hello_tactics")();
+			py::module::import("sys").attr("stdout").attr("flush")();
+        }
+        catch (const py::error_already_set &e)
+        {
+            RCLCPP_FATAL(this->get_logger(), "Python init failed: %s", e.what());
+            rclcpp::shutdown();
+        }
+        // py::scoped_interpreter guard{};
+        // std::string install_path = ament_index_cpp::get_package_share_directory("ros381_tactics");
+        // py::module sys = py::module::import("sys");
+        // sys.attr("path").attr("append")(install_path + "/../lib/python3.10/site-packages");
+        // py::module tactics = py::module::import("ros381_tactics.individual_tactics");
+        // RCLCPP_INFO(this->get_logger(), "Individual tactics python module started.");
+        // tactics.attr("hello_tactics")();
 
         RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
     }
@@ -44,6 +70,9 @@ class TacticGlobalNode : public rclcpp::Node
     rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedPtr pose_client_;
     rclcpp_action::Client<Move>::SharedPtr move_client_;
 
+    py::scoped_interpreter guard_{};
+    py::module tactics_module_;
+
     void global_fsm()
     {
         switch (global_state_)
@@ -57,6 +86,7 @@ class TacticGlobalNode : public rclcpp::Node
             {
                 global_state_ = GL_CALIBRATION;
                 chich_waiting_ = false;
+				chich_trigger_ = false;
                 RCLCPP_INFO(this->get_logger(), "Going to GL_CALIBRATION");
             }
             break;
@@ -70,26 +100,30 @@ class TacticGlobalNode : public rclcpp::Node
             {
                 global_state_ = GL_TACTIC;
                 chich_waiting_ = false;
+				chich_trigger_ = false;
                 match_started_ = !match_started_;
                 start_time_ = this->get_clock()->now();
                 RCLCPP_INFO(this->get_logger(), "Going to GL_TACTIC");
             }
             break;
         case GL_TACTIC:
-            send_goal(/*type*/ 1,
-                      /*x*/ 1.0,
-                      /*y*/ 0.5,
-                      /*phi*/ 0.0,
-                      /*direction*/ 1,
-                      /*v_max*/ 2.0,
-                      /*w_max*/ 12.6,
-                      /*distance_tolerance_percentage*/ 1.0,
-                      /*angle_tolerance_percentage*/ 1.0,
-                      /*start_coeff_v*/ 1.0,
-                      /*start_coeff_w*/ 1.0,
-                      /*stop_coeff_v*/ 1.0,
-                      /*stop_coeff_w*/ 1.0);
-            global_state_ = -1;
+            tactics_module_.attr("tactic_0")();
+			py::module::import("sys").attr("stdout").attr("flush")();
+            // send_goal(/*type*/ 1,
+            //           /*x*/ 1.0,
+            //           /*y*/ 0.5,
+            //           /*phi*/ 0.0,
+            //           /*direction*/ 1,
+            //           /*v_max*/ 2.0,
+            //           /*w_max*/ 12.6,
+            //           /*distance_tolerance_percentage*/ 1.0,
+            //           /*angle_tolerance_percentage*/ 1.0,
+            //           /*start_coeff_v*/ 1.0,
+            //           /*start_coeff_w*/ 1.0,
+            //           /*stop_coeff_v*/ 1.0,
+            //           /*stop_coeff_w*/ 1.0);
+            chich_waiting_ = true;
+            global_state_ = GL_CHICH_2;
             break;
         case -1:
             if (move_result_ == -1)

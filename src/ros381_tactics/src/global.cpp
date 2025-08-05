@@ -14,9 +14,11 @@ using GoalHandleMove = rclcpp_action::ClientGoalHandle<Move>;
 
 namespace py = pybind11;
 
-class TacticGlobalNode : public rclcpp::Node
+class __attribute__((visibility("default"))) TacticGlobalNode : public rclcpp::Node
 {
   public:
+    int8_t move_result_ = 0;
+
     TacticGlobalNode() : Node("tactic_global")
     {
         this->declare_parameter("tick_freq", 50.0);
@@ -66,6 +68,7 @@ class TacticGlobalNode : public rclcpp::Node
                    double distance_tolerance_percentage, double angle_tolerance_percentage, double start_coeff_v,
                    double start_coeff_w, double stop_coeff_v, double stop_coeff_w)
     {
+        move_result_ = 0;
         rclcpp::Rate rate(std::chrono::milliseconds(100));
 
         auto start = this->now();
@@ -115,7 +118,6 @@ class TacticGlobalNode : public rclcpp::Node
     bool match_started_ = false;
     bool chich_trigger_ = false, chich_waiting_ = true;
     int8_t global_state_ = 0;
-    int8_t move_result_ = 0;
 
     rclcpp::Publisher<example_interfaces::msg::Float32>::SharedPtr time_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -125,6 +127,8 @@ class TacticGlobalNode : public rclcpp::Node
 
     py::scoped_interpreter guard_{};
     py::module tactics_module_;
+    py::object tactic_result_;
+    py::list functions_;
 
     void global_fsm()
     {
@@ -160,14 +164,11 @@ class TacticGlobalNode : public rclcpp::Node
             }
             break;
         case GL_TACTIC:
-            tactics_module_.attr("tactic_0")(this);
+            tactic_result_ = tactics_module_.attr("tactic_0")(this);
             py::module::import("sys").attr("stdout").attr("flush")();
-            global_state_ = -1;
-            break;
-        case -1:
-            if (move_result_ == -1)
+            if (tactic_result_.cast<int>() == -1)
             {
-                RCLCPP_INFO(this->get_logger(), "Move finished.");
+                RCLCPP_INFO(this->get_logger(), "Tactic completed successfully");
                 global_state_ = GL_END;
             }
             break;
@@ -192,8 +193,8 @@ class TacticGlobalNode : public rclcpp::Node
 
     void feedback_callback(GoalHandleMove::SharedPtr, const std::shared_ptr<const Move::Feedback> feedback)
     {
-        RCLCPP_INFO(this->get_logger(), "Remaining distance: %.2f; Remaining angle: %.2f",
-                    feedback->distance_remaininig, feedback->angle_remaining);
+        RCLCPP_DEBUG(this->get_logger(), "Remaining distance: %.2f; Remaining angle: %.2f",
+                     feedback->distance_remaininig, feedback->angle_remaining);
     }
 
     void result_callback(const GoalHandleMove::WrappedResult &result)
@@ -279,7 +280,8 @@ class TacticGlobalNode : public rclcpp::Node
 PYBIND11_EMBEDDED_MODULE(ros381_tactics_py, m)
 {
     py::class_<TacticGlobalNode, std::shared_ptr<TacticGlobalNode>>(m, "TacticGlobalNode")
-        .def("send_goal", &TacticGlobalNode::send_goal);
+        .def("send_goal", &TacticGlobalNode::send_goal)
+        .def_readonly("move_result_", &TacticGlobalNode::move_result_);
 }
 
 int main(int argc, char **argv)

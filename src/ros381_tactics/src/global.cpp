@@ -37,106 +37,29 @@ class TacticGlobalNode : public rclcpp::Node
             sys.attr("path").attr("append")(install_path + "/../lib/python3.10/site-packages");
             tactics_module_ = py::module::import("ros381_tactics.individual_tactics");
             tactics_module_.attr("hello_tactics")();
-			py::module::import("sys").attr("stdout").attr("flush")();
+            py::module::import("sys").attr("stdout").attr("flush")();
         }
         catch (const py::error_already_set &e)
         {
             RCLCPP_FATAL(this->get_logger(), "Python init failed: %s", e.what());
             rclcpp::shutdown();
         }
-        // py::scoped_interpreter guard{};
-        // std::string install_path = ament_index_cpp::get_package_share_directory("ros381_tactics");
-        // py::module sys = py::module::import("sys");
-        // sys.attr("path").attr("append")(install_path + "/../lib/python3.10/site-packages");
-        // py::module tactics = py::module::import("ros381_tactics.individual_tactics");
-        // RCLCPP_INFO(this->get_logger(), "Individual tactics python module started.");
-        // tactics.attr("hello_tactics")();
+        try
+        {
+            // Import the embedded module
+            py::module embedded = py::module::import("ros381_tactics_py");
+
+            // Pass 'this' to Python
+            tactics_module_.attr("node_instance") = embedded.attr("TacticGlobalNode")(this);
+
+            RCLCPP_INFO(this->get_logger(), "C++ methods exposed to Python");
+        }
+        catch (const py::error_already_set &e)
+        {
+            RCLCPP_ERROR(this->get_logger(), "Failed to expose C++ methods: %s", e.what());
+        }
 
         RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
-    }
-
-  private:
-    unsigned long tick_period_;
-    double time_ = 0; // [s]
-    rclcpp::Time start_time_;
-    bool match_started_ = false;
-    bool chich_trigger_ = false, chich_waiting_ = true;
-    int8_t global_state_ = 0;
-    int8_t move_result_ = 0;
-
-    rclcpp::Publisher<example_interfaces::msg::Float32>::SharedPtr time_pub_;
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Service<example_interfaces::srv::Trigger>::SharedPtr chich_service_;
-    rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedPtr pose_client_;
-    rclcpp_action::Client<Move>::SharedPtr move_client_;
-
-    py::scoped_interpreter guard_{};
-    py::module tactics_module_;
-
-    void global_fsm()
-    {
-        switch (global_state_)
-        {
-        case 0:
-            RCLCPP_INFO(this->get_logger(), "Initial state... Going to GL_CHICH_1");
-            global_state_ = GL_CHICH_1;
-            break;
-        case GL_CHICH_1:
-            if (chich_trigger_)
-            {
-                global_state_ = GL_CALIBRATION;
-                chich_waiting_ = false;
-				chich_trigger_ = false;
-                RCLCPP_INFO(this->get_logger(), "Going to GL_CALIBRATION");
-            }
-            break;
-        case GL_CALIBRATION:
-            global_state_ = GL_CHICH_2;
-            chich_waiting_ = true;
-            RCLCPP_INFO(this->get_logger(), "Going to GL_CHICH_2");
-            break;
-        case GL_CHICH_2:
-            if (chich_trigger_)
-            {
-                global_state_ = GL_TACTIC;
-                chich_waiting_ = false;
-				chich_trigger_ = false;
-                match_started_ = !match_started_;
-                start_time_ = this->get_clock()->now();
-                RCLCPP_INFO(this->get_logger(), "Going to GL_TACTIC");
-            }
-            break;
-        case GL_TACTIC:
-            tactics_module_.attr("tactic_0")();
-			py::module::import("sys").attr("stdout").attr("flush")();
-            // send_goal(/*type*/ 1,
-            //           /*x*/ 1.0,
-            //           /*y*/ 0.5,
-            //           /*phi*/ 0.0,
-            //           /*direction*/ 1,
-            //           /*v_max*/ 2.0,
-            //           /*w_max*/ 12.6,
-            //           /*distance_tolerance_percentage*/ 1.0,
-            //           /*angle_tolerance_percentage*/ 1.0,
-            //           /*start_coeff_v*/ 1.0,
-            //           /*start_coeff_w*/ 1.0,
-            //           /*stop_coeff_v*/ 1.0,
-            //           /*stop_coeff_w*/ 1.0);
-            chich_waiting_ = true;
-            global_state_ = GL_CHICH_2;
-            break;
-        case -1:
-            if (move_result_ == -1)
-            {
-                RCLCPP_INFO(this->get_logger(), "Move finished.");
-                global_state_ = GL_END;
-            }
-            break;
-        case GL_END:
-            RCLCPP_INFO(this->get_logger(), "Tactic ended.");
-            rclcpp::shutdown();
-            break;
-        }
     }
 
     void send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,
@@ -183,6 +106,76 @@ class TacticGlobalNode : public rclcpp::Node
         send_goal_options.feedback_callback = std::bind(&TacticGlobalNode::feedback_callback, this, _1, _2);
         send_goal_options.result_callback = std::bind(&TacticGlobalNode::result_callback, this, _1);
         this->move_client_->async_send_goal(goal_msg, send_goal_options);
+    }
+
+  private:
+    unsigned long tick_period_;
+    double time_ = 0; // [s]
+    rclcpp::Time start_time_;
+    bool match_started_ = false;
+    bool chich_trigger_ = false, chich_waiting_ = true;
+    int8_t global_state_ = 0;
+    int8_t move_result_ = 0;
+
+    rclcpp::Publisher<example_interfaces::msg::Float32>::SharedPtr time_pub_;
+    rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Service<example_interfaces::srv::Trigger>::SharedPtr chich_service_;
+    rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedPtr pose_client_;
+    rclcpp_action::Client<Move>::SharedPtr move_client_;
+
+    py::scoped_interpreter guard_{};
+    py::module tactics_module_;
+
+    void global_fsm()
+    {
+        switch (global_state_)
+        {
+        case 0:
+            RCLCPP_INFO(this->get_logger(), "Initial state... Going to GL_CHICH_1");
+            global_state_ = GL_CHICH_1;
+            break;
+        case GL_CHICH_1:
+            if (chich_trigger_)
+            {
+                global_state_ = GL_CALIBRATION;
+                chich_waiting_ = false;
+                chich_trigger_ = false;
+                RCLCPP_INFO(this->get_logger(), "Going to GL_CALIBRATION");
+            }
+            break;
+        case GL_CALIBRATION:
+            global_state_ = GL_CHICH_2;
+            chich_waiting_ = true;
+            RCLCPP_INFO(this->get_logger(), "Going to GL_CHICH_2");
+            break;
+        case GL_CHICH_2:
+            if (chich_trigger_)
+            {
+                global_state_ = GL_TACTIC;
+                chich_waiting_ = false;
+                chich_trigger_ = false;
+                match_started_ = !match_started_;
+                start_time_ = this->get_clock()->now();
+                RCLCPP_INFO(this->get_logger(), "Going to GL_TACTIC");
+            }
+            break;
+        case GL_TACTIC:
+            tactics_module_.attr("tactic_0")(this);
+            py::module::import("sys").attr("stdout").attr("flush")();
+            global_state_ = -1;
+            break;
+        case -1:
+            if (move_result_ == -1)
+            {
+                RCLCPP_INFO(this->get_logger(), "Move finished.");
+                global_state_ = GL_END;
+            }
+            break;
+        case GL_END:
+            RCLCPP_INFO(this->get_logger(), "Tactic ended.");
+            rclcpp::shutdown();
+            break;
+        }
     }
 
     void goal_response_callback(const GoalHandleMove::SharedPtr &goal_handle)
@@ -282,6 +275,12 @@ class TacticGlobalNode : public rclcpp::Node
             RCLCPP_INFO(this->get_logger(), "Service In-Progress...");
     }
 };
+
+PYBIND11_EMBEDDED_MODULE(ros381_tactics_py, m)
+{
+    py::class_<TacticGlobalNode, std::shared_ptr<TacticGlobalNode>>(m, "TacticGlobalNode")
+        .def("send_goal", &TacticGlobalNode::send_goal);
+}
 
 int main(int argc, char **argv)
 {

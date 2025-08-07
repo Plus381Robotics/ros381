@@ -24,8 +24,14 @@ find_package(Python REQUIRED COMPONENTS Interpreter Development)
 add_executable(talker src/talker.cpp)
 ament_target_dependencies(talker rclcpp std_msgs)
 
-add_executable(global src/global.cpp)
-ament_target_dependencies(global rclcpp rclcpp_action example_interfaces ros381_interfaces ament_index_cpp)
+add_executable(global src/global.cpp src/pybinding.cpp)
+ament_target_dependencies(global 
+    rclcpp 
+    rclcpp_action 
+    example_interfaces 
+    ros381_interfaces 
+    ament_index_cpp
+)
 
 target_link_libraries(global
     pybind11::embed

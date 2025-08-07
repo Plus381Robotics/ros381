@@ -1,3 +1,6 @@
+from movement import move_to_xy
+
+
 def hello_tactics():
     print("Individual tactics python module loaded.")
     return True
@@ -16,7 +19,8 @@ def tactic_0(GT):
             tactic_return_value = 0
             tactic_state = 1
         case 1:
-            GT.send_goal(1, 1.0, 0.5, 0.0, 1, 2.0, 12.6, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+            # GT.send_goal(1, 1.0, 0.5, 0.0, 1, 2.0, 12.6, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+            move_to_xy(GT, 1.0, 0.5)
             tactic_state = 2
         case 2:
             if GT.move_result_ == -1:

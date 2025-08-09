@@ -107,7 +107,7 @@ void TacticGlobalNode::global_fsm()
         }
         break;
     case GL_TACTIC:
-        tactic_result_ = tactics_module_->attr("tactic_0")(this);
+        tactic_result_ = tactics_module_->attr("execute_tactic")(this, 0, 0);
         py::module::import("sys").attr("stdout").attr("flush")();
         if (tactic_result_.cast<int>() == -1)
         {

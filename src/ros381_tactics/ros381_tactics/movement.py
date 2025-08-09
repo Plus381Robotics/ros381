@@ -1,3 +1,6 @@
+from ros381_tactics.gt_holder import get_GT
+
+
 def _send_goal(
     GT,
     type_,
@@ -32,10 +35,10 @@ def _send_goal(
 
 
 def rotate_to_phi(
-    GT, phi, w_max=99.0, ang_tol_perc=1.0, start_coeff_w=1.0, stop_coeff_w=1.0
+    phi, w_max=99.0, ang_tol_perc=1.0, start_coeff_w=1.0, stop_coeff_w=1.0
 ):
     _send_goal(
-        GT,
+        get_GT(),
         -1,
         phi=phi,
         w_max=w_max,
@@ -46,10 +49,10 @@ def rotate_to_phi(
 
 
 def rotate_to_xy(
-    GT, x, y, dir, w_max=99.0, ang_tol_perc=1.0, start_coeff_w=1.0, stop_coeff_w=1.0
+    x, y, dir, w_max=99.0, ang_tol_perc=1.0, start_coeff_w=1.0, stop_coeff_w=1.0
 ):
     _send_goal(
-        GT,
+        get_GT(),
         -2,
         x=x,
         y=y,
@@ -62,7 +65,6 @@ def rotate_to_xy(
 
 
 def move_to_xy(
-    GT,
     x,
     y,
     dir,
@@ -76,7 +78,7 @@ def move_to_xy(
     stop_coeff_w=1.0,
 ):
     _send_goal(
-        GT,
+        get_GT(),
         1,
         x=x,
         y=y,
@@ -93,7 +95,6 @@ def move_to_xy(
 
 
 def move_on_direction(
-    GT,
     dist,
     dir,
     v_max=99.0,
@@ -102,7 +103,7 @@ def move_on_direction(
     stop_coeff_v=1.0,
 ):
     _send_goal(
-        GT,
+        get_GT(),
         2,
         x=dist,
         dir=dir,
@@ -114,7 +115,6 @@ def move_on_direction(
 
 
 def move_on_direction_snapped(
-    GT,
     dist,
     dir,
     snap_phi,
@@ -128,7 +128,7 @@ def move_on_direction_snapped(
     stop_coeff_w=1.0,
 ):
     _send_goal(
-        GT,
+        get_GT(),
         3,
         x=dist,
         dir=dir,
@@ -145,7 +145,6 @@ def move_on_direction_snapped(
 
 
 def move_on_angle(
-    GT,
     dist,
     dir,
     phi,
@@ -159,7 +158,7 @@ def move_on_angle(
     stop_coeff_w=1.0,
 ):
     _send_goal(
-        GT,
+        get_GT(),
         4,
         x=dist,
         dir=dir,

@@ -38,11 +38,6 @@ target_link_libraries(global
     Python::Python
 )
 
-install(
-  DIRECTORY scripts/
-  DESTINATION lib/python3.10/site-packages/${PROJECT_NAME}
-)
-
 include_directories(
   include
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -57,11 +52,6 @@ install(TARGETS
   talker
   global
   DESTINATION lib/${PROJECT_NAME})
-
-install(PROGRAMS
-  scripts/individual_tactics.py
-  scripts/listener.py
-  DESTINATION lib/${PROJECT_NAME}/scripts)
 
 ament_python_install_package(${PROJECT_NAME})
 ament_package()

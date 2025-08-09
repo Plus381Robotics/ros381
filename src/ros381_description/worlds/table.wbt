@@ -7,7 +7,7 @@ EXTERNPROTO "../protos/ros381.proto"
 
 WorldInfo {
   basicTimeStep 10
-  FPS 200
+  FPS 600
   contactProperties [
     ContactProperties {
       material1 "rubber"

@@ -1,4 +1,4 @@
-from movement import move_to_xy
+from ros381_tactics.movement import *
 
 
 def hello_tactics():
@@ -15,36 +15,35 @@ def tactic_0(GT):
 
     match tactic_state:
         case 0:
-            print("Tactic 0 loaded.")
+            print("Tactic 0 started!")
             tactic_return_value = 0
             tactic_state = 1
         case 1:
-            # GT.send_goal(1, 1.0, 0.5, 0.0, 1, 2.0, 12.6, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
-            move_to_xy(GT, 1.0, 0.5)
+            rotate_to_xy(GT, -1.0, 0.5, 1)
             tactic_state = 2
         case 2:
             if GT.move_result_ == -1:
                 tactic_state = 3
         case 3:
-            GT.send_goal(1, -1.0, 0.5, 0.0, 1, 2.0, 12.6, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+            move_on_direction(GT, 1.0, 1)
             tactic_state = 4
         case 4:
             if GT.move_result_ == -1:
                 tactic_state = 5
         case 5:
-            GT.send_goal(1, -1.0, -0.5, 0.0, 1, 2.0, 12.6, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+            move_on_angle(GT, 1.0, 1, -1.57)
             tactic_state = 6
         case 6:
             if GT.move_result_ == -1:
                 tactic_state = 7
         case 7:
-            GT.send_goal(1, 1.0, -0.5, 0.0, 1, 2.0, 12.6, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+            move_on_angle(GT, 2.0, -1, 3.14159, v_max=0.25, stop_coeff_w=10.0)
             tactic_state = 8
         case 8:
             if GT.move_result_ == -1:
                 tactic_state = 9
         case 9:
-            GT.send_goal(1, 0.0, 0.0, 0.0, 1, 2.0, 12.6, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+            move_to_xy(GT, 0.0, 0.0, 1, ang_tol_perc=10.0, stop_coeff_v=10.0)
             tactic_state = 10
         case 10:
             if GT.move_result_ == -1:

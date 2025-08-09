@@ -29,7 +29,6 @@ void init_python(TacticGlobalNode *node)
         node->tactics_module_->attr("hello_tactics")();
         py::module::import("sys").attr("stdout").attr("flush")();
 
-        // Expose C++ class to Python
         auto embedded = py::module::import("ros381_tactics_py");
         node->tactics_module_->attr("node_instance") = embedded.attr("get_node_instance")(node);
 

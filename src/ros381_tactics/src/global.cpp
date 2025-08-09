@@ -20,17 +20,9 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
     pose_client_ = this->create_client<ros381_interfaces::srv::UpdatePose>("update_pose");
     move_client_ = rclcpp_action::create_client<Move>(this, "move");
 
-    RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
+    init_python(this);
 
-    try
-    {
-        init_python(this);
-    }
-    catch (const std::exception &e)
-    {
-        RCLCPP_FATAL(this->get_logger(), "Python initialization failed: %s", e.what());
-        rclcpp::shutdown();
-    }
+    RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
 }
 
 void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,
@@ -115,13 +107,13 @@ void TacticGlobalNode::global_fsm()
         }
         break;
     case GL_TACTIC:
-            tactic_result_ = tactics_module_->attr("tactic_0")(this);
-            py::module::import("sys").attr("stdout").attr("flush")();
-            if (tactic_result_.cast<int>() == -1)
-            {
-                RCLCPP_INFO(this->get_logger(), "Tactic completed successfully");
-                global_state_ = GL_END;
-            }
+        tactic_result_ = tactics_module_->attr("tactic_0")(this);
+        py::module::import("sys").attr("stdout").attr("flush")();
+        if (tactic_result_.cast<int>() == -1)
+        {
+            RCLCPP_INFO(this->get_logger(), "Tactic completed successfully");
+            global_state_ = GL_END;
+        }
         break;
     case GL_END:
         RCLCPP_INFO(this->get_logger(), "Tactic ended.");

@@ -84,16 +84,21 @@ void TacticGlobalNode::global_fsm()
     case GL_CHICH_1:
         if (chich_trigger_)
         {
-            global_state_ = GL_CALIBRATION;
+            global_state_ = GL_LOAD_TACTIC;
             chich_waiting_ = false;
             chich_trigger_ = false;
-            RCLCPP_INFO(this->get_logger(), "Going to GL_CALIBRATION");
+            RCLCPP_INFO(this->get_logger(), "Going to GL_LOAD_TACTIC");
         }
         break;
-    case GL_CALIBRATION:
-        global_state_ = GL_CHICH_2;
-        chich_waiting_ = true;
-        RCLCPP_INFO(this->get_logger(), "Going to GL_CHICH_2");
+    case GL_LOAD_TACTIC:
+        tactic_result_ = tactics_module_->attr("load_tactic")(this, 1, 0);
+        py::module::import("sys").attr("stdout").attr("flush")();
+        if (tactic_result_.cast<int>() == -1)
+        {
+            global_state_ = GL_CHICH_2;
+            chich_waiting_ = true;
+            RCLCPP_INFO(this->get_logger(), "Going to GL_CHICH_2");
+        }
         break;
     case GL_CHICH_2:
         if (chich_trigger_)
@@ -107,7 +112,7 @@ void TacticGlobalNode::global_fsm()
         }
         break;
     case GL_TACTIC:
-        tactic_result_ = tactics_module_->attr("execute_tactic")(this, 0, 0);
+        tactic_result_ = tactics_module_->attr("execute_tactic")(this);
         py::module::import("sys").attr("stdout").attr("flush")();
         if (tactic_result_.cast<int>() == -1)
         {

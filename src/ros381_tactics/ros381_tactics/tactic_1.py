@@ -5,21 +5,16 @@ tactic_state = 0
 tactic_return_value = 0
 
 
-def tactic_1(GT):
+def load_t1(tactic_side):
+    print("Tactic 1 loaded.")
+    return -1.0, -0.5, -1
+
+
+def tactic_1(GT, tactic_side):
     global tactic_state, tactic_return_value
 
     match tactic_state:
         case 0:
-            print("Tactic 1 started!")
-            tactic_return_value = 0
-            tactic_state = 1
-        case 1:
-            rotate_to_xy(GT, 1.0, 0.5, 1)
-            tactic_state = 2
-        case 2:
-            if GT.move_result_ == -1:
-                tactic_state = 3
-        case 3:
             move_on_direction(GT, 1.0, -1)
             tactic_state = 4
         case 4:
@@ -32,9 +27,7 @@ def tactic_1(GT):
             if GT.move_result_ == -1:
                 tactic_state = 7
         case 7:
-            move_on_angle(
-                GT, 2.0, -1, -3.14159, v_max=0.25, w_max=3.14, start_coeff_w=10.0
-            )
+            move_on_angle(GT, 2.0, -1, -3.14159, w_max=3.14, start_coeff_w=10.0)
             tactic_state = 8
         case 8:
             if GT.move_result_ == -1:

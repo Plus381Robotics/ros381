@@ -1,4 +1,4 @@
-from ros381_tactics.gt_holder import get_GT
+from ros381_tactics.get_set import get_GT
 
 
 def _send_goal(

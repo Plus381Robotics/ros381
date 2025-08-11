@@ -16,7 +16,7 @@ namespace py = pybind11;
 class TacticGlobalNode : public rclcpp::Node
 {
   public:
-    int8_t move_result_ = 0;
+    int8_t move_result_ = 0, update_pose_result_ = 0;
     py::module *tactics_module_ = nullptr;
 
     TacticGlobalNode();
@@ -24,6 +24,7 @@ class TacticGlobalNode : public rclcpp::Node
     void send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,
                    double distance_tolerance_percentage, double angle_tolerance_percentage, double start_coeff_v,
                    double start_coeff_w, double stop_coeff_v, double stop_coeff_w);
+    void update_pose(double x, double y, double phi, uint16_t type);
 
   private:
     std::unique_ptr<py::scoped_interpreter> guard_;
@@ -52,7 +53,6 @@ class TacticGlobalNode : public rclcpp::Node
     void chich_trigger(const std::shared_ptr<example_interfaces::srv::Trigger::Request> request,
                        std::shared_ptr<example_interfaces::srv::Trigger::Response> response);
     void tactic_tick();
-    int update_pose(double x, double y, double phi, uint16_t type);
     void update_pose_callback(rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedFuture future);
 };
 

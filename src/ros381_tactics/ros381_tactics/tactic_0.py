@@ -1,14 +1,23 @@
 from ros381_tactics.movement import *
-from ros381_tactics.gt_holder import get_GT, get_move_result
+from ros381_tactics.get_set import *
 
 tactic_state = 0
 tactic_return_value = 0
 
+start_x = 0.0
+start_y = 0.0
+start_phi = 0.0
+
+first_x = -1.0
+first_y = 0.5
+first_dir = -1
+
 
 def load_t0(tactic_side):
+    global start_x, start_y, start_phi, first_x, first_y, first_dir
     print("Tactic 0 loaded.")
     GT = get_GT()
-    return -1.0, 0.5, 1
+    return start_x, start_y, start_phi, first_x, first_y, first_dir
 
 
 def tactic_0(tactic_side):

@@ -7,7 +7,9 @@ PYBIND11_EMBEDDED_MODULE(ros381_tactics_py, m)
 {
     py::class_<TacticGlobalNode, std::shared_ptr<TacticGlobalNode>>(m, "TacticGlobalNode")
         .def("send_goal", &TacticGlobalNode::send_goal)
-        .def_readonly("move_result_", &TacticGlobalNode::move_result_);
+        .def("update_pose", &TacticGlobalNode::update_pose)
+        .def_readonly("move_result_", &TacticGlobalNode::move_result_)
+        .def_readonly("update_pose_result_", &TacticGlobalNode::update_pose_result_);
 
     m.def(
         "get_node_instance",

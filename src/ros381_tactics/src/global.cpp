@@ -186,14 +186,16 @@ void TacticGlobalNode::tactic_tick()
     global_fsm();
 }
 
-int TacticGlobalNode::update_pose(double x, double y, double phi, uint16_t type)
+void TacticGlobalNode::update_pose(double x, double y, double phi, uint16_t type)
 {
+    update_pose_result_ = 0;
     while (!pose_client_->wait_for_service(std::chrono::milliseconds(50)))
     {
         if (rclcpp::ok())
         {
             RCLCPP_ERROR(this->get_logger(), "Client interrupted while waiting for service. Terminating...");
-            return 1;
+            update_pose_result_ = -2;
+            return;
         }
         RCLCPP_INFO(this->get_logger(), "Service Unavailable. Waiting for Service...");
     }
@@ -213,16 +215,13 @@ int TacticGlobalNode::update_pose(double x, double y, double phi, uint16_t type)
 
     auto result_future = pose_client_->async_send_request(
         request, std::bind(&TacticGlobalNode::update_pose_callback, this, std::placeholders::_1));
-    return -1;
 }
 
 void TacticGlobalNode::update_pose_callback(rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedFuture future)
 {
-    auto status = future.wait_for(std::chrono::milliseconds(50));
-    if (status == std::future_status::ready)
-        RCLCPP_INFO(this->get_logger(), "Pose updated");
-    else
-        RCLCPP_INFO(this->get_logger(), "Service In-Progress...");
+    auto response = future.get();
+    RCLCPP_INFO(this->get_logger(), "Pose updated");
+    update_pose_result_ = -1;
 }
 
 int main(int argc, char **argv)

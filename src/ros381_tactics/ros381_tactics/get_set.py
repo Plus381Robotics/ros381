@@ -12,3 +12,7 @@ def get_GT():
 
 def get_move_result():
     return _GT_instance.move_result_
+
+
+def get_update_pose_result():
+    return _GT_instance.update_pose_result_

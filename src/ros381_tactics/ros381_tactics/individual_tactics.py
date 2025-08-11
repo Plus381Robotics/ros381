@@ -12,40 +12,33 @@ def hello_tactics():
 
 load_state = 0
 chosen_tactic = -1
-chosen_side = 0
 
 start_x = 0.0
 start_y = 0.0
 start_phi = 0.0
-
 first_x = 0.0
 first_y = 0.0
 first_dir = 0
 
 
 def execute_tactic():
-    global chosen_tactic, chosen_side
-    return globals()[f"tactic_{chosen_tactic}"](chosen_side)
+    global chosen_tactic
+    return globals()[f"tactic_{chosen_tactic}"]()
 
 
 def load_tactic(GT, tactic_number, tactic_side):
-    global load_state, chosen_tactic, chosen_side, start_x, start_y, start_phi, first_x, first_y, first_dir
+    global load_state, chosen_tactic, start_x, start_y, start_phi, first_x, first_y, first_dir
     match load_state:
         case 0:
             set_GT(GT)
             load_state = 1
             chosen_tactic = tactic_number
-            chosen_side = tactic_side
+            set_side(tactic_side)
             start_x, start_y, start_phi, first_x, first_y, first_dir = globals()[
-				f"load_t{tactic_number}"
-			](tactic_side)
+                f"load_t{tactic_number}"
+            ]()
         case 1:
             GT.update_pose(start_x, start_y, start_phi, 111)
-			# print(f"Update_pose_result_ = {get_update_pose_result()}")
-			# while get_update_pose_result() >= 0:
-			#     print(f"Update_pose_result_ = {get_update_pose_result()}")
-			#     time.sleep(0.1)
-			#     pass
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:

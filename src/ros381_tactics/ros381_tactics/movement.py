@@ -1,4 +1,5 @@
-from ros381_tactics.get_set import get_GT
+from ros381_tactics.get_set import get_GT, get_side
+import math
 
 
 def _send_goal(
@@ -17,11 +18,16 @@ def _send_goal(
     stop_coeff_v=1.0,
     stop_coeff_w=1.0,
 ):
+    sided_x = x
+    sided_phi = phi
+    if get_side() == -1:
+        sided_x = -x
+        sided_phi = get_side() * math.pi - phi
     GT.send_goal(
         type_,
-        x,
+        sided_x,
         y,
-        phi,
+        sided_phi,
         dir,
         v_max,
         w_max,
@@ -105,7 +111,7 @@ def move_on_direction(
     _send_goal(
         get_GT(),
         2,
-        x=dist,
+        y=dist,
         dir=dir,
         v_max=v_max,
         d_tol_perc=d_tol_perc,
@@ -130,7 +136,7 @@ def move_on_direction_snapped(
     _send_goal(
         get_GT(),
         3,
-        x=dist,
+        y=dist,
         dir=dir,
         phi=snap_phi,
         v_max=v_max,
@@ -160,7 +166,7 @@ def move_on_angle(
     _send_goal(
         get_GT(),
         4,
-        x=dist,
+        y=dist,
         dir=dir,
         phi=phi,
         v_max=v_max,

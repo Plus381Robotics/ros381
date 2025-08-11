@@ -13,14 +13,13 @@ first_y = 0.5
 first_dir = -1
 
 
-def load_t0(tactic_side):
+def load_t0():
     global start_x, start_y, start_phi, first_x, first_y, first_dir
     print("Tactic 0 loaded.")
-    GT = get_GT()
     return start_x, start_y, start_phi, first_x, first_y, first_dir
 
 
-def tactic_0(tactic_side):
+def tactic_0():
     global tactic_state, tactic_return_value
 
     match tactic_state:

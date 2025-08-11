@@ -1,5 +1,4 @@
 #include "ros381_tactics/global.hpp"
-#include <ament_index_cpp/get_package_share_directory.hpp>
 
 using namespace std::placeholders;
 using Move = ros381_interfaces::action::Move;
@@ -15,14 +14,40 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
     timer_ = this->create_wall_timer(std::chrono::milliseconds(tick_period_),
                                      std::bind(&TacticGlobalNode::tactic_tick, this));
     time_pub_ = this->create_publisher<example_interfaces::msg::Float32>("tactic_time", 10);
-    chich_service_ = this->create_service<example_interfaces::srv::Trigger>(
-        "chich_service", std::bind(&TacticGlobalNode::chich_trigger, this, _1, _2));
+    // chinch_service_ = this->create_service<example_interfaces::srv::Trigger>(
+    //     "chinch_service", std::bind(&TacticGlobalNode::chinch_trigger, this, _1, _2));
     pose_client_ = this->create_client<ros381_interfaces::srv::UpdatePose>("update_pose");
     move_client_ = rclcpp_action::create_client<Move>(this, "move");
+    chinch_waiting_pub_ = this->create_publisher<example_interfaces::msg::Empty>("chinch_waiting", 10);
+    chinch_trigger_sub_ = this->create_subscription<example_interfaces::msg::Bool>(
+        "chinch_trigger", 10, std::bind(&TacticGlobalNode::callback_chinch_state, this, _1));
 
     init_python(this);
 
     RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
+}
+
+void TacticGlobalNode::callback_chinch_state(const example_interfaces::msg::Bool::SharedPtr msg)
+{
+    if (msg->data) // rastuca ivica
+    {
+        if (chinch_waiting_)
+        {
+            chinch_trigger_ = true;
+        }
+    }
+    else // opadajuca ivica
+    {
+    }
+}
+
+void TacticGlobalNode::pub_chinch_waiting()
+{
+    if (chinch_waiting_)
+    {
+        auto msg = example_interfaces::msg::Empty();
+        chinch_waiting_pub_->publish(msg);
+    }
 }
 
 void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,
@@ -78,15 +103,15 @@ void TacticGlobalNode::global_fsm()
     {
     case 0:
         RCLCPP_INFO(this->get_logger(), "Initial state... Going to GL_CHICH_1");
-        chich_waiting_ = true;
+        chinch_waiting_ = true;
         global_state_ = GL_CHICH_1;
         break;
     case GL_CHICH_1:
-        if (chich_trigger_)
+        if (chinch_trigger_)
         {
             global_state_ = GL_LOAD_TACTIC;
-            chich_waiting_ = false;
-            chich_trigger_ = false;
+            chinch_waiting_ = false;
+            chinch_trigger_ = false;
             RCLCPP_INFO(this->get_logger(), "Going to GL_LOAD_TACTIC");
         }
         break;
@@ -96,16 +121,16 @@ void TacticGlobalNode::global_fsm()
         if (tactic_result_.cast<int>() == -1)
         {
             global_state_ = GL_CHICH_2;
-            chich_waiting_ = true;
+            chinch_waiting_ = true;
             RCLCPP_INFO(this->get_logger(), "Going to GL_CHICH_2");
         }
         break;
     case GL_CHICH_2:
-        if (chich_trigger_)
+        if (chinch_trigger_)
         {
             global_state_ = GL_TACTIC;
-            chich_waiting_ = false;
-            chich_trigger_ = false;
+            chinch_waiting_ = false;
+            chinch_trigger_ = false;
             match_started_ = !match_started_;
             start_time_ = this->get_clock()->now();
             RCLCPP_INFO(this->get_logger(), "Going to GL_TACTIC");
@@ -159,22 +184,22 @@ void TacticGlobalNode::pub_time()
     time_pub_->publish(msg);
 }
 
-void TacticGlobalNode::chich_trigger(const std::shared_ptr<example_interfaces::srv::Trigger::Request> request,
-                                     std::shared_ptr<example_interfaces::srv::Trigger::Response> response)
-{
-    (void)request;
-    if (chich_waiting_)
-    {
-        chich_trigger_ = true;
-        response->success = true;
-        response->message = "Triggered chich";
-    }
-    else
-    {
-        response->success = false;
-        response->message = "Chich was not waiting for trigger";
-    }
-}
+// void TacticGlobalNode::chinch_trigger(const std::shared_ptr<example_interfaces::srv::Trigger::Request> request,
+//                                      std::shared_ptr<example_interfaces::srv::Trigger::Response> response)
+// {
+//     (void)request;
+//     if (chinch_waiting_)
+//     {
+//         chinch_trigger_ = true;
+//         response->success = true;
+//         response->message = "Triggered chinch";
+//     }
+//     else
+//     {
+//         response->success = false;
+//         response->message = "Chich was not waiting for trigger";
+//     }
+// }
 
 void TacticGlobalNode::tactic_tick()
 {

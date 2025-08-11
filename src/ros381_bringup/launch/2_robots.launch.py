@@ -78,8 +78,37 @@ def generate_launch_description():
         output="screen",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
-		],
-	)
+        ],
+    )
+    
+    tactics_node_1 = Node(
+        package="ros381_tactics",
+        executable="global",
+        name="tactic_global",
+        namespace="blue",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+        ],
+    )
+
+    tactics_node_2 = Node(
+        package="ros381_tactics",
+        executable="global",
+        name="tactic_global",
+        namespace="yellow",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+        ],
+    )
+
+    chinch_trigger_node = Node(
+        package="ros381_webots",
+        executable="global_chinch",
+        name="global_chinch",
+        output="screen"
+    )
 
     return LaunchDescription(
         [
@@ -91,6 +120,9 @@ def generate_launch_description():
             odometry_node_1,
             control_loop_node_2,
             odometry_node_2,
+            tactics_node_1,
+            tactics_node_2,
+            chinch_trigger_node,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

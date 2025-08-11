@@ -99,6 +99,7 @@ void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_
 
 void TacticGlobalNode::global_fsm()
 {
+    pub_chinch_waiting();
     switch (global_state_)
     {
     case 0:
@@ -113,10 +114,13 @@ void TacticGlobalNode::global_fsm()
             chinch_waiting_ = false;
             chinch_trigger_ = false;
             RCLCPP_INFO(this->get_logger(), "Going to GL_LOAD_TACTIC");
+            // TODO: ovde ide tactic_chosen = true; a do tad ide sub
+            tactic_num_ = 1;
+			tactic_side_ = -1;
         }
         break;
     case GL_LOAD_TACTIC:
-        tactic_result_ = tactics_module_->attr("load_tactic")(this, 1, -1);
+        tactic_result_ = tactics_module_->attr("load_tactic")(this, tactic_num_, tactic_side_);
         py::module::import("sys").attr("stdout").attr("flush")();
         if (tactic_result_.cast<int>() == -1)
         {
@@ -183,23 +187,6 @@ void TacticGlobalNode::pub_time()
     msg.data = time_;
     time_pub_->publish(msg);
 }
-
-// void TacticGlobalNode::chinch_trigger(const std::shared_ptr<example_interfaces::srv::Trigger::Request> request,
-//                                      std::shared_ptr<example_interfaces::srv::Trigger::Response> response)
-// {
-//     (void)request;
-//     if (chinch_waiting_)
-//     {
-//         chinch_trigger_ = true;
-//         response->success = true;
-//         response->message = "Triggered chinch";
-//     }
-//     else
-//     {
-//         response->success = false;
-//         response->message = "Chich was not waiting for trigger";
-//     }
-// }
 
 void TacticGlobalNode::tactic_tick()
 {

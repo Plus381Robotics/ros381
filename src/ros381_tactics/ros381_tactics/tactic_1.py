@@ -42,13 +42,16 @@ def tactic_1():
             if get_move_result() == -1:
                 tactic_state = 77
         case 7:
-            move_on_angle(1.0, 1, math.pi/2, w_max=3.14)
+            move_on_angle(1.0, 1, math.pi / 2, w_max=3.14)
+            tactic_state = 8
+        case 77:
+            move_to_xy(0.0, -0.8, 1)
             tactic_state = 8
         case 8:
             if get_move_result() == -1:
                 tactic_state = 9
         case 9:
-            move_to_xy(-0.2, 0.0, -1)
+            move_to_xy(-0.75, 0.0, -1)
             tactic_state = 10
         case 10:
             if get_move_result() == -1:

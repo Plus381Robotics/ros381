@@ -37,10 +37,11 @@ class TacticGlobalNode : public rclcpp::Node
     bool match_started_;
     bool chinch_trigger_, chinch_waiting_;
     int8_t global_state_;
+	int8_t tactic_side_ = 1;
+	uint8_t tactic_num_ = 0;
 
     rclcpp::Publisher<example_interfaces::msg::Float32>::SharedPtr time_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
-    // rclcpp::Service<example_interfaces::srv::Trigger>::SharedPtr chich_service_;
     rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedPtr pose_client_;
     rclcpp_action::Client<ros381_interfaces::action::Move>::SharedPtr move_client_;
 	rclcpp::Publisher<example_interfaces::msg::Empty>::SharedPtr chinch_waiting_pub_;
@@ -55,8 +56,6 @@ class TacticGlobalNode : public rclcpp::Node
                            const std::shared_ptr<const ros381_interfaces::action::Move::Feedback> feedback);
     void result_callback(const rclcpp_action::ClientGoalHandle<ros381_interfaces::action::Move>::WrappedResult &result);
     void pub_time();
-    // void chich_trigger(const std::shared_ptr<example_interfaces::srv::Trigger::Request> request,
-    //                    std::shared_ptr<example_interfaces::srv::Trigger::Response> response);
 	void callback_chinch_state(const example_interfaces::msg::Bool::SharedPtr msg);
 	void pub_chinch_waiting();
     void tactic_tick();

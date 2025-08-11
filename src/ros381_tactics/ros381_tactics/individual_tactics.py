@@ -37,6 +37,10 @@ def load_tactic(GT, tactic_number, tactic_side):
             start_x, start_y, start_phi, first_x, first_y, first_dir = globals()[
                 f"load_t{tactic_number}"
             ]()
+            if tactic_side == -1:
+                print("Yellow side chosen.")
+            else:
+                print("Blue side chosen.")
         case 1:
             GT.update_pose(start_x, start_y, start_phi, 111)
             load_state = 2

@@ -12,5 +12,6 @@ ros2 action send_goal /move ros381_interfaces/action/Move "{type: -1, x: 1.0, y:
 ros2 action send_goal /move ros381_interfaces/action/Move "{type: -2, x: 1.0, y: 0.5, phi: 3.14, direction: 1, v_max: 2.0, w_max: 12.6, distance_tolerance_percentage: 1.0, angle_tolerance_percentage: 1.0, start_coeff_v: 1.0, start_coeff_w: 1.0, stop_coeff_v: 1.0, stop_coeff_w: 1.0}"
 ## Trigger Chich
 ros2 topic pub --once /ros381/chinch_trigger example_interfaces/msg/Bool "{data: true}"
+ros2 topic pub --once /ros381/chinch_trigger example_interfaces/msg/Bool "{data: true}"
 ## Update Pose
 ros2 service call /service_name example_srv/YourSrvName "{x: 1.0, y: 2.0, phi: 0.785, type: 1}"

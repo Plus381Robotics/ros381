@@ -120,22 +120,22 @@ class ControlLoopNode : public rclcpp::Node
             break;
             // Move on Direction
         case 2:
-            x_ref_ = x_base_ + goal->direction * goal->x * cos(phi_base_);
-            y_ref_ = y_base_ + goal->direction * goal->x * sin(phi_base_);
+            x_ref_ = x_base_ + goal->direction * goal->y * cos(phi_base_);
+            y_ref_ = y_base_ + goal->direction * goal->y * sin(phi_base_);
             phi_ref_ = phi_base_;
             reg_type_ = 1;
             break;
         // Move on Direction Snapped
         case 3:
-            x_ref_ = x_base_ + goal->direction * goal->x * cos(snap_angle(phi_base_, goal->phi));
-            y_ref_ = y_base_ + goal->direction * goal->x * sin(snap_angle(phi_base_, goal->phi));
+            x_ref_ = x_base_ + goal->direction * goal->y * cos(snap_angle(phi_base_, goal->phi));
+            y_ref_ = y_base_ + goal->direction * goal->y * sin(snap_angle(phi_base_, goal->phi));
             phi_ref_ = snap_angle(phi_base_, goal->phi);
             reg_type_ = 1;
             break;
         // Move on Angle
         case 4:
-            x_ref_ = x_base_ + goal->direction * goal->x * cos(goal->phi);
-            y_ref_ = y_base_ + goal->direction * goal->x * sin(goal->phi);
+            x_ref_ = x_base_ + goal->direction * goal->y * cos(goal->phi);
+            y_ref_ = y_base_ + goal->direction * goal->y * sin(goal->phi);
             phi_ref_ = goal->phi;
             reg_type_ = 1;
             break;

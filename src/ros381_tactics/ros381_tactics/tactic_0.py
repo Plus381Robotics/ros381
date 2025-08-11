@@ -24,7 +24,7 @@ def tactic_0():
 
     match tactic_state:
         case 0:
-            move_on_direction(1.0, 1)
+            move_to_xy(first_x, first_y, first_dir)
             tactic_state = 4
         case 4:
             if get_move_result() == -1:

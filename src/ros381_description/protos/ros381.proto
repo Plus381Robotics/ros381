@@ -1,0 +1,378 @@
+#VRML_SIM R2025a utf8
+# license: Apache License 2.0
+# license url: http://www.apache.org/licenses/LICENSE-2.0
+# This is a proto file for Webots for the ros381
+# Extracted from: /home/hostuser/ros381/src/ros381_description/urdf/ros381.urdf
+
+PROTO ros381 [
+  field  SFVec3f     translation     0 0 0
+  field  SFRotation  rotation        0 0 1 0
+  field  SFString    name            "ros381"  # Is `Robot.name`.
+  field  SFString    controller      "void"    # Is `Robot.controller`.
+  field  MFString    controllerArgs  []        # Is `Robot.controllerArgs`.
+  field  SFString    customData      ""        # Is `Robot.customData`.
+  field  SFBool      supervisor      FALSE     # Is `Robot.supervisor`.
+  field  SFBool      synchronization TRUE      # Is `Robot.synchronization`.
+  field  SFBool      selfCollision   FALSE     # Is `Robot.selfCollision`.
+]
+{
+  Robot {
+    translation IS translation
+    rotation IS rotation
+    controller IS controller
+    controllerArgs IS controllerArgs
+    customData IS customData
+    supervisor IS supervisor
+    synchronization IS synchronization
+    selfCollision IS selfCollision
+    children [
+      Pose {
+        rotation 0.000000 0.000000 1.000000 1.570796
+        children [
+          Shape {
+            appearance DEF steel PBRAppearance {
+              baseColor 0.800000 0.800000 0.800000
+              roughness 0.400000
+              metalness 0.8
+            }
+            geometry DEF base Mesh {
+              url "/home/hostuser/ros381/src/ros381_description/meshes/base.stl"
+            }
+          }
+        ]
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 1.000000 0.000000
+          anchor 0.000000 -0.077250 0.032000
+        }
+        device [
+          RotationalMotor {
+            name "wheel_right"
+			acceleration 600
+            maxTorque 10
+            maxVelocity 60
+          }
+          PositionSensor {
+            name "wheel_right_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.000000 -0.077250 0.032000
+          rotation 1.000000 0.000000 0.000000 1.570796
+          children [
+            Shape {
+              appearance DEF orange PBRAppearance {
+                baseColor 0.800000 0.200000 0.000000
+                roughness 1.000000
+                metalness 0
+              }
+              geometry Cylinder {
+                radius 0.035
+                height 0.039
+              }
+            }
+          ]
+          contactMaterial "rubber"
+          name "wheel_right"
+          boundingObject Cylinder {
+            radius 0.035
+            height 0.039
+          }
+          physics Physics {
+            density -1
+            mass 0.100000
+            centerOfMass [ 0.000000 0.000000 0.000000 ]
+            inertiaMatrix [
+              5.000000e-05 5.000000e-05 8.000000e-05
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0.000000 1.000000 0.000000
+          anchor 0.000000 0.077250 0.032000
+        }
+        device [
+          RotationalMotor {
+            name "wheel_left"
+			acceleration 600
+            maxTorque 10
+            maxVelocity 60
+          }
+          PositionSensor {
+            name "wheel_left_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.000000 0.077250 0.032000
+          rotation 1.000000 0.000000 0.000000 1.570796
+          children [
+            Shape {
+              appearance USE orange
+              geometry Cylinder {
+                radius 0.035
+                height 0.039
+              }
+            }
+          ]
+          contactMaterial "rubber"
+          name "wheel_left"
+          boundingObject Cylinder {
+            radius 0.035
+            height 0.039
+          }
+          physics Physics {
+            density -1
+            mass 0.100000
+            centerOfMass [ 0.000000 0.000000 0.000000 ]
+            inertiaMatrix [
+              5.000000e-05 5.000000e-05 8.000000e-05
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      SliderJoint {
+        jointParameters JointParameters {
+          axis 0.000000 0.000000 1.000000
+          dampingConstant 0.1
+          maxStop 0.03
+        }
+        device [
+          LinearMotor {
+            name "right_odometry_slider"
+            maxVelocity 100.0
+            maxPosition 0.03
+            maxForce 1
+          }
+          PositionSensor {
+            name "right_odometry_slider_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.000000 -0.134000 0.015000
+          children [
+            Pose {
+              translation 0.000000 0.000000 0.025000
+              children [
+                Shape {
+                  appearance USE steel
+                  geometry Box {
+                     size 0.090000 0.015000 0.050000
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                axis 0.000000 1.000000 0.000000
+                anchor 0.000000 -0.014500 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "odometry_wheel_right"
+                  maxTorque 0
+                }
+                PositionSensor {
+                  name "odometry_wheel_right_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 -0.014500 0.000000
+                rotation 1.000000 0.000000 0.000000 1.570796
+                children [
+                  Shape {
+                    appearance USE steel
+                    geometry Cylinder {
+                      radius 0.036
+                      height 0.002
+                    }
+                  }
+                ]
+                contactMaterial "rubber"
+                name "odometry_wheel_right"
+                boundingObject Cylinder {
+                  radius 0.036
+                  height 0.002
+                }
+                physics Physics {
+                  density -1
+                  mass 0.055000
+                  centerOfMass [ 0.000000 0.000000 0.000000 ]
+                  inertiaMatrix [
+                    1.790000e-05 1.790000e-05 3.560000e-05
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "right_odometry_block"
+          boundingObject Pose {
+            translation 0.000000 0.000000 0.025000
+            children [
+              Box {
+                 size 0.090000 0.015000 0.050000
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 0.062200
+            centerOfMass [ 0.000000 0.000000 0.025000 ]
+            inertiaMatrix [
+              1.410000e-05 5.490000e-05 4.310000e-05
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      SliderJoint {
+        jointParameters JointParameters {
+          axis 0.000000 0.000000 1.000000
+          dampingConstant 0.1
+          maxStop 0.03
+        }
+        device [
+          LinearMotor {
+            name "left_odometry_slider"
+            maxVelocity 100.0
+            maxPosition 0.03
+            maxForce 1
+          }
+          PositionSensor {
+            name "left_odometry_slider_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0.000000 0.134000 0.015000
+          children [
+            Pose {
+              translation 0.000000 0.000000 0.025000
+              children [
+                Shape {
+                  appearance USE steel
+                  geometry Box {
+                     size 0.090000 0.015000 0.050000
+                  }
+                }
+              ]
+            }
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                axis 0.000000 1.000000 0.000000
+                anchor 0.000000 0.014500 0.000000
+              }
+              device [
+                RotationalMotor {
+                  name "odometry_wheel_left"
+                  maxTorque 0
+                }
+                PositionSensor {
+                  name "odometry_wheel_left_sensor"
+                }
+              ]
+              endPoint Solid {
+                translation 0.000000 0.014500 0.000000
+                rotation 1.000000 0.000000 0.000000 1.570796
+                children [
+                  Shape {
+                    appearance USE steel
+                    geometry Cylinder {
+                      radius 0.036
+                      height 0.002
+                    }
+                  }
+                ]
+                contactMaterial "rubber"
+                name "odometry_wheel_left"
+                boundingObject Cylinder {
+                  radius 0.036
+                  height 0.002
+                }
+                physics Physics {
+                  density -1
+                  mass 0.055000
+                  centerOfMass [ 0.000000 0.000000 0.000000 ]
+                  inertiaMatrix [
+                    1.790000e-05 1.790000e-05 3.560000e-05
+                    0.000000e+00 0.000000e+00 0.000000e+00
+                  ]
+                }
+              }
+            }
+          ]
+          name "left_odometry_block"
+          boundingObject Pose {
+            translation 0.000000 0.000000 0.025000
+            children [
+              Box {
+                 size 0.090000 0.015000 0.050000
+              }
+            ]
+          }
+          physics Physics {
+            density -1
+            mass 0.062200
+            centerOfMass [ 0.000000 0.000000 0.025000 ]
+            inertiaMatrix [
+              1.410000e-05 5.490000e-05 4.310000e-05
+              0.000000e+00 0.000000e+00 0.000000e+00
+            ]
+          }
+        }
+      }
+      Solid {
+        rotation 0.000000 0.000000 1.000000 1.570796
+        children [
+          Shape {
+            appearance DEF black_plexi PBRAppearance {
+                  baseColor 0.200000 0.200000 0.200000
+                  roughness 0.200000
+              metalness 0
+            }
+            geometry DEF armor Mesh {
+              url "/home/hostuser/ros381/src/ros381_description/meshes/armor.stl"
+            }
+          }
+        ]
+        name "armor"
+        boundingObject DEF base_collision Mesh {
+          url "/home/hostuser/ros381/src/ros381_description/meshes/base_collision.stl"
+        }
+        physics Physics {
+          density -1
+          mass 2.000000
+          centerOfMass [ 0.000000 0.000000 0.167500 ]
+          inertiaMatrix [
+            4.400000e-02 2.000000e-02 3.000000e-02
+            0.000000e+00 0.000000e+00 0.000000e+00
+          ]
+        }
+      }
+    ]
+    name IS name
+	contactMaterial "teflon"
+    boundingObject Pose {
+      translation 0.000000 0.000000 0.000000
+      children [
+        Cylinder {
+      		radius 0.14
+        	height 0.004
+        }
+      ]
+    }
+    physics Physics {
+      density -1
+      mass 2.000000
+      centerOfMass [ 0.000000 0.000000 0.167500 ]
+      inertiaMatrix [
+        4.400000e-02 2.000000e-02 3.000000e-02
+        0.000000e+00 0.000000e+00 0.000000e+00
+      ]
+    }
+  }
+}

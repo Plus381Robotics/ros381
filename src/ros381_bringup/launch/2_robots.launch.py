@@ -16,7 +16,7 @@ def generate_launch_description():
     yellow_description_path = os.path.join(description_pkg, "urdf", "yellow.urdf")
 
     webots = WebotsLauncher(
-        world=os.path.join(description_pkg, "worlds", "table.wbt"), ros2_supervisor=True
+        world=os.path.join(description_pkg, "worlds", "table2.wbt"), ros2_supervisor=True
     )
 
     webots_node_1 = WebotsController(

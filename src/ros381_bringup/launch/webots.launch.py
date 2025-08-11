@@ -30,6 +30,7 @@ def generate_launch_description():
         package="ros381_base",
         executable="control_loop",
         name="control_loop",
+        namespace="ros381",
         output="screen",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
@@ -40,6 +41,7 @@ def generate_launch_description():
         package="ros381_base",
         executable="odometry",
         name="odometry",
+        namespace="ros381",
         output="screen",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
@@ -50,6 +52,7 @@ def generate_launch_description():
         package="ros381_tactics",
         executable="global",
         name="tactic_global",
+        namespace="ros381",
         output="screen",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"

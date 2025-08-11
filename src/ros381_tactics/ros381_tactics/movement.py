@@ -1,4 +1,4 @@
-from ros381_tactics.get_set import get_GT, get_side
+from ros381_tactics.get_set import *
 import math
 
 
@@ -18,11 +18,7 @@ def _send_goal(
     stop_coeff_v=1.0,
     stop_coeff_w=1.0,
 ):
-    sided_x = x
-    sided_phi = phi
-    if get_side() == -1:
-        sided_x = -x
-        sided_phi = get_side() * math.pi - phi
+    sided_x, sided_phi = sided_coords(x, y)
     GT.send_goal(
         type_,
         sided_x,

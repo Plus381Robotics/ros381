@@ -97,7 +97,7 @@ void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_
     goal_msg.stop_coeff_v = stop_coeff_v;
     goal_msg.stop_coeff_w = stop_coeff_w;
 
-    RCLCPP_INFO(this->get_logger(), "Sending movement goal.");
+    RCLCPP_INFO(this->get_logger(), "Sending movement goal...");
 
     auto send_goal_options = rclcpp_action::Client<Move>::SendGoalOptions();
     send_goal_options.goal_response_callback = std::bind(&TacticGlobalNode::goal_response_callback, this, _1);
@@ -108,6 +108,7 @@ void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_
 
 void TacticGlobalNode::cancel_goal()
 {
+    RCLCPP_INFO(this->get_logger(), "Cancelling movement goal...");
     move_client_->async_cancel_all_goals();
 }
 

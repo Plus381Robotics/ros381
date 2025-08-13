@@ -103,44 +103,12 @@ void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_
     send_goal_options.goal_response_callback = std::bind(&TacticGlobalNode::goal_response_callback, this, _1);
     send_goal_options.feedback_callback = std::bind(&TacticGlobalNode::feedback_callback, this, _1, _2);
     send_goal_options.result_callback = std::bind(&TacticGlobalNode::result_callback, this, _1);
-    this->future_goal_handle_ = this->move_client_->async_send_goal(goal_msg, send_goal_options);
+    this->move_client_->async_send_goal(goal_msg, send_goal_options);
 }
 
 void TacticGlobalNode::cancel_goal()
 {
-    if (!this->move_client_)
-    {
-        RCLCPP_ERROR(this->get_logger(), "Move client not initialized.");
-        return;
-    }
-
-    if (!this->future_goal_handle_.valid())
-    {
-        RCLCPP_WARN(this->get_logger(), "No active goal to cancel.");
-        return;
-    }
-
-    auto goal_handle = this->future_goal_handle_.get();
-    if (!goal_handle)
-    {
-        RCLCPP_WARN(this->get_logger(), "Goal handle is invalid.");
-        return;
-    }
-
-    RCLCPP_INFO(this->get_logger(), "Sending cancel request for current goal.");
-
-    auto future_cancel = this->move_client_->async_cancel_goal(goal_handle);
-
-    // // You can optionally wait for the cancellation result
-    // if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), future_cancel, std::chrono::seconds(1)) !=
-    //     rclcpp::FutureReturnCode::SUCCESS)
-    // {
-    //     RCLCPP_ERROR(this->get_logger(), "Failed to cancel goal");
-    // }
-    // else
-    // {
-    //     RCLCPP_INFO(this->get_logger(), "Goal cancellation requested successfully");
-    // }
+    move_client_->async_cancel_all_goals();
 }
 
 void TacticGlobalNode::global_fsm()

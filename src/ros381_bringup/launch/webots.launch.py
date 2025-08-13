@@ -59,6 +59,16 @@ def generate_launch_description():
         ],
     )
 
+    uc_node = Node(
+        package="ros381_hardware",
+        executable="uc",
+        name="uc",
+        namespace="ros381",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+		],
+	)
+
     return LaunchDescription(
         [
             webots,
@@ -67,6 +77,7 @@ def generate_launch_description():
             control_loop_node,
             odometry_node,
             tactics_node,
+            uc_node,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

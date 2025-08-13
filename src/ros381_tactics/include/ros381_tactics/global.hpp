@@ -42,7 +42,6 @@ class TacticGlobalNode : public rclcpp::Node
     int8_t tactic_side_ = 1;
     uint8_t tactic_num_ = 0;
 	bool reset_on_, reset_was_on_ = false;
-	std::shared_future<typename rclcpp_action::ClientGoalHandle<ros381_interfaces::action::Move>::SharedPtr> future_goal_handle_;
 
     rclcpp::Publisher<example_interfaces::msg::Float32>::SharedPtr time_pub_;
     rclcpp::TimerBase::SharedPtr timer_;

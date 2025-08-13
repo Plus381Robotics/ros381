@@ -54,3 +54,11 @@ def load_tactic(GT, tactic_number, tactic_side):
             if GT.move_result_ < 0:
                 load_state = -1
     return load_state
+
+
+def reset_tactic():
+    global load_state
+    if load_state != 0:
+        get_GT().cancel_goal()
+        load_state = 0
+        print("Reseting load state")

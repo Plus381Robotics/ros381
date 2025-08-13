@@ -21,10 +21,19 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
     chinch_waiting_pub_ = this->create_publisher<example_interfaces::msg::Empty>("chinch_waiting", 10);
     chinch_trigger_sub_ = this->create_subscription<example_interfaces::msg::Bool>(
         "chinch_trigger", 10, std::bind(&TacticGlobalNode::callback_chinch_state, this, _1));
+    switches_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
+        "switches", 10, std::bind(&TacticGlobalNode::callback_switches, this, _1));
 
     init_python(this);
 
     RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
+}
+
+void TacticGlobalNode::callback_switches(const example_interfaces::msg::UInt8::SharedPtr msg)
+{
+    reset_on_ = (bool)((msg->data >> 4) & 0b1);
+    tactic_side_ = ((msg->data >> 3) & 0b1) ? 1 : -1;
+    tactic_num_ = msg->data & 0b111;
 }
 
 void TacticGlobalNode::callback_chinch_state(const example_interfaces::msg::Bool::SharedPtr msg)
@@ -94,18 +103,71 @@ void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_
     send_goal_options.goal_response_callback = std::bind(&TacticGlobalNode::goal_response_callback, this, _1);
     send_goal_options.feedback_callback = std::bind(&TacticGlobalNode::feedback_callback, this, _1, _2);
     send_goal_options.result_callback = std::bind(&TacticGlobalNode::result_callback, this, _1);
-    this->move_client_->async_send_goal(goal_msg, send_goal_options);
+    this->future_goal_handle_ = this->move_client_->async_send_goal(goal_msg, send_goal_options);
+}
+
+void TacticGlobalNode::cancel_goal()
+{
+    if (!this->move_client_)
+    {
+        RCLCPP_ERROR(this->get_logger(), "Move client not initialized.");
+        return;
+    }
+
+    if (!this->future_goal_handle_.valid())
+    {
+        RCLCPP_WARN(this->get_logger(), "No active goal to cancel.");
+        return;
+    }
+
+    auto goal_handle = this->future_goal_handle_.get();
+    if (!goal_handle)
+    {
+        RCLCPP_WARN(this->get_logger(), "Goal handle is invalid.");
+        return;
+    }
+
+    RCLCPP_INFO(this->get_logger(), "Sending cancel request for current goal.");
+
+    auto future_cancel = this->move_client_->async_cancel_goal(goal_handle);
+
+    // // You can optionally wait for the cancellation result
+    // if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), future_cancel, std::chrono::seconds(1)) !=
+    //     rclcpp::FutureReturnCode::SUCCESS)
+    // {
+    //     RCLCPP_ERROR(this->get_logger(), "Failed to cancel goal");
+    // }
+    // else
+    // {
+    //     RCLCPP_INFO(this->get_logger(), "Goal cancellation requested successfully");
+    // }
 }
 
 void TacticGlobalNode::global_fsm()
 {
     pub_chinch_waiting();
+    global_state_ = reset_on_ ? 0 : global_state_;
     switch (global_state_)
     {
     case 0:
-        RCLCPP_INFO(this->get_logger(), "Initial state... Going to GL_CHICH_1");
-        chinch_waiting_ = true;
-        global_state_ = GL_CHICH_1;
+        if (reset_on_)
+        {
+            if (!reset_was_on_)
+            {
+                RCLCPP_INFO(this->get_logger(), "Reset is on...");
+                chinch_waiting_ = false;
+                tactic_result_ = tactics_module_->attr("reset_tactic")();
+                py::module::import("sys").attr("stdout").attr("flush")();
+                reset_was_on_ = true;
+            }
+        }
+        else
+        {
+            RCLCPP_INFO(this->get_logger(), "Going to GL_CHICH_1");
+            chinch_waiting_ = true;
+            reset_was_on_ = false;
+            global_state_ = GL_CHICH_1;
+        }
         break;
     case GL_CHICH_1:
         if (chinch_trigger_)
@@ -114,9 +176,6 @@ void TacticGlobalNode::global_fsm()
             chinch_waiting_ = false;
             chinch_trigger_ = false;
             RCLCPP_INFO(this->get_logger(), "Going to GL_LOAD_TACTIC");
-            // TODO: ovde ide tactic_chosen = true; a do tad ide sub
-            tactic_num_ = 1;
-			tactic_side_ = -1;
         }
         break;
     case GL_LOAD_TACTIC:

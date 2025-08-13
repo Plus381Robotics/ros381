@@ -1,10 +1,11 @@
 #ifndef ROS381_TACTICS_GLOBAL_HPP
 #define ROS381_TACTICS_GLOBAL_HPP
 
-#include "example_interfaces/msg/float32.hpp"
-#include "example_interfaces/srv/trigger.hpp"
-#include "example_interfaces/msg/empty.hpp"
 #include "example_interfaces/msg/bool.hpp"
+#include "example_interfaces/msg/empty.hpp"
+#include "example_interfaces/msg/float32.hpp"
+#include "example_interfaces/msg/u_int8.hpp"
+#include "example_interfaces/srv/trigger.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "ros381_interfaces/action/move.hpp"
@@ -27,6 +28,7 @@ class TacticGlobalNode : public rclcpp::Node
     void send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,
                    double distance_tolerance_percentage, double angle_tolerance_percentage, double start_coeff_v,
                    double start_coeff_w, double stop_coeff_v, double stop_coeff_w);
+	void cancel_goal();
     void update_pose(double x, double y, double phi, uint16_t type);
 
   private:
@@ -37,15 +39,18 @@ class TacticGlobalNode : public rclcpp::Node
     bool match_started_;
     bool chinch_trigger_, chinch_waiting_;
     int8_t global_state_;
-	int8_t tactic_side_ = 1;
-	uint8_t tactic_num_ = 0;
+    int8_t tactic_side_ = 1;
+    uint8_t tactic_num_ = 0;
+	bool reset_on_, reset_was_on_ = false;
+	std::shared_future<typename rclcpp_action::ClientGoalHandle<ros381_interfaces::action::Move>::SharedPtr> future_goal_handle_;
 
     rclcpp::Publisher<example_interfaces::msg::Float32>::SharedPtr time_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedPtr pose_client_;
     rclcpp_action::Client<ros381_interfaces::action::Move>::SharedPtr move_client_;
-	rclcpp::Publisher<example_interfaces::msg::Empty>::SharedPtr chinch_waiting_pub_;
-	rclcpp::Subscription<example_interfaces::msg::Bool>::SharedPtr chinch_trigger_sub_;
+    rclcpp::Publisher<example_interfaces::msg::Empty>::SharedPtr chinch_waiting_pub_;
+    rclcpp::Subscription<example_interfaces::msg::Bool>::SharedPtr chinch_trigger_sub_;
+	rclcpp::Subscription<example_interfaces::msg::UInt8>::SharedPtr switches_sub_;
 
     py::object tactic_result_;
 
@@ -56,10 +61,11 @@ class TacticGlobalNode : public rclcpp::Node
                            const std::shared_ptr<const ros381_interfaces::action::Move::Feedback> feedback);
     void result_callback(const rclcpp_action::ClientGoalHandle<ros381_interfaces::action::Move>::WrappedResult &result);
     void pub_time();
-	void callback_chinch_state(const example_interfaces::msg::Bool::SharedPtr msg);
-	void pub_chinch_waiting();
+    void callback_chinch_state(const example_interfaces::msg::Bool::SharedPtr msg);
+    void pub_chinch_waiting();
     void tactic_tick();
     void update_pose_callback(rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedFuture future);
+	void callback_switches(const example_interfaces::msg::UInt8::SharedPtr msg);
 };
 
 void init_python(TacticGlobalNode *node);

@@ -32,6 +32,6 @@ def get_side():
 
 
 def sided_coords(x, phi):
-    if get_side() == -1:
+    if get_side() == 1:
         return -x, get_side() * math.pi - phi
     return x, phi

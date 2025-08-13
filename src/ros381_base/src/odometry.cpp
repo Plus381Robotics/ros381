@@ -45,7 +45,7 @@ class OdometryNode : public rclcpp::Node
         if (update_phi)
             phi_base_ = request->phi;
 
-        RCLCPP_INFO(this->get_logger(), "Current pose :\nx = %.2f mm\ny = %.2f mm\nphi = %.2f rad", x_base_, y_base_,
+        RCLCPP_INFO(this->get_logger(), "New pose :\nx = %.2f mm\ny = %.2f mm\nphi = %.2f rad", x_base_, y_base_,
                     phi_base_);
 
         response->success = update_x || update_y || update_phi;

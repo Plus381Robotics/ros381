@@ -37,6 +37,7 @@ def load_tactic(GT, tactic_number, tactic_side):
             start_x, start_y, start_phi, first_x, first_y, first_dir = globals()[
                 f"load_t{tactic_number}"
             ]()
+            start_x, start_phi = sided_coords(start_x, start_phi)
             if tactic_side == -1:
                 print("Yellow side chosen.")
             else:

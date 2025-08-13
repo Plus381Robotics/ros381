@@ -16,7 +16,8 @@ def generate_launch_description():
     yellow_description_path = os.path.join(description_pkg, "urdf", "yellow.urdf")
 
     webots = WebotsLauncher(
-        world=os.path.join(description_pkg, "worlds", "table2.wbt"), ros2_supervisor=True
+        world=os.path.join(description_pkg, "worlds", "table2.wbt"),
+        ros2_supervisor=True,
     )
 
     webots_node_1 = WebotsController(
@@ -80,7 +81,7 @@ def generate_launch_description():
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
         ],
     )
-    
+
     tactics_node_1 = Node(
         package="ros381_tactics",
         executable="global",
@@ -107,8 +108,28 @@ def generate_launch_description():
         package="ros381_webots",
         executable="global_chinch",
         name="global_chinch",
-        output="screen"
+        output="screen",
     )
+
+    uc_node_1 = Node(
+        package="ros381_hardware",
+        executable="uc",
+        name="uc",
+        namespace="blue",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+		],
+	)
+
+    uc_node_2 = Node(
+        package="ros381_hardware",
+        executable="uc",
+        name="uc",
+        namespace="yellow",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+		],
+	)
 
     return LaunchDescription(
         [
@@ -123,6 +144,8 @@ def generate_launch_description():
             tactics_node_1,
             tactics_node_2,
             chinch_trigger_node,
+            uc_node_1,
+            uc_node_2,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

@@ -11,6 +11,7 @@ def generate_launch_description():
     webots_pkg = get_package_share_directory("ros381_webots")
     base_pkg = get_package_share_directory("ros381_base")
     tactics_pkg = get_package_share_directory("ros381_tactics")
+    visualization_pkg = get_package_share_directory("ros381_visualization")
     description_pkg = get_package_share_directory("ros381_description")
     robot_description_path = os.path.join(description_pkg, "urdf", "ros381.urdf")
 
@@ -68,6 +69,15 @@ def generate_launch_description():
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
 		],
 	)
+    
+    visualization_node = Node(
+        package="ros381_visualization",
+        executable="lidar_plot",
+        name="lidar_plot",
+        parameters=[
+            ('robot_name', 'ros381')
+		],
+	)
 
     return LaunchDescription(
         [
@@ -78,6 +88,7 @@ def generate_launch_description():
             odometry_node,
             tactics_node,
             uc_node,
+            visualization_node,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

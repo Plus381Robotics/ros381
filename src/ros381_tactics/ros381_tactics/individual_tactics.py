@@ -44,6 +44,7 @@ def load_tactic(GT, tactic_number, tactic_side):
                 print("Blue side chosen.")
         case 1:
             GT.update_pose(start_x, start_y, start_phi, 111)
+            GT.publish_pose_offset(start_x, start_y, start_phi)
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:

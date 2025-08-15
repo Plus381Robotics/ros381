@@ -9,6 +9,8 @@
 
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>ros381_interfaces</depend>
 
   <export>
     <build_type>ament_python</build_type>

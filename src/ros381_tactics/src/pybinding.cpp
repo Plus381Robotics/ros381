@@ -9,6 +9,7 @@ PYBIND11_EMBEDDED_MODULE(ros381_tactics_py, m)
         .def("send_goal", &TacticGlobalNode::send_goal)
         .def("cancel_goal", &TacticGlobalNode::cancel_goal)
         .def("update_pose", &TacticGlobalNode::update_pose)
+        .def("publish_pose_offset", &TacticGlobalNode::publish_pose_offset)
         .def_readonly("move_result_", &TacticGlobalNode::move_result_)
         .def_readonly("update_pose_result_", &TacticGlobalNode::update_pose_result_);
 

@@ -23,10 +23,20 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
         "chinch_trigger", 10, std::bind(&TacticGlobalNode::callback_chinch_state, this, _1));
     switches_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
         "switches", 10, std::bind(&TacticGlobalNode::callback_switches, this, _1));
+    pose_offs_pub_ = this->create_publisher<ros381_interfaces::msg::Float3>("pose_offset", 10);
 
     init_python(this);
 
     RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
+}
+
+void TacticGlobalNode::publish_pose_offset(double x, double y, double phi)
+{
+    auto msg = ros381_interfaces::msg::Float3();
+    msg.float3[0] = x;
+    msg.float3[1] = y;
+    msg.float3[2] = phi;
+    pose_offs_pub_->publish(msg);
 }
 
 void TacticGlobalNode::callback_switches(const example_interfaces::msg::UInt8::SharedPtr msg)

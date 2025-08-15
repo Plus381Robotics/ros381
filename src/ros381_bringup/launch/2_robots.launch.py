@@ -130,6 +130,15 @@ def generate_launch_description():
             "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
 		],
 	)
+    
+    visualization_node = Node(
+        package="ros381_visualization",
+        executable="lidar_plot",
+        name="lidar_plot",
+        parameters=[
+            {"robot_name": "yellow"}
+		],
+	)
 
     return LaunchDescription(
         [
@@ -146,6 +155,7 @@ def generate_launch_description():
             chinch_trigger_node,
             uc_node_1,
             uc_node_2,
+            visualization_node,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

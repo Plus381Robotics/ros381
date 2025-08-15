@@ -10,6 +10,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "ros381_interfaces/action/move.hpp"
 #include "ros381_interfaces/srv/update_pose.hpp"
+#include "ros381_interfaces/msg/float3.hpp"
 #include "ros381_tactics/defines.hpp"
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <pybind11/embed.h>
@@ -30,6 +31,7 @@ class TacticGlobalNode : public rclcpp::Node
                    double start_coeff_w, double stop_coeff_v, double stop_coeff_w);
 	void cancel_goal();
     void update_pose(double x, double y, double phi, uint16_t type);
+	void publish_pose_offset(double x, double y, double phi);
 
   private:
     std::unique_ptr<py::scoped_interpreter> guard_;
@@ -50,6 +52,7 @@ class TacticGlobalNode : public rclcpp::Node
     rclcpp::Publisher<example_interfaces::msg::Empty>::SharedPtr chinch_waiting_pub_;
     rclcpp::Subscription<example_interfaces::msg::Bool>::SharedPtr chinch_trigger_sub_;
 	rclcpp::Subscription<example_interfaces::msg::UInt8>::SharedPtr switches_sub_;
+	rclcpp::Publisher<ros381_interfaces::msg::Float3>::SharedPtr pose_offs_pub_;
 
     py::object tactic_result_;
 

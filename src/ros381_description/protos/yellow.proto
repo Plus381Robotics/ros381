@@ -4,6 +4,8 @@
 # This is a proto file for Webots for the ros381
 # Extracted from: /home/hostuser/ros381/src/ros381_description/urdf/ros381.urdf
 
+EXTERNPROTO "RPLidarS2.proto"
+
 PROTO yellow [
   field  SFVec3f     translation     0 0 0
   field  SFRotation  rotation        0 0 1 0
@@ -353,8 +355,14 @@ PROTO yellow [
           ]
         }
       }
-      Lidar {
-        translation 0.000000 0.000000 0.376000
+
+	  RPLidarS2{
+		translation 0.0 0.0 0.336
+	  }
+	  
+	  Solid{
+        name "cap"
+        translation 0.0 0.0 0.42
         children [
           Shape {
             appearance DEF yellow PBRAppearance {
@@ -362,37 +370,11 @@ PROTO yellow [
               roughness 1.000000
               metalness 0
             }
-            geometry Cylinder {
-              radius 0.05
-              height 0.08
+              geometry Box {
+                size 0.1 0.1 0.01
+              }
             }
-          }
-        ]
-        name "lidar"
-        boundingObject Cylinder {
-          radius 0.05
-          height 0.08
-        }
-        physics Physics {
-          density -1
-          mass 0.100000
-          centerOfMass [ 0.000000 0.000000 0.000000 ]
-          inertiaMatrix [
-            1.200000e-04 1.200000e-04 1.000000e-04
-            0.000000e+00 0.000000e+00 0.000000e+00
           ]
-        }
-		horizontalResolution 	3200
-		fieldOfView          	6.283185
-		numberOfLayers       	1
-		near 					0.05
-		minRange             	0.05
-		maxRange             	3.6
-		type                 	"rotating"
-		projection           	"cylindrical"
-		noise                	0.0008333
-		resolution           	0.0003125
-		defaultFrequency     	10
       }
     ]
     name IS name

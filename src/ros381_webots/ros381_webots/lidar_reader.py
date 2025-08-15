@@ -53,4 +53,3 @@ class LidarReader:
 
     def step(self):
         rclpy.spin_once(self.node_, timeout_sec=0)
-        # self.pub_scan()

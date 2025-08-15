@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
-
+import math
 
 class LidarReader:
     def init(self, webots_node, properties):
@@ -38,9 +38,9 @@ class LidarReader:
         msg.header.stamp = self.node_.get_clock().now().to_msg()
         msg.header.frame_id = "lidar"
 
-        msg.angle_min = -self.lidar_.getFov() / 2.0
-        msg.angle_max = self.lidar_.getFov() / 2.0
-        msg.angle_increment = self.lidar_.getFov() / (
+        msg.angle_min = -math.pi
+        msg.angle_max = math.pi
+        msg.angle_increment = 2*math.pi / (
             self.lidar_.getHorizontalResolution() - 1
         )
         msg.time_increment = 0.1

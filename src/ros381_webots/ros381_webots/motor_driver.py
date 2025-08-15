@@ -5,6 +5,7 @@ from ros381_interfaces.msg import Float2
 R_RIGHT = 0.035
 R_LEFT = 0.035
 
+
 class MotorDriver:
     def init(self, webots_node, properties):
         self.robot_ = webots_node.robot
@@ -14,11 +15,8 @@ class MotorDriver:
             rclpy.init(args=None)
         except:
             pass
-        
-        self.node_ = rclpy.create_node(
-            "motor_driver",
-            namespace=f"/{self.robot_name}"
-        )
+
+        self.node_ = rclpy.create_node("motor_driver", namespace=f"/{self.robot_name}")
 
         self.motor_right_ = self.robot_.getDevice("wheel_right")
         self.motor_left_ = self.robot_.getDevice("wheel_left")
@@ -35,7 +33,9 @@ class MotorDriver:
         self.w_right_ = 0.0  # Right motor velocity   [rad/s]
         self.w_left_ = 0.0  # Left motor velocity    [rad/s]
 
-        self.node_.get_logger().info(f"Webots motor driver for {self.robot_name} is initialized.")
+        self.node_.get_logger().info(
+            f"Webots motor driver for {self.robot_name} is initialized."
+        )
 
     def cmd_vel_callback(self, motor_cmd):
         self.w_right_ = motor_cmd.float2[0] / R_RIGHT

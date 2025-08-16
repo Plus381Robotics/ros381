@@ -43,8 +43,9 @@ class LidarReader:
         msg.angle_increment = 2*math.pi / (
             self.lidar_.getHorizontalResolution() - 1
         )
-        msg.time_increment = 0.1
+        # msg.time_increment = 0.00003125
         msg.scan_time = 1.0 / self.lidar_.getFrequency()
+        msg.time_increment = msg.scan_time / self.lidar_.getHorizontalResolution()
         msg.range_min = self.lidar_.getMinRange()
         msg.range_max = self.lidar_.getMaxRange()
         msg.ranges = ranges

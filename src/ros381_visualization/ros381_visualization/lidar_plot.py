@@ -62,42 +62,44 @@ class LidarPlot(Node):
         self.wz_ = msg.twist.twist.angular.z
 
     def plot_scan(self, msg):
-        if self.odom_set_:
-            self.robot_arrow.remove()
-            arrow_length = 0.2
-            dx = arrow_length * np.cos(self.robot_phi_)
-            dy = arrow_length * np.sin(self.robot_phi_)
-            self.robot_arrow = Arrow(
-                self.robot_x_, self.robot_y_, dx, dy, width=0.1, color="red"
-            )
-            self.ax.add_patch(self.robot_arrow)
+        if not self.odom_set_:
+            return
 
-            scan_duration = 0.02
-            angles = np.linspace(msg.angle_min, msg.angle_max, len(msg.ranges))
-            ranges = np.array(msg.ranges)
+        self.robot_arrow.remove()
+        arrow_length = 0.2
+        dx = arrow_length * np.cos(self.robot_phi_)
+        dy = arrow_length * np.sin(self.robot_phi_)
+        self.robot_arrow = Arrow(
+            self.robot_x_, self.robot_y_, dx, dy, width=0.1, color="red"
+        )
+        self.ax.add_patch(self.robot_arrow)
 
-            valid_mask = (ranges >= msg.range_min) & (ranges <= msg.range_max)
-            angles = angles[valid_mask]
-            ranges = ranges[valid_mask]
+        angles = np.linspace(msg.angle_min, msg.angle_max, len(msg.ranges))
+        ranges = np.array(msg.ranges)
 
-            timestamps = np.linspace(scan_duration, 0, len(angles))
+        valid_mask = (ranges >= msg.range_min) & (ranges <= msg.range_max)
+        angles = angles[valid_mask]
+        ranges = ranges[valid_mask]
 
-            x_world = np.zeros_like(ranges)
-            y_world = np.zeros_like(ranges)
+        scan_duration = msg.scan_time
+        timestamps = np.linspace(scan_duration, 0.0, len(angles))
 
-            for i, (angle, r, t) in enumerate(zip(angles, ranges, timestamps)):
-                frac = t / scan_duration
-                current_phi = self.robot_phi_ - self.wz_ * t
-                current_x = self.robot_x_ - self.vx_ * t * np.cos(current_phi)
-                current_y = self.robot_y_ - self.vx_ * t * np.sin(current_phi)
-                x_world[i] = current_x + np.cos(angle - current_phi) * r
-                y_world[i] = current_y - np.sin(angle - current_phi) * r
+        x_world = np.zeros_like(ranges)
+        y_world = np.zeros_like(ranges)
 
-            # self.scatter.set_offsets(np.column_stack((x_world, y_world)))
-            self.update_map(x_world, y_world)
-            self.grid_img.set_data(self.grid.T)
-            self.fig.canvas.draw()
-            self.fig.canvas.flush_events()
+        for i, (angle, r, t) in enumerate(zip(angles, ranges, timestamps)):
+            phi_t = self.robot_phi_ - self.wz_ * t
+            x_t = self.robot_x_ - self.vx_ * t * np.cos(phi_t)
+            y_t = self.robot_y_ - self.vx_ * t * np.sin(phi_t)
+
+            x_world[i] = x_t + r * np.cos(angle - phi_t)
+            y_world[i] = y_t - r * np.sin(angle - phi_t)
+
+        self.scatter.set_offsets(np.column_stack((x_world, y_world)))
+        self.update_map(x_world, y_world)
+        self.grid_img.set_data(self.grid.T)
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
 
     def create_grid_map(self, x_size, y_size, resolution):
         self.x_size = x_size

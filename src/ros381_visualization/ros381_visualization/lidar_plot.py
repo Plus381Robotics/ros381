@@ -6,6 +6,7 @@ from ros381_interfaces.msg import Float3
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Arrow
+from collections import deque
 
 
 class LidarPlot(Node):
@@ -19,14 +20,17 @@ class LidarPlot(Node):
             LaserScan, f"/{self.robot_}/scan", self.plot_scan, 10
         )
         self.odom_sub_ = self.create_subscription(
-            Odometry, f"/{self.robot_}/odom", self.set_odom, 10
+            Odometry, f"/{self.robot_}/odom", self.set_odom, 100
         )
         self.pose_offset_sub_ = self.create_subscription(
             Float3, f"/{self.robot_}/pose_offset", self.offset_pose, 10
         )
+
         self.robot_x_ = 0
         self.robot_y_ = 0
         self.robot_phi_ = 0
+        self.odom_set_ = False
+        self.odom_buffer = deque()
 
         plt.ion()
         self.fig, self.ax = plt.subplots()
@@ -39,7 +43,7 @@ class LidarPlot(Node):
         self.ax.add_patch(self.robot_arrow)
         plt.tight_layout()
         plt.show(block=False)
-        self.odom_set_ = False
+
         self.create_grid_map(3.0, 2.0, 0.05)
 
     def offset_pose(self, msg):
@@ -49,21 +53,45 @@ class LidarPlot(Node):
 
     def set_odom(self, msg):
         self.odom_set_ = True
-        self.robot_x_ = msg.pose.pose.position.x
-        self.robot_y_ = msg.pose.pose.position.y
+        t_stamp = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
         qx = msg.pose.pose.orientation.x
         qy = msg.pose.pose.orientation.y
         qz = msg.pose.pose.orientation.z
         qw = msg.pose.pose.orientation.w
-        self.robot_phi_ = np.arctan2(
-            2.0 * (qw * qz + qx * qy), 1.0 - 2.0 * (qy * qy + qz * qz)
-        )
-        self.vx_ = msg.twist.twist.linear.x
-        self.wz_ = msg.twist.twist.angular.z
+        phi = np.arctan2(2.0 * (qw * qz + qx * qy), 1.0 - 2.0 * (qy * qy + qz * qz))
+        x = msg.pose.pose.position.x
+        y = msg.pose.pose.position.y
+
+        self.odom_buffer.append((t_stamp, x, y, phi))
+
+    def _interp_pose(self, t_req):
+        if not self.odom_buffer:
+            return self.robot_x_, self.robot_y_, self.robot_phi_
+
+        odom_times = np.array([o[0] for o in self.odom_buffer])
+        odom_x = np.array([o[1] for o in self.odom_buffer])
+        odom_y = np.array([o[2] for o in self.odom_buffer])
+        odom_phi = np.array([o[3] for o in self.odom_buffer])
+        phi_unwrap = np.unwrap(odom_phi)
+
+        if len(odom_times) == 1:
+            return odom_x[0], odom_y[0], odom_phi[0]
+
+        x = np.interp(t_req, odom_times, odom_x)
+        y = np.interp(t_req, odom_times, odom_y)
+        phi = np.interp(t_req, odom_times, phi_unwrap)
+        return x, y, phi
 
     def plot_scan(self, msg):
-        if not self.odom_set_:
+        if not self.odom_set_ or not self.odom_buffer:
             return
+        self.robot_x_, self.robot_y_, self.robot_phi_ = self.odom_buffer[-1][1:4]
+
+        # Keep only odom for the current scan duration
+        t_end = self.get_clock().now().nanoseconds * 1e-9
+        scan_duration = msg.scan_time
+        while self.odom_buffer and self.odom_buffer[0][0] < t_end - scan_duration:
+            self.odom_buffer.popleft()
 
         self.robot_arrow.remove()
         arrow_length = 0.2
@@ -76,24 +104,22 @@ class LidarPlot(Node):
 
         angles = np.linspace(msg.angle_min, msg.angle_max, len(msg.ranges))
         ranges = np.array(msg.ranges)
-
         valid_mask = (ranges >= msg.range_min) & (ranges <= msg.range_max)
         angles = angles[valid_mask]
         ranges = ranges[valid_mask]
 
-        scan_duration = msg.scan_time
-        timestamps = np.linspace(scan_duration, 0.0, len(angles))
+        dt = (
+            msg.time_increment
+            if msg.time_increment > 0
+            else scan_duration / max(len(angles) - 1, 1)
+        )
+        beam_times = t_end - (scan_duration - np.arange(len(angles)) * dt)
 
-        x_world = np.zeros_like(ranges)
-        y_world = np.zeros_like(ranges)
+        # Vectorized interpolation of robot pose
+        robot_x, robot_y, robot_phi = self._interp_pose(beam_times)
 
-        for i, (angle, r, t) in enumerate(zip(angles, ranges, timestamps)):
-            phi_t = self.robot_phi_ - self.wz_ * t
-            x_t = self.robot_x_ - self.vx_ * t * np.cos(phi_t)
-            y_t = self.robot_y_ - self.vx_ * t * np.sin(phi_t)
-
-            x_world[i] = x_t + r * np.cos(angle - phi_t)
-            y_world[i] = y_t - r * np.sin(angle - phi_t)
+        x_world = robot_x + ranges * np.cos(angles - robot_phi)
+        y_world = robot_y - ranges * np.sin(angles - robot_phi)
 
         self.scatter.set_offsets(np.column_stack((x_world, y_world)))
         self.update_map(x_world, y_world)
@@ -151,7 +177,7 @@ def main(args=None):
     rclpy.init(args=args)
     lidar_plot_ = LidarPlot()
     rclpy.spin(lidar_plot_)
-    plt.close(all)
+    plt.close("all")
     lidar_plot_.destroy_node()
     rclpy.shutdown()
 

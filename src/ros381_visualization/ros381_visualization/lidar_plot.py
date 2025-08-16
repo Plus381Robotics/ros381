@@ -20,10 +20,10 @@ class LidarPlot(Node):
             LaserScan, f"/{self.robot_}/scan", self.plot_scan, 10
         )
         self.odom_sub_ = self.create_subscription(
-            Odometry, f"/{self.robot_}/odom", self.set_odom, 100
+            Odometry, f"/{self.robot_}/odom", self.set_odom, 10
         )
         self.pose_offset_sub_ = self.create_subscription(
-            Float3, f"/{self.robot_}/pose_offset", self.offset_pose, 10
+            Float3, f"/{self.robot_}/pose_offset", self.offset_pose, 1
         )
 
         self.robot_x_ = 0
@@ -31,6 +31,7 @@ class LidarPlot(Node):
         self.robot_phi_ = 0
         self.odom_set_ = False
         self.odom_buffer = deque()
+        self.pose_set_ = False
 
         plt.ion()
         self.fig, self.ax = plt.subplots()
@@ -39,8 +40,7 @@ class LidarPlot(Node):
         self.ax.set_ylim(-1.0, 1.0)
         self.ax.grid(True)
 
-        self.robot_arrow = Arrow(0, 0, 0.4, 0, width=0.2, color="red")
-        self.ax.add_patch(self.robot_arrow)
+        self.robot_arrow = None
         plt.tight_layout()
         plt.show(block=False)
 
@@ -50,6 +50,7 @@ class LidarPlot(Node):
         self.robot_x_ += msg.float3[0]
         self.robot_y_ += msg.float3[1]
         self.robot_phi_ += msg.float3[2]
+        self.pose_set_ = True
 
     def set_odom(self, msg):
         self.odom_set_ = True
@@ -87,20 +88,21 @@ class LidarPlot(Node):
             return
         self.robot_x_, self.robot_y_, self.robot_phi_ = self.odom_buffer[-1][1:4]
 
-        # Keep only odom for the current scan duration
         t_end = self.get_clock().now().nanoseconds * 1e-9
         scan_duration = msg.scan_time
         while self.odom_buffer and self.odom_buffer[0][0] < t_end - scan_duration:
             self.odom_buffer.popleft()
 
-        self.robot_arrow.remove()
-        arrow_length = 0.2
-        dx = arrow_length * np.cos(self.robot_phi_)
-        dy = arrow_length * np.sin(self.robot_phi_)
-        self.robot_arrow = Arrow(
-            self.robot_x_, self.robot_y_, dx, dy, width=0.1, color="red"
-        )
-        self.ax.add_patch(self.robot_arrow)
+        if self.pose_set_:
+            if self.robot_arrow is not None:
+                self.robot_arrow.remove()
+            arrow_length = 0.2
+            dx = arrow_length * np.cos(self.robot_phi_)
+            dy = arrow_length * np.sin(self.robot_phi_)
+            self.robot_arrow = Arrow(
+                self.robot_x_, self.robot_y_, dx, dy, width=0.1, color="red"
+            )
+            self.ax.add_patch(self.robot_arrow)
 
         angles = np.linspace(msg.angle_min, msg.angle_max, len(msg.ranges))
         ranges = np.array(msg.ranges)
@@ -115,13 +117,12 @@ class LidarPlot(Node):
         )
         beam_times = t_end - (scan_duration - np.arange(len(angles)) * dt)
 
-        # Vectorized interpolation of robot pose
         robot_x, robot_y, robot_phi = self._interp_pose(beam_times)
 
         x_world = robot_x + ranges * np.cos(angles - robot_phi)
         y_world = robot_y - ranges * np.sin(angles - robot_phi)
 
-        self.scatter.set_offsets(np.column_stack((x_world, y_world)))
+        # self.scatter.set_offsets(np.column_stack((x_world, y_world)))
         self.update_map(x_world, y_world)
         self.grid_img.set_data(self.grid.T)
         self.fig.canvas.draw()
@@ -140,8 +141,8 @@ class LidarPlot(Node):
 
         self.grid = np.zeros((self.x_grid, self.y_grid))
 
-        self.prob_plus = 0.7
-        self.prob_minus = 0.3
+        self.prob_plus = 0.6
+        self.prob_minus = 0.1
 
         self.grid_img = self.ax.imshow(
             self.grid.T,

@@ -33,9 +33,6 @@ class LidarPlot(Node):
         self.scatter = self.ax.scatter([], [], s=4)
         self.ax.set_xlim(-1.5, 1.5)
         self.ax.set_ylim(-1.0, 1.0)
-        self.ax.set_xlabel("X (m)")
-        self.ax.set_ylabel("Y (m)")
-        self.ax.set_title("LIDAR Scan Data (XY Coordinates)")
         self.ax.grid(True)
 
         self.robot_arrow = Arrow(0, 0, 0.4, 0, width=0.2, color="red")
@@ -43,8 +40,7 @@ class LidarPlot(Node):
         plt.tight_layout()
         plt.show(block=False)
         self.odom_set_ = False
-        self.cur_time_ = self.get_clock().now().nanoseconds * 1e-9
-        self.prev_time_ = self.cur_time_
+        self.create_grid_map(3.0, 2.0, 0.05)
 
     def offset_pose(self, msg):
         self.robot_x_ += msg.float3[0]
@@ -65,94 +61,88 @@ class LidarPlot(Node):
         self.vx_ = msg.twist.twist.linear.x
         self.wz_ = msg.twist.twist.angular.z
 
-    # def plot_scan(self, msg):
-    #     if self.odom_set_:
-    #         self.cur_time_ = self.get_clock().now().nanoseconds * 1e-9
-    #         self.robot_arrow.remove()
-    #         arrow_length = 0.2
-    #         dx = arrow_length * np.cos(self.robot_phi_)
-    #         dy = arrow_length * np.sin(self.robot_phi_)
-    #         self.robot_arrow = Arrow(
-    #             self.robot_x_, self.robot_y_, dx, dy, width=0.1, color="red"
-    #         )
-    #         self.ax.add_patch(self.robot_arrow)
-    #         angles = np.arange(
-    #             msg.angle_min,
-    #             msg.angle_max + msg.angle_increment / 2,
-    #             msg.angle_increment,
-    #         )
-    #         angles = angles[: len(msg.ranges)]
-    #         ranges = np.array(msg.ranges)
-
-    #         valid_mask = (ranges >= msg.range_min) & (ranges <= msg.range_max)
-    #         angles = angles[valid_mask]
-    #         ranges = ranges[valid_mask]
-
-    #         timestamps = np.linspace(self.cur_time_ - self.prev_time_, 0, len(angles))
-    #         delta_phi = self.wz_ * timestamps
-    #         delta_x = self.vx_ * timestamps * np.cos(delta_phi)
-    #         delta_y = self.vx_ * timestamps * np.sin(delta_phi)
-
-    #         x_robot = ranges * np.cos(angles + delta_phi) + delta_x
-    #         y_robot = ranges * np.sin(angles + delta_phi) + delta_y
-
-    #         cos_phi = np.cos(self.robot_phi_)
-    #         sin_phi = np.sin(self.robot_phi_)
-    #         x_world = x_robot * cos_phi + y_robot * sin_phi + self.robot_x_
-    #         y_world = x_robot * sin_phi - y_robot * cos_phi + self.robot_y_
-    #         self.scatter.set_offsets(np.column_stack((x_world, y_world)))
-    #         self.fig.canvas.draw()
-    #         self.fig.canvas.flush_events()
-    #         self.prev_time_ = self.cur_time_
     def plot_scan(self, msg):
         if self.odom_set_:
-            # Update robot arrow (unchanged)
             self.robot_arrow.remove()
             arrow_length = 0.2
             dx = arrow_length * np.cos(self.robot_phi_)
             dy = arrow_length * np.sin(self.robot_phi_)
-            self.robot_arrow = Arrow(self.robot_x_, self.robot_y_, dx, dy, 
-                                   width=0.1, color='red')
+            self.robot_arrow = Arrow(
+                self.robot_x_, self.robot_y_, dx, dy, width=0.1, color="red"
+            )
             self.ax.add_patch(self.robot_arrow)
 
-            # Get scan parameters
             scan_duration = 0.02
             angles = np.linspace(msg.angle_min, msg.angle_max, len(msg.ranges))
             ranges = np.array(msg.ranges)
-            
-            # Filter invalid measurements
+
             valid_mask = (ranges >= msg.range_min) & (ranges <= msg.range_max)
             angles = angles[valid_mask]
             ranges = ranges[valid_mask]
-            
-            # Time offsets (first point is oldest)
+
             timestamps = np.linspace(scan_duration, 0, len(angles))
-            
-            # Calculate motion path during scan
+
             x_world = np.zeros_like(ranges)
             y_world = np.zeros_like(ranges)
-            
+
             for i, (angle, r, t) in enumerate(zip(angles, ranges, timestamps)):
-                # Calculate robot pose at measurement time
                 frac = t / scan_duration
-                current_phi = self.robot_phi_ - self.wz_ * t  # Current yaw at measurement
+                current_phi = self.robot_phi_ - self.wz_ * t
                 current_x = self.robot_x_ - self.vx_ * t * np.cos(current_phi)
                 current_y = self.robot_y_ - self.vx_ * t * np.sin(current_phi)
-                
-                # Convert to world coordinates
-                x_robot = r * np.cos(angle)
-                y_robot = r * np.sin(angle)
-                
-                # Transform using pose at measurement time
-                cos_phi = np.cos(current_phi)
-                sin_phi = np.sin(current_phi)
-                x_world[i] = current_x + x_robot * cos_phi + y_robot * sin_phi
-                y_world[i] = current_y + x_robot * sin_phi - y_robot * cos_phi
-            
-            # Update plot
-            self.scatter.set_offsets(np.column_stack((x_world, y_world)))
+                x_world[i] = current_x + np.cos(angle - current_phi) * r
+                y_world[i] = current_y - np.sin(angle - current_phi) * r
+
+            # self.scatter.set_offsets(np.column_stack((x_world, y_world)))
+            self.update_map(x_world, y_world)
+            self.grid_img.set_data(self.grid.T)
             self.fig.canvas.draw()
             self.fig.canvas.flush_events()
+
+    def create_grid_map(self, x_size, y_size, resolution):
+        self.x_size = x_size
+        self.y_size = y_size
+        self.resolution = resolution
+
+        self.x_grid = int(self.x_size / resolution) + 2
+        self.y_grid = int(self.y_size / resolution) + 2
+
+        self.x_center = self.x_grid // 2
+        self.y_center = self.y_grid // 2
+
+        self.grid = np.zeros((self.x_grid, self.y_grid))
+
+        self.prob_plus = 0.7
+        self.prob_minus = 0.3
+
+        self.grid_img = self.ax.imshow(
+            self.grid.T,
+            extent=[
+                -self.x_size / 2,
+                self.x_size / 2,
+                -self.y_size / 2,
+                self.y_size / 2,
+            ],
+            origin="lower",
+            cmap="gray",
+            vmin=0.0,
+            vmax=1.0,
+            alpha=0.5,
+        )
+
+    def update_map(self, x_values, y_values):
+        x = np.array(x_values / self.resolution, dtype=np.int32) + self.x_center
+        y = np.array(y_values / self.resolution, dtype=np.int32) + self.y_center
+
+        valid_mask = (x >= 0) & (x < self.x_grid) & (y >= 0) & (y < self.y_grid)
+        x = x[valid_mask]
+        y = y[valid_mask]
+        mask = np.ones(self.grid.shape, dtype=bool)
+        mask[x, y] = False
+
+        self.grid[mask] -= self.prob_minus
+        self.grid[x, y] += self.prob_plus
+        self.grid = np.clip(self.grid, 0.0, 1.0)
 
 
 def main(args=None):

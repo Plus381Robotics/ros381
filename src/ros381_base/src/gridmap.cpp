@@ -19,10 +19,10 @@ struct OdomEntry
 class Gridmap : public rclcpp::Node
 {
   public:
-    Gridmap() : Node("gridmap"), robot_x_(0.0), robot_y_(0.0), robot_phi_(0.0), odom_set_(false), pose_set_(false)
+    Gridmap() : Node("gridmap")
     {
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-            "scan", 10, std::bind(&Gridmap::plot_scan, this, std::placeholders::_1));
+            "scan", 10, std::bind(&Gridmap::update_map, this, std::placeholders::_1));
 
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "odom", 10, std::bind(&Gridmap::set_odom, this, std::placeholders::_1));
@@ -36,29 +36,20 @@ class Gridmap : public rclcpp::Node
     }
 
   private:
-    // subscriptions
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<ros381_interfaces::msg::Float3>::SharedPtr pose_offset_sub_;
-
-    // publisher
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr grid_pub_;
 
-    // state
-    std::string robot_;
-    double robot_x_, robot_y_, robot_phi_;
-    bool odom_set_;
-    bool pose_set_;
+    double robot_x_ = 0.0, robot_y_ = 0.0, robot_phi_ = 0.0;
+    bool odom_set_ = false, pose_set_ = false;
     std::deque<OdomEntry> odom_buffer_;
 
-    // grid map
     double x_size_, y_size_, resolution_;
     int x_grid_, y_grid_;
     int x_center_, y_center_;
     double prob_plus_, prob_minus_;
     std::vector<std::vector<double>> grid_;
-
-    // --------------------------- methods ------------------------------
 
     void offset_pose(const ros381_interfaces::msg::Float3::SharedPtr msg)
     {
@@ -87,44 +78,22 @@ class Gridmap : public rclcpp::Node
         if (odom_buffer_.empty())
             return {robot_x_, robot_y_, robot_phi_};
 
-        std::vector<double> times, xs, ys, phis;
-        for (const auto &o : odom_buffer_)
+        for (size_t i = 1; i < odom_buffer_.size(); ++i)
         {
-            times.push_back(o.t);
-            xs.push_back(o.x);
-            ys.push_back(o.y);
-            phis.push_back(o.phi);
-        }
-
-        // unwrap phi
-        for (size_t i = 1; i < phis.size(); ++i)
-        {
-            while (phis[i] - phis[i - 1] > M_PI)
-                phis[i] -= 2 * M_PI;
-            while (phis[i] - phis[i - 1] < -M_PI)
-                phis[i] += 2 * M_PI;
-        }
-
-        auto interp = [&](const std::vector<double> &v) {
-            if (t_req <= times.front())
-                return v.front();
-            if (t_req >= times.back())
-                return v.back();
-            for (size_t i = 1; i < times.size(); ++i)
+            if (t_req < odom_buffer_[i].t)
             {
-                if (t_req < times[i])
-                {
-                    double ratio = (t_req - times[i - 1]) / (times[i] - times[i - 1]);
-                    return v[i - 1] + ratio * (v[i] - v[i - 1]);
-                }
+                const auto &o1 = odom_buffer_[i - 1];
+                const auto &o2 = odom_buffer_[i];
+                double ratio = (t_req - o1.t) / (o2.t - o1.t);
+                double x = o1.x + ratio * (o2.x - o1.x);
+                double y = o1.y + ratio * (o2.y - o1.y);
+                double phi = o1.phi + ratio * (o2.phi - o1.phi);
+                return {x, y, phi};
             }
-            return v.back();
-        };
+        }
 
-        double x = interp(xs);
-        double y = interp(ys);
-        double phi = interp(phis);
-        return {x, y, phi};
+        const auto &last = odom_buffer_.back();
+        return {last.x, last.y, last.phi};
     }
 
     void create_grid_map(double x_size, double y_size, double resolution)
@@ -141,37 +110,22 @@ class Gridmap : public rclcpp::Node
         prob_minus_ = 0.1;
     }
 
-    void update_map(const std::vector<double> &x_values, const std::vector<double> &y_values)
-    {
-        std::vector<int> valid_x, valid_y;
-        for (size_t i = 0; i < x_values.size(); ++i)
-        {
-            int xi = static_cast<int>(x_values[i] / resolution_) + x_center_;
-            int yi = static_cast<int>(y_values[i] / resolution_) + y_center_;
-            if (xi >= 0 && xi < x_grid_ && yi >= 0 && yi < y_grid_)
-            {
-                valid_x.push_back(xi);
-                valid_y.push_back(yi);
-            }
-        }
-
-        // mask logic same as Python
-        for (int i = 0; i < x_grid_; ++i)
-            for (int j = 0; j < y_grid_; ++j)
-                grid_[i][j] -= prob_minus_;
-        for (size_t i = 0; i < valid_x.size(); ++i)
-            grid_[valid_x[i]][valid_y[i]] += prob_plus_;
-        for (int i = 0; i < x_grid_; ++i)
-            for (int j = 0; j < y_grid_; ++j)
-                grid_[i][j] = std::clamp(grid_[i][j], 0.0, 1.0);
-
-        publish_gridmap();
-    }
-
-    void plot_scan(const sensor_msgs::msg::LaserScan::SharedPtr msg)
+    void update_map(const sensor_msgs::msg::LaserScan::SharedPtr msg)
     {
         if (!odom_set_ || odom_buffer_.empty())
             return;
+
+        nav_msgs::msg::OccupancyGrid msg_grid;
+        msg_grid.header.stamp = this->now();
+        msg_grid.header.frame_id = "odom";
+        msg_grid.info.width = x_grid_;
+        msg_grid.info.height = y_grid_;
+        msg_grid.info.resolution = resolution_;
+        msg_grid.info.origin.position.x = -x_size_ / 2.0;
+        msg_grid.info.origin.position.y = -y_size_ / 2.0;
+        msg_grid.info.origin.orientation.w = 1.0;
+        msg_grid.data.resize(x_grid_ * y_grid_);
+        msg_grid.data.resize(x_grid_ * y_grid_);
 
         robot_x_ = odom_buffer_.back().x;
         robot_y_ = odom_buffer_.back().y;
@@ -180,60 +134,57 @@ class Gridmap : public rclcpp::Node
         double t_end = this->now().nanoseconds() * 1e-9;
         double scan_duration = msg->scan_time;
 
-        // remove old odom entries
-        while (!odom_buffer_.empty() && odom_buffer_.front().t < t_end - scan_duration)
-            odom_buffer_.pop_front();
-
-        // compute beam times
-        size_t n_beams = msg->ranges.size();
-        double dt = (msg->time_increment > 0) ? msg->time_increment : scan_duration / std::max<int>(n_beams - 1, 1);
-        std::vector<double> beam_times(n_beams);
-        for (size_t i = 0; i < n_beams; ++i)
-            beam_times[i] = t_end - (scan_duration - i * dt);
-
-        // valid ranges
-        std::vector<double> angles, ranges;
-        for (size_t i = 0; i < n_beams; ++i)
-        {
-            if (msg->ranges[i] >= msg->range_min && msg->ranges[i] <= msg->range_max)
-            {
-                angles.push_back(msg->angle_min + i * (msg->angle_max - msg->angle_min) / (n_beams - 1));
-                ranges.push_back(msg->ranges[i]);
-            }
-        }
-
         std::vector<double> x_world, y_world;
-        for (size_t i = 0; i < ranges.size(); ++i)
+        for (size_t i = 0; i < msg->ranges.size(); ++i)
         {
-            auto [rx, ry, rphi] = interp_pose(beam_times[i]);
-            x_world.push_back(rx + ranges[i] * std::cos(angles[i] - rphi));
-            y_world.push_back(ry - ranges[i] * std::sin(angles[i] - rphi)); // exactly like Python
+            auto [rx, ry, rphi] = interp_pose(t_end - (scan_duration - i * msg->time_increment));
+            x_world.push_back(
+                rx +
+                msg->ranges[i] *
+                    std::cos(msg->angle_min + i * (msg->angle_max - msg->angle_min) / (msg->ranges.size() - 1) - rphi));
+            y_world.push_back(
+                ry -
+                msg->ranges[i] *
+                    std::sin(msg->angle_min + i * (msg->angle_max - msg->angle_min) / (msg->ranges.size() - 1) - rphi));
         }
 
-        update_map(x_world, y_world);
-        publish_gridmap();
-    }
+        auto last = odom_buffer_.back();
+        odom_buffer_.clear();
+        odom_buffer_.push_back(last);
 
-    void publish_gridmap()
-    {
-        nav_msgs::msg::OccupancyGrid msg;
-        msg.header.stamp = this->now();
-        msg.header.frame_id = robot_;
-        msg.info.width = x_grid_;
-        msg.info.height = y_grid_;
-        msg.info.resolution = resolution_;
-        msg.info.origin.position.x = -x_size_ / 2.0;
-        msg.info.origin.position.y = -y_size_ / 2.0;
-        msg.info.origin.orientation.w = 1.0;
-        msg.data.resize(x_grid_ * y_grid_);
-        for (int y = 0; y < y_grid_; ++y)
+        std::vector<int> valid_x, valid_y;
+        for (size_t i = 0; i < x_world.size(); ++i)
         {
-            for (int x = 0; x < x_grid_; ++x)
+            int xi = static_cast<int>(x_world[i] / resolution_) + x_center_;
+            int yi = static_cast<int>(y_world[i] / resolution_) + y_center_;
+            if (xi >= 0 && xi < x_grid_ && yi >= 0 && yi < y_grid_)
             {
-                msg.data[y * x_grid_ + x] = static_cast<int>(grid_[x][y] * 100);
+                valid_x.push_back(xi);
+                valid_y.push_back(yi);
             }
         }
-        grid_pub_->publish(msg);
+        for (int x = 0; x < x_grid_; ++x)
+        {
+            for (int y = 0; y < y_grid_; ++y)
+            {
+                grid_[x][y] -= prob_minus_;
+
+                for (size_t k = 0; k < valid_x.size(); ++k)
+                {
+                    if (valid_x[k] == x && valid_y[k] == y)
+                    {
+                        grid_[x][y] += prob_plus_;
+                        break;
+                    }
+                }
+
+                grid_[x][y] = std::clamp(grid_[x][y], 0.0, 1.0);
+
+                msg_grid.data[y * x_grid_ + x] = static_cast<int>(grid_[x][y] * 100);
+            }
+        }
+
+        grid_pub_->publish(msg_grid);
     }
 };
 

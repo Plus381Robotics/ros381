@@ -139,6 +139,20 @@ def generate_launch_description():
             {"robot_name": "yellow"}
 		],
 	)
+    
+    gridmap_node_1 = Node(
+        package="ros381_base",
+        executable="gridmap",
+        name="gridmap",
+        namespace="blue",
+    )
+
+    gridmap_node_2 = Node(
+        package="ros381_base",
+        executable="gridmap",
+        name="gridmap",
+        namespace="yellow",
+    )
 
     return LaunchDescription(
         [
@@ -156,6 +170,8 @@ def generate_launch_description():
             uc_node_1,
             uc_node_2,
             visualization_node,
+            # gridmap_node_1,
+            gridmap_node_2,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

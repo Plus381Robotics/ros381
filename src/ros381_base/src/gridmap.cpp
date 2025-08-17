@@ -32,7 +32,7 @@ class Gridmap : public rclcpp::Node
 
         grid_pub_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("gridmap", 10);
 
-        create_grid_map(3.0, 2.0, 0.05);
+        create_grid_map(3.0, 2.0, 0.1);
     }
 
   private:
@@ -43,6 +43,8 @@ class Gridmap : public rclcpp::Node
 
     double robot_x_ = 0.0, robot_y_ = 0.0, robot_phi_ = 0.0;
     bool odom_set_ = false, pose_set_ = false;
+    double v_max = 4.0, w_max = 3.14;
+    double trust = 1.0;
     std::deque<OdomEntry> odom_buffer_;
 
     double x_size_, y_size_, resolution_;
@@ -70,6 +72,13 @@ class Gridmap : public rclcpp::Node
         double phi = std::atan2(2.0 * (qw * qz + qx * qy), 1.0 - 2.0 * (qy * qy + qz * qz));
         double x = msg->pose.pose.position.x;
         double y = msg->pose.pose.position.y;
+        double vx = msg->twist.twist.linear.x;
+        double wz = msg->twist.twist.angular.z;
+
+        double trust_v = std::clamp(1.0 - std::abs(vx) / v_max, 0.0, 1.0);
+        double trust_w = std::clamp(1.0 - std::abs(wz) / w_max, 0.0, 1.0);
+        trust = trust_v * trust_w;
+
         odom_buffer_.push_back({t_stamp, x, y, phi});
     }
 
@@ -106,7 +115,7 @@ class Gridmap : public rclcpp::Node
         x_center_ = x_grid_ / 2;
         y_center_ = y_grid_ / 2;
         grid_ = std::vector<std::vector<double>>(x_grid_, std::vector<double>(y_grid_, 0.0));
-        prob_plus_ = 0.6;
+        prob_plus_ = 0.9;
         prob_minus_ = 0.1;
     }
 
@@ -167,13 +176,13 @@ class Gridmap : public rclcpp::Node
         {
             for (int y = 0; y < y_grid_; ++y)
             {
-                grid_[x][y] -= prob_minus_;
+                grid_[x][y] -= prob_minus_ * trust;
 
                 for (size_t k = 0; k < valid_x.size(); ++k)
                 {
                     if (valid_x[k] == x && valid_y[k] == y)
                     {
-                        grid_[x][y] += prob_plus_;
+                        grid_[x][y] += prob_plus_ * trust;
                         break;
                     }
                 }

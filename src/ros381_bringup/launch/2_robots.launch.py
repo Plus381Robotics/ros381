@@ -45,7 +45,7 @@ def generate_launch_description():
         namespace="blue",
         output="screen",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
         ],
     )
 
@@ -56,7 +56,7 @@ def generate_launch_description():
         namespace="blue",
         output="screen",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
         ],
     )
 
@@ -67,7 +67,7 @@ def generate_launch_description():
         namespace="yellow",
         output="screen",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
         ],
     )
 
@@ -78,7 +78,7 @@ def generate_launch_description():
         namespace="yellow",
         output="screen",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
         ],
     )
 
@@ -89,7 +89,7 @@ def generate_launch_description():
         namespace="blue",
         output="screen",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
         ],
     )
 
@@ -100,7 +100,7 @@ def generate_launch_description():
         namespace="yellow",
         output="screen",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
         ],
     )
 
@@ -117,7 +117,7 @@ def generate_launch_description():
         name="uc",
         namespace="blue",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
 		],
 	)
 
@@ -127,7 +127,7 @@ def generate_launch_description():
         name="uc",
         namespace="yellow",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/webots.params.yaml"
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
 		],
 	)
     

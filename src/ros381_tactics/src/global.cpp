@@ -10,6 +10,14 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
 
     this->declare_parameter("tick_freq", 50.0);
     tick_period_ = 1000 / this->get_parameter("tick_freq").as_double();
+    this->declare_parameter("default_tactic", 0);
+    tactic_num_ = this->get_parameter("default_tactic").as_int();
+    this->declare_parameter("default_side", "yellow");
+    auto side_str = this->get_parameter("default_side").as_string();
+    if (side_str == "yellow")
+        tactic_side_ = -1;
+    else
+        tactic_side_ = 1;
 
     timer_ = this->create_wall_timer(std::chrono::milliseconds(tick_period_),
                                      std::bind(&TacticGlobalNode::tactic_tick, this));

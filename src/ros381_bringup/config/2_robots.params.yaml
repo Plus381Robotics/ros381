@@ -1,0 +1,86 @@
+blue/control_loop:
+  ros__parameters:
+    # Control loop frequency [Hz]
+    FREQ: 50.0
+    # Max base velocities: [m/s], [rad/s]
+    V_MAX: 2.0
+    V_MIN: 0.1
+    W_MAX: 12.57
+    W_MIN: 0.314
+    # Max motor velocities: [m/s]
+    MOTOR_V_MAX: 2.0
+    # Distance between drive wheels: [m]
+    L: 0.1545
+    L_MAX: 0.1935
+    L_MIN: 0.1155
+    eta: 0.01
+    # P value for rotation during translation
+    P_w: 10.0
+    # Max base jerk values: [m/s^3], [rad/s^3]
+    J_MAX: 25.0
+    J_MAX_STOP: 50.0
+    J_ROT_MAX: 500.0
+    J_ROT_MAX_STOP: 1000.0
+    # End of movement tolerances: [m], [rad]
+    D_TOL: 0.005 # absolute distance from target
+    D_PROJ_TOL: 0.0025 # projected distance from target
+    D_LONG_TOL: 0.1 # distance before rotation is used fully
+    D_SHORT_TOL: 0.05 # minimal distance for rotation during translation
+    PHI_TOL: 0.0157 # absolute angle from target
+
+blue/odometry:
+  ros__parameters:
+    use_sim_time: True
+    # Distance between encoder wheels: [m]
+    L: 0.297
+
+blue/tactic_global:
+  ros__parameters:
+    # Desired frequency for tactics tick: [Hz]
+    tick_freq: 100.0
+    default_tactic: 2
+    default_side: blue
+
+
+yellow/control_loop:
+  ros__parameters:
+    # Control loop frequency [Hz]
+    FREQ: 50.0
+    # Max base velocities: [m/s], [rad/s]
+    V_MAX: 2.0
+    V_MIN: 0.1
+    W_MAX: 12.57
+    W_MIN: 0.314
+    # Max motor velocities: [m/s]
+    MOTOR_V_MAX: 2.0
+    # Distance between drive wheels: [m]
+    L: 0.1545
+    L_MAX: 0.1935
+    L_MIN: 0.1155
+    eta: 0.01
+    # P value for rotation during translation
+    P_w: 10.0
+    # Max base jerk values: [m/s^3], [rad/s^3]
+    J_MAX: 25.0
+    J_MAX_STOP: 50.0
+    J_ROT_MAX: 500.0
+    J_ROT_MAX_STOP: 1000.0
+    # End of movement tolerances: [m], [rad]
+    D_TOL: 0.005 # absolute distance from target
+    D_PROJ_TOL: 0.0025 # projected distance from target
+    D_LONG_TOL: 0.1 # distance before rotation is used fully
+    D_SHORT_TOL: 0.05 # minimal distance for rotation during translation
+    PHI_TOL: 0.0157 # absolute angle from target
+
+yellow/odometry:
+  ros__parameters:
+    use_sim_time: True
+    # Distance between encoder wheels: [m]
+    L: 0.297
+
+yellow/tactic_global:
+  ros__parameters:
+    # Desired frequency for tactics tick: [Hz]
+    tick_freq: 100.0
+    default_tactic: 1
+    default_side: yellow

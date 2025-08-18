@@ -68,6 +68,7 @@ class ControlLoopNode : public rclcpp::Node
     double v_right_ = 0.0, v_left_ = 0.0; // [m/s]
     bool odom_initialized_ = false;
     unsigned stacked_cnt_ = 0;
+    unsigned short obstacle_ = 0;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_subscription_;
@@ -325,12 +326,19 @@ class ControlLoopNode : public rclcpp::Node
         case 3:
             distance_ = sqrt(x_error_ * x_error_ + y_error_ * y_error_);
             distance_proj_ = distance_ * cos(phi_error_);
-
-            v_ref_ = synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_, v_max_temp_,
-                                 V_MIN_, dt_);
-            w_ref_ =
-                P_w_ * std::clamp((distance_ - D_SHORT_TOL_) / (D_LONG_TOL_ - D_SHORT_TOL_), 0.0, 1.0) * phi_error_;
-
+            if (obstacle_ == 1)
+            {
+				// TODO: proveri, na slepo je uradjeno
+                v_ref_ = stopping_synthesis_7(distance_proj_ * direction_, v_base_, j_max_temp_, v_max_temp_,
+                                              V_MIN_, dt_);
+            }
+            else
+            {
+                v_ref_ = synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_,
+                                     v_max_temp_, V_MIN_, dt_);
+                w_ref_ =
+                    P_w_ * std::clamp((distance_ - D_SHORT_TOL_) / (D_LONG_TOL_ - D_SHORT_TOL_), 0.0, 1.0) * phi_error_;
+            }
             if (distance_proj_ < D_PROJ_TOL_ * d_tol_perc_ && fabs(distance_) < D_TOL_ * d_tol_perc_)
             {
                 reset_movement();

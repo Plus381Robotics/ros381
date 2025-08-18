@@ -35,6 +35,20 @@ unsigned char stacked(double time_limit, double v, double v_min, double freq, un
     return 0;
 }
 
+double stopping_synthesis_7(double distance, double velocity, double J_MAX, double v_max, double v_min, double dt)
+{
+    double abs_velocity = fabs(velocity);
+    double v_ref = 0;
+    if (dt <= 0 || std::isnan(dt))
+        return 0.0;
+
+    double x = abs_velocity / (5 * pow(v_max, 1.5) / 3 / sqrt(J_MAX));
+    v_ref = v_max * (35.0f * pow(x, 4) - 84.0f * pow(x, 5) + 70.0f * pow(x, 6) - 20.0f * pow(x, 7));
+    v_ref = std::clamp(v_ref, v_min, v_max);
+
+    return std::clamp(get_sign(distance) * v_ref, -v_max, v_max);
+}
+
 double synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double stopping_distance,
                    double v_max, double v_min, double dt)
 {

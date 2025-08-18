@@ -3,6 +3,7 @@ from ros381_tactics.movement import *
 from ros381_tactics.tactic_0 import tactic_0, load_t0
 from ros381_tactics.tactic_1 import tactic_1, load_t1
 from ros381_tactics.tactic_2 import tactic_2, load_t2
+from ros381_tactics.tactic_3 import tactic_3, load_t3
 from ros381_tactics.get_set import *
 
 

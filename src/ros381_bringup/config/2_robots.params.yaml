@@ -38,7 +38,7 @@ blue/tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
     tick_freq: 100.0
-    default_tactic: 2
+    default_tactic: 3
     default_side: blue
 
 

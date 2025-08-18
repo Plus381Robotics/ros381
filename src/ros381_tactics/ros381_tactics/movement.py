@@ -18,7 +18,7 @@ def _send_goal(
     stop_coeff_v=1.0,
     stop_coeff_w=1.0,
 ):
-    sided_x, sided_phi = sided_coords(x, y)
+    sided_x, sided_phi = sided_coords(x, phi)
     GT.send_goal(
         type_,
         sided_x,

@@ -25,7 +25,7 @@ class ObstacleNode : public rclcpp::Node
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
     double j_max_ = 50.0;                                          // TODO: parametar
     double inf_x_stop_ = 0.1, inf_y_stop_ = 0.22, dis_stop_ = 0.2; // TODO: parametri
-    double inf_y_slow_ = 0.15, dis_slow_ = 0.4;                    // TODO: parametri
+    double inf_y_slow_ = 0.15, dis_slow_ = 1.0;                    // TODO: parametri
     int num_pts_half_ = 800, num_offset_;
     uint8_t obstacle_status_ = 0;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
@@ -67,7 +67,8 @@ class ObstacleNode : public rclcpp::Node
                 if (r_y < y_max_ && r_x < x_max_)
                 {
                     stop_num++;
-                    // RCLCPP_INFO(this->get_logger(), "point@%.2f degrees = (%.2f, %.2f)", angle * 180 / M_PI, r_x, r_y);
+                    // RCLCPP_INFO(this->get_logger(), "point@%.2f degrees = (%.2f, %.2f)", angle * 180 / M_PI, r_x,
+                    // r_y);
                 }
                 else if (r_y < y_max_slow_ && r_x < x_max_slow_)
                     slow_num++;
@@ -75,7 +76,7 @@ class ObstacleNode : public rclcpp::Node
         }
         if (stop_num >= threshold_)
             obstacle_status_ = 1;
-        else if (slow_num >= threshold_ && false)
+        else if (slow_num + stop_num >= threshold_)
             obstacle_status_ = 2;
         else
             obstacle_status_ = 0;

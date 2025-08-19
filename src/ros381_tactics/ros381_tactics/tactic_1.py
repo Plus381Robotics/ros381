@@ -35,6 +35,9 @@ def tactic_1():
         case 3:
             if get_move_result() == -1:
                 tactic_state = 4
+            elif get_move_result() == -4:
+                # get_GT().cancel_goal()
+                tactic_state = 3
         case 4:
             rotate_to_phi(0.0)
             tactic_state = 5
@@ -42,17 +45,23 @@ def tactic_1():
             if get_move_result() == -1:
                 tactic_state = 7
         case 7:
-            move_to_xy(-1.25, 0.75, 1)
+            move_to_xy(-1.25, 0.75, -1)
             tactic_state = 8
         case 8:
             if get_move_result() == -1:
                 tactic_state = 9
+            elif get_move_result() == -4:
+                # get_GT().cancel_goal()
+                tactic_state = 8
         case 9:
-            move_to_xy(-0.2, 0.0, -1)
+            move_to_xy(1.25, 0.0, 1)
             tactic_state = 10
         case 10:
             if get_move_result() == -1:
                 tactic_state = -1
+            elif get_move_result() == -4:
+                # get_GT().cancel_goal()
+                tactic_state = 3
         case -1:
             print("Tactic 1 finished.")
     return tactic_state

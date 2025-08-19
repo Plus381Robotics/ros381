@@ -118,8 +118,8 @@ def generate_launch_description():
         namespace="blue",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
-		],
-	)
+        ],
+    )
 
     uc_node_2 = Node(
         package="ros381_hardware",
@@ -128,18 +128,16 @@ def generate_launch_description():
         namespace="yellow",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
-		],
-	)
-    
+        ],
+    )
+
     visualization_node = Node(
         package="ros381_visualization",
         executable="lidar_plot",
         name="lidar_plot",
-        parameters=[
-            {"robot_name": "yellow"}
-		],
-	)
-    
+        parameters=[{"robot_name": "yellow"}],
+    )
+
     gridmap_node_1 = Node(
         package="ros381_base",
         executable="gridmap",
@@ -152,6 +150,28 @@ def generate_launch_description():
         executable="gridmap",
         name="gridmap",
         namespace="yellow",
+    )
+
+    obstacle_node_1 = Node(
+        package="ros381_base",
+        executable="obstacle",
+        name="obstacle",
+        namespace="blue",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
+        ],
+    )
+
+    obstacle_node_2 = Node(
+        package="ros381_base",
+        executable="obstacle",
+        name="obstacle",
+        namespace="yellow",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
+        ],
     )
 
     return LaunchDescription(
@@ -169,9 +189,11 @@ def generate_launch_description():
             chinch_trigger_node,
             uc_node_1,
             uc_node_2,
-            visualization_node,
-            # gridmap_node_1,
+            # visualization_node,
+            gridmap_node_1,
             gridmap_node_2,
+            # obstacle_node_1,
+            obstacle_node_2,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

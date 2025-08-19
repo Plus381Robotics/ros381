@@ -12,6 +12,7 @@
   <depend>rclcpp</depend>
   <depend>nav_msgs</depend>
   <depend>ros381_interfaces</depend>
+  <depend>example_interfaces</depend>
   <depend>tf2</depend>
   <depend>tf2_geometry_msgs</depend>
 

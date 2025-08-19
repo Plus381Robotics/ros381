@@ -5,6 +5,7 @@
 #include "ros381_interfaces/action/move.hpp"
 #include "ros381_interfaces/msg/float2.hpp"
 #include "tf2/utils.h"
+#include <example_interfaces/msg/u_int8.hpp>
 #include <functional>
 #include <memory>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -30,6 +31,8 @@ class ControlLoopNode : public rclcpp::Node
             rclcpp_action::create_server<Move>(this, "move", std::bind(&ControlLoopNode::handle_goal, this, _1, _2),
                                                std::bind(&ControlLoopNode::handle_cancel, this, _1),
                                                std::bind(&ControlLoopNode::handle_accepted, this, _1));
+        obstacle_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
+            "obstacle_status", 10, std::bind(&ControlLoopNode::callback_obstacle, this, _1));
 
         RCLCPP_INFO(this->get_logger(), "Control loop node is running.");
     }
@@ -67,6 +70,7 @@ class ControlLoopNode : public rclcpp::Node
     unsigned long period_;                // [us]
     double v_right_ = 0.0, v_left_ = 0.0; // [m/s]
     bool odom_initialized_ = false;
+    double slow_perc_ = 0.5;
     unsigned stacked_cnt_ = 0;
     unsigned short obstacle_ = 0;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -74,6 +78,12 @@ class ControlLoopNode : public rclcpp::Node
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_subscription_;
     rclcpp_action::Server<Move>::SharedPtr move_action_server_;
     std::shared_ptr<GoalHandleMove> current_goal_handle_;
+    rclcpp::Subscription<example_interfaces::msg::UInt8>::SharedPtr obstacle_sub_;
+
+    void callback_obstacle(const example_interfaces::msg::UInt8::SharedPtr msg)
+    {
+        obstacle_ = msg->data;
+    }
 
     rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const Move::Goal> goal)
     {
@@ -201,6 +211,9 @@ class ControlLoopNode : public rclcpp::Node
             case -3:
                 RCLCPP_INFO(this->get_logger(), "Move stacked...");
                 break;
+            case -4:
+                RCLCPP_INFO(this->get_logger(), "Move interrupted by obstacle...");
+                break;
             }
             goal_handle->succeed(result);
         }
@@ -326,23 +339,38 @@ class ControlLoopNode : public rclcpp::Node
         case 3:
             distance_ = sqrt(x_error_ * x_error_ + y_error_ * y_error_);
             distance_proj_ = distance_ * cos(phi_error_);
-            if (obstacle_ == 1)
+            switch (obstacle_)
             {
-				// TODO: proveri, na slepo je uradjeno
-                v_ref_ = stopping_synthesis_7(distance_proj_ * direction_, v_base_, j_max_temp_, v_max_temp_,
-                                              V_MIN_, dt_);
-            }
-            else
-            {
+            default:
                 v_ref_ = synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_,
                                      v_max_temp_, V_MIN_, dt_);
-                w_ref_ =
-                    P_w_ * std::clamp((distance_ - D_SHORT_TOL_) / (D_LONG_TOL_ - D_SHORT_TOL_), 0.0, 1.0) * phi_error_;
+                break;
+            case 1:
+                RCLCPP_WARN(this->get_logger(), "STOPPING!");
+                v_ref_ = slowing_synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, v_max_temp_, V_MIN_,
+                                             dt_, 0.0);
+                break;
+            case 2:
+                RCLCPP_WARN(this->get_logger(), "Slowing down...");
+                if (fabs(v_base_) > v_max_temp_ * slow_perc_)
+                    v_ref_ = slowing_synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, v_max_temp_,
+                                                 V_MIN_, dt_, slow_perc_);
+                else
+                    v_ref_ = synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_,
+                                         v_max_temp_, V_MIN_, dt_);
+                break;
             }
+            w_ref_ =
+                P_w_ * std::clamp((distance_ - D_SHORT_TOL_) / (D_LONG_TOL_ - D_SHORT_TOL_), 0.0, 1.0) * phi_error_;
             if (distance_proj_ < D_PROJ_TOL_ * d_tol_perc_ && fabs(distance_) < D_TOL_ * d_tol_perc_)
             {
                 reset_movement();
                 movement_state_ = -1;
+            }
+            else if (obstacle_ == 1 && fabs(v_base_) < V_MIN_ && fabs(w_base_) < W_MIN_)
+            {
+                reset_movement();
+                movement_state_ = -4;
             }
             else if (stacked(0.5, v_base_, V_MIN_, freq_, &stacked_cnt_))
             {

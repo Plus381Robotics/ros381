@@ -1,7 +1,7 @@
 double correct_param(double param, double error, double eta, double min, double max);
 unsigned char stacked(double time_limit, double v, double v_min, double freq, unsigned *cnt);
-double stopping_synthesis_7(double distance, double velocity, double J_MAX, double v_max,
-                            double v_min, double dt);
+double slowing_synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double v_max,
+                           double v_min, double dt, double percentage);
 double synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double stopping_distance,
                    double v_max, double v_min, double dt);
 double wrap(double signal, double min, double max);

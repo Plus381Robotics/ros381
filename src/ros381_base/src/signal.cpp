@@ -35,16 +35,26 @@ unsigned char stacked(double time_limit, double v, double v_min, double freq, un
     return 0;
 }
 
-double stopping_synthesis_7(double distance, double velocity, double J_MAX, double v_max, double v_min, double dt)
+double slowing_synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double v_max,
+                           double v_min, double dt, double percentage)
 {
     double abs_velocity = fabs(velocity);
+    double abs_acceleration = fabs(acceleration);
     double v_ref = 0;
     if (dt <= 0 || std::isnan(dt))
         return 0.0;
 
-    double x = abs_velocity / (5 * pow(v_max, 1.5) / 3 / sqrt(J_MAX));
-    v_ref = v_max * (35.0f * pow(x, 4) - 84.0f * pow(x, 5) + 70.0f * pow(x, 6) - 20.0f * pow(x, 7));
+    double j_step = J_MAX * dt;
+    if (abs_velocity > v_max * (1.0 + percentage) * 0.5f)
+        v_ref = abs_velocity - (abs_acceleration + j_step) * dt;
+    else if (j_step < abs_acceleration * 1.05)
+        v_ref = abs_velocity - (abs_acceleration - j_step) * dt;
+    else
+        v_ref = v_max * percentage;
+
     v_ref = std::clamp(v_ref, v_min, v_max);
+    if (v_ref < v_min)
+        v_ref = v_max * percentage;
 
     return std::clamp(get_sign(distance) * v_ref, -v_max, v_max);
 }

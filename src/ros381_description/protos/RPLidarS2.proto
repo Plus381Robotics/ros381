@@ -5,7 +5,7 @@
 
 PROTO RPLidarS2 [
   field SFVec3f translation 0 0 0
-  field SFRotation rotation 0 0 1 0
+  field SFRotation rotation 0 0 1 3.14159
   field SFString name "lidar"
 ]
 
@@ -20,7 +20,7 @@ PROTO RPLidarS2 [
         horizontalResolution 3200
         numberOfLayers 1
 		near 0.05
-        minRange 0.3
+        minRange 0.1
         maxRange 30.0
         noise 0.000833
 		resolution 0.0003125

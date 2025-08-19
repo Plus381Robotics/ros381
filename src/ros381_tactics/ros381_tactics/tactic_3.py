@@ -30,13 +30,13 @@ def tactic_3():
             if get_move_result() == -1:
                 tactic_state = 2
         case 2:
-            move_on_angle(1.0, 1, -math.pi / 2)
+            move_on_angle(0.25, 1, -math.pi / 2)
             tactic_state = 3
         case 3:
             if get_move_result() == -1:
                 tactic_state = 4
         case 4:
-            move_to_xy(0.5, 0.25, 1)
+            move_to_xy(-1.25, 0.0, 1)
             tactic_state = 10
         case 10:
             if get_move_result() == -1:

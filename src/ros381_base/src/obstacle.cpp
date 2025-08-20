@@ -21,11 +21,11 @@ class ObstacleNode : public rclcpp::Node
 
   private:
     double v_base_, w_base_;
-    unsigned resolution_ = 3200, threshold_ = 20; // TODO: u parametre
+    unsigned resolution_ = 3200, threshold_ = 10; // TODO: u parametre
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
-    double j_max_ = 50.0;                                          // TODO: parametar
-    double inf_x_stop_ = 0.1, inf_y_stop_ = 0.22, dis_stop_ = 0.2; // TODO: parametri
-    double inf_y_slow_ = 0.15, dis_slow_ = 1.0;                    // TODO: parametri
+    double j_max_ = 50.0;                                                           // TODO: parametar
+    double inf_x_stop_ = 0.1, robot_l_ = 0.15, inf_y_stop_ = 0.22, dis_stop_ = 0.2; // TODO: parametri
+    double inf_y_slow_ = 0.05, dis_slow_ = 1.5;                                     // TODO: parametri
     int num_pts_half_ = 800, num_offset_;
     uint8_t obstacle_status_ = 0;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
@@ -42,9 +42,9 @@ class ObstacleNode : public rclcpp::Node
     {
         unsigned stop_num = 0;
         unsigned slow_num = 0;
-        x_max_ = 5 / 3 * pow(v_base_, 5 / 3) / sqrt(j_max_) + inf_y_stop_ + inf_x_stop_ + dis_stop_;
-        x_max_slow_ = y_max_ + dis_slow_;
-        y_max_ = 2 * inf_y_stop_;
+        x_max_ = 5 / 3 * pow(fabs(v_base_), 5 / 3) / sqrt(j_max_) + inf_y_stop_ + inf_x_stop_ + dis_stop_;
+        x_max_slow_ = x_max_ + dis_slow_;
+        y_max_ = robot_l_ + inf_y_stop_;
         y_max_slow_ = y_max_ + inf_y_slow_;
         // RCLCPP_INFO(this->get_logger(), "\n\n\n");
         // if (v_base_ < 0.0)

@@ -35,6 +35,11 @@ unsigned char stacked(double time_limit, double v, double v_min, double freq, un
     return 0;
 }
 
+double speedup_synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double v_max,
+                           double v_min, double dt, double percentage)
+{
+}
+
 double slowing_synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double v_max,
                            double v_min, double dt, double percentage)
 {

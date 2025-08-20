@@ -70,8 +70,9 @@ class ControlLoopNode : public rclcpp::Node
     unsigned long period_;                // [us]
     double v_right_ = 0.0, v_left_ = 0.0; // [m/s]
     bool odom_initialized_ = false;
-    double slow_perc_ = 0.5;
+    double slow_perc_ = 0.2;
     unsigned stacked_cnt_ = 0;
+    bool was_slowed_ = false;
     unsigned short obstacle_ = 0;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_publisher_;
@@ -342,8 +343,14 @@ class ControlLoopNode : public rclcpp::Node
             switch (obstacle_)
             {
             default:
-                v_ref_ = synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_,
-                                     v_max_temp_, V_MIN_, dt_);
+                if (was_slowed_) // ubrzaj, else normalno
+                {
+                }
+                else
+                {
+                    v_ref_ = synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_,
+                                         v_max_temp_, V_MIN_, dt_);
+                }
                 break;
             case 1:
                 RCLCPP_WARN(this->get_logger(), "STOPPING!");
@@ -357,7 +364,7 @@ class ControlLoopNode : public rclcpp::Node
                                                  V_MIN_, dt_, slow_perc_);
                 else
                     v_ref_ = synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_,
-                                         v_max_temp_, V_MIN_, dt_);
+                                         v_max_temp_ * slow_perc_, V_MIN_, dt_);
                 break;
             }
             w_ref_ =

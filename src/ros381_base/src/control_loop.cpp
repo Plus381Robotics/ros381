@@ -40,11 +40,11 @@ class ControlLoopNode : public rclcpp::Node
   private:
     double L_, L_MIN_, L_MAX_; // [m]
     double eta_;
-    double phi_base_, phi_error_, PHI_TOL_, phi_ref_ = 0.0; // [rad]
-    double x_base_, x_error_, x_ref_ = 0.0;                 // [m]
-    double y_base_, y_error_, y_ref_ = 0.0;                 // [m]
-    double v_base_, V_MAX_, V_MIN_, v_ref_ = 0.0, prev_v_;  // [m/s]
-    double MOTOR_V_MAX_;                                    // [m/s]
+    double phi_base_, phi_error_, PHI_TOL_, phi_ref_ = 0.0;     // [rad]
+    double x_base_, x_error_, x_ref_ = 0.0;                     // [m]
+    double y_base_, y_error_, y_ref_ = 0.0;                     // [m]
+    double v0_, v_base_, V_MAX_, V_MIN_, v_ref_ = 0.0, prev_v_; // [m/s]
+    double MOTOR_V_MAX_;                                        // [m/s]
     double w_base_, W_MAX_, W_MIN_, w_ref_ = 0.0,
                                     prev_w_; // [rad/s]
     double v_max_temp_;                      // [m/s]
@@ -70,10 +70,11 @@ class ControlLoopNode : public rclcpp::Node
     unsigned long period_;                // [us]
     double v_right_ = 0.0, v_left_ = 0.0; // [m/s]
     bool odom_initialized_ = false;
-    double slow_perc_ = 0.2;
+    double V_SLOWED_MAX_ = 0.75; // [m/s] TODO: parametar
     unsigned stacked_cnt_ = 0;
     bool was_slowed_ = false;
     unsigned short obstacle_ = 0;
+    bool obstacle_status_changed_ = false;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_subscription_;
@@ -83,7 +84,12 @@ class ControlLoopNode : public rclcpp::Node
 
     void callback_obstacle(const example_interfaces::msg::UInt8::SharedPtr msg)
     {
-        obstacle_ = msg->data;
+        uint8_t new_obstacle_ = msg->data;
+        if (new_obstacle_ != obstacle_)
+            obstacle_status_changed_ = true;
+        else
+            obstacle_status_changed_ = false;
+        obstacle_ = new_obstacle_;
     }
 
     rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const Move::Goal> goal)
@@ -278,7 +284,8 @@ class ControlLoopNode : public rclcpp::Node
             movement_state_ = 1;
         }
         v_ref_ = 0;
-        w_ref_ = synthesis_7(phi_error_, w_base_, alpha_, j_rot_max_temp_, stopping_angle_, w_max_temp_, W_MIN_, dt_);
+        w_ref_ = velocity_synthesis(phi_error_, w_base_, alpha_, j_rot_max_temp_, stopping_angle_, w_max_temp_, W_MIN_,
+                                    dt_, 0.0, 0, 0.0);
         if (fabs(phi_error_) < PHI_TOL_ * phi_tol_perc_)
         {
             reset_movement();
@@ -313,8 +320,8 @@ class ControlLoopNode : public rclcpp::Node
             break;
         case 1:
             v_ref_ = 0;
-            w_ref_ =
-                synthesis_7(phi_error_, w_base_, alpha_, j_rot_max_temp_, stopping_angle_, w_max_temp_, W_MIN_, dt_);
+            w_ref_ = velocity_synthesis(phi_error_, w_base_, alpha_, j_rot_max_temp_, stopping_angle_, w_max_temp_,
+                                        W_MIN_, dt_, 0.0, 0, 0.0);
             if (fabs(phi_error_) < PHI_TOL_)
             {
                 reg_phase_ = 2;
@@ -340,33 +347,13 @@ class ControlLoopNode : public rclcpp::Node
         case 3:
             distance_ = sqrt(x_error_ * x_error_ + y_error_ * y_error_);
             distance_proj_ = distance_ * cos(phi_error_);
-            switch (obstacle_)
+            if (obstacle_status_changed_)
             {
-            default:
-                if (was_slowed_) // ubrzaj, else normalno
-                {
-                }
-                else
-                {
-                    v_ref_ = synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_,
-                                         v_max_temp_, V_MIN_, dt_);
-                }
-                break;
-            case 1:
-                RCLCPP_WARN(this->get_logger(), "STOPPING!");
-                v_ref_ = slowing_synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, v_max_temp_, V_MIN_,
-                                             dt_, 0.0);
-                break;
-            case 2:
-                RCLCPP_WARN(this->get_logger(), "Slowing down...");
-                if (fabs(v_base_) > v_max_temp_ * slow_perc_)
-                    v_ref_ = slowing_synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, v_max_temp_,
-                                                 V_MIN_, dt_, slow_perc_);
-                else
-                    v_ref_ = synthesis_7(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_,
-                                         v_max_temp_ * slow_perc_, V_MIN_, dt_);
-                break;
+                v0_ = v_base_;
+                obstacle_status_changed_ = false;
             }
+            v_ref_ = velocity_synthesis(distance_proj_ * direction_, v_base_, a_, j_max_temp_, stopping_distance_,
+                                        v_max_temp_, V_MIN_, dt_, v0_, obstacle_, V_SLOWED_MAX_);
             w_ref_ =
                 P_w_ * std::clamp((distance_ - D_SHORT_TOL_) / (D_LONG_TOL_ - D_SHORT_TOL_), 0.0, 1.0) * phi_error_;
             if (distance_proj_ < D_PROJ_TOL_ * d_tol_perc_ && fabs(distance_) < D_TOL_ * d_tol_perc_)

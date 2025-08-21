@@ -6,8 +6,6 @@
  */
 
 #include "../include/signal.hpp"
-#include <algorithm>
-#include <cmath>
 
 /**
  * @brief Adjusts a control parameter based on error feedback with clamped correction.
@@ -35,63 +33,62 @@ unsigned char stacked(double time_limit, double v, double v_min, double freq, un
     return 0;
 }
 
-double speedup_synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double v_max,
-                           double v_min, double dt, double percentage)
+double velocity_synthesis(double distance, double velocity, double acceleration, double J_MAX, double stopping_distance,
+                          double v_max, double v_min, double dt, double v0, unsigned slowdown_status,
+                          double v_slowed_max)
 {
-}
-
-double slowing_synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double v_max,
-                           double v_min, double dt, double percentage)
-{
-    double abs_velocity = fabs(velocity);
-    double abs_acceleration = fabs(acceleration);
-    double v_ref = 0;
     if (dt <= 0 || std::isnan(dt))
         return 0.0;
-
-    double j_step = J_MAX * dt;
-    if (abs_velocity > v_max * (1.0 + percentage) * 0.5f)
-        v_ref = abs_velocity - (abs_acceleration + j_step) * dt;
-    else if (j_step < abs_acceleration * 1.05)
-        v_ref = abs_velocity - (abs_acceleration - j_step) * dt;
-    else
-        v_ref = v_max * percentage;
-
-    v_ref = std::clamp(v_ref, v_min, v_max);
-    if (v_ref < v_min)
-        v_ref = v_max * percentage;
-
-    return std::clamp(get_sign(distance) * v_ref, -v_max, v_max);
-}
-
-double synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double stopping_distance,
-                   double v_max, double v_min, double dt)
-{
     double abs_distance = fabs(distance);
     double abs_velocity = fabs(velocity);
     double abs_acceleration = fabs(acceleration);
-    double v_ref = 0;
-    if (dt <= 0 || std::isnan(dt))
-        return 0.0;
+    double abs_v0 = fabs(v0);
+    double a_step = J_MAX * dt;
+    double abs_v_ref = 0.0;
+    double v_des = 0.0;
 
-    if (abs_distance <= stopping_distance)
+    switch (slowdown_status)
+    {
+    case 0:
+        v_des = v_max;
+        break;
+    case 1:
+        v_des = 0.0;
+        break;
+    case 2:
+        v_des = v_slowed_max;
+        break;
+    }
+
+    if (abs_distance < stopping_distance)
     {
         double x = abs_distance / stopping_distance;
-        v_ref = v_max * (35.0f * pow(x, 4) - 84.0f * pow(x, 5) + 70.0f * pow(x, 6) - 20.0f * pow(x, 7));
+        abs_v_ref = v_des * (35.0f * pow(x, 4) - 84.0f * pow(x, 5) + 70.0f * pow(x, 6) - 20.0f * pow(x, 7));
     }
     else
     {
-        double j_step = J_MAX * dt;
-        if (abs_velocity < v_max * 0.5f)
-            v_ref = abs_velocity + (abs_acceleration + j_step) * dt;
-        else if (j_step < abs_acceleration * 1.05)
-            v_ref = abs_velocity + (abs_acceleration - j_step) * dt;
-        else
-            v_ref = v_max;
+        abs_v_ref = synthesis_v(abs_velocity, abs_acceleration, a_step, v_des, dt, abs_v0);
     }
-    v_ref = std::clamp(v_ref, v_min, v_max);
+    abs_v_ref = std::clamp(abs_v_ref, v_min, v_max);
+    return std::clamp(get_sign(distance) * abs_v_ref, -v_max, v_max);
+}
 
-    return std::clamp(get_sign(distance) * v_ref, -v_max, v_max);
+double synthesis_v(double velocity, double acceleration, double a_step, double v_des, double dt, double v0)
+{
+    int8_t acc_sign = get_sign(v_des - v0);
+    double v_ret;
+
+    if (velocity * acc_sign > v_des * acc_sign)
+        v_ret = v_des;
+    else if (velocity * acc_sign < (v_des + v0) * 0.5 * acc_sign)
+        v_ret = velocity + acc_sign * (acceleration + a_step) * dt;
+    else if (a_step < acceleration * 1.1)
+        v_ret = velocity + acc_sign * (acceleration - a_step) * dt;
+    else
+        v_ret = v_des;
+    if (v_ret < v_des * 1.1 && v_ret > v_des * 0.9)
+        v_ret = v_des;
+    return v_ret;
 }
 
 double wrap(double signal, double min, double max)

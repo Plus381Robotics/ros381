@@ -51,8 +51,8 @@ PROTO yellow [
         device [
           RotationalMotor {
             name "wheel_right"
-			acceleration 600
-            maxTorque 10
+			acceleration 6000
+            maxTorque 1000
             maxVelocity 60
           }
           PositionSensor {
@@ -100,8 +100,8 @@ PROTO yellow [
         device [
           RotationalMotor {
             name "wheel_left"
-			acceleration 600
-            maxTorque 10
+			acceleration 6000
+            maxTorque 1000
             maxVelocity 60
           }
           PositionSensor {

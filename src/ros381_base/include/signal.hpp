@@ -1,11 +1,13 @@
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+
 double correct_param(double param, double error, double eta, double min, double max);
 unsigned char stacked(double time_limit, double v, double v_min, double freq, unsigned *cnt);
-double speedup_synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double v_max,
-                           double v_min, double dt, double percentage);
-double slowing_synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double v_max,
-                           double v_min, double dt, double percentage);
-double synthesis_7(double distance, double velocity, double acceleration, double J_MAX, double stopping_distance,
-                   double v_max, double v_min, double dt);
+double velocity_synthesis(double distance, double velocity, double acceleration, double J_MAX, double stopping_distance,
+                          double v_max, double v_min, double dt, double v0, unsigned slowdown_status,
+                          double v_slowed_max);
+double synthesis_v(double velocity, double acceleration, double a_step, double v_des, double dt, double v0);
 double wrap(double signal, double min, double max);
 void wrap_ptr(double *signal, double max, double min);
 short get_sign(double num);

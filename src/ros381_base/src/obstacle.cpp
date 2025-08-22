@@ -47,10 +47,10 @@ class ObstacleNode : public rclcpp::Node
         y_max_ = robot_l_ + inf_y_stop_;
         y_max_slow_ = y_max_ + inf_y_slow_;
         // RCLCPP_INFO(this->get_logger(), "\n\n\n");
-        // if (v_base_ < 0.0)
-        // num_offset_ = num_pts_half_;
-        // else
-        num_offset_ = 0;
+        if (v_base_ < 0.0)
+            num_offset_ = num_pts_half_;
+        else
+            num_offset_ = 0;
         for (int i = num_offset_ - num_pts_half_; i <= num_pts_half_ + num_offset_; i++)
         {
             unsigned ui = (i + resolution_) % resolution_;

@@ -54,14 +54,14 @@ def tactic_1():
                 # get_GT().cancel_goal()
                 tactic_state = 7
         case 9:
-            move_to_xy(1.25, 0.0, 1)
+            move_to_xy(1.25, 0.0, -1)
             tactic_state = 10
         case 10:
             if get_move_result() == -1:
                 tactic_state = -1
             elif get_move_result() == -4:
                 # get_GT().cancel_goal()
-                tactic_state = -1
+                tactic_state = 9
         case -1:
             print("Tactic 1 finished.")
     return tactic_state

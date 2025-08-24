@@ -17,6 +17,12 @@ class ObstacleNode : public rclcpp::Node
         obstacle_pub_ = this->create_publisher<example_interfaces::msg::UInt8>("obstacle_status", 10);
 
         num_pts_half_ = resolution_ / 4;
+        double angle_increment_ = 2 * M_PI / resolution_;
+        for (int i = 0; i < 3200; i++)
+        {
+            sin_lut_[i] = sin(i * angle_increment_);
+            cos_lut_[i] = cos(i * angle_increment_);
+        }
     }
 
   private:
@@ -28,6 +34,7 @@ class ObstacleNode : public rclcpp::Node
     double inf_y_slow_ = 0.05, dis_slow_ = 1.0;                                     // TODO: parametri
     int num_pts_half_ = 800, num_offset_;
     uint8_t obstacle_status_ = 0;
+    double sin_lut_[3200], cos_lut_[3200];
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Publisher<example_interfaces::msg::UInt8>::SharedPtr obstacle_pub_;
@@ -60,9 +67,9 @@ class ObstacleNode : public rclcpp::Node
             //             ui * msg->angle_increment * 180 / M_PI);
             if (range >= msg->range_min && range <= msg->range_max)
             {
-                double angle = ui * msg->angle_increment;
-                double r_x = fabs(range * cos(angle));
-                double r_y = fabs(range * sin(angle));
+                // double angle = ui * msg->angle_increment;
+                double r_x = fabs(range * cos_lut_[ui]);
+                double r_y = fabs(range * sin_lut_[ui]);
                 // RCLCPP_INFO(this->get_logger(), "point@%.2f degrees = (%.2f, %.2f)", angle * 180 / M_PI, r_x, r_y);
                 if (r_y < y_max_ && r_x < x_max_)
                 {

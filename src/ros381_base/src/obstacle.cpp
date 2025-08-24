@@ -27,7 +27,9 @@ class ObstacleNode : public rclcpp::Node
 
   private:
     double v_base_, w_base_;
-    unsigned resolution_ = 3200, threshold_ = 5; // TODO: u parametre
+    double x_base_, y_base_, phi_base_;
+    unsigned resolution_ = 3200, threshold_ = 5;     // TODO: u parametre
+    double TABLE_X_LIMIT = 1.3, TABLE_Y_LIMIT = 0.8; // TODO: u parametre
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
     double j_max_ = 50.0;                                                           // TODO: parametar
     double inf_x_stop_ = 0.1, robot_l_ = 0.15, inf_y_stop_ = 0.22, dis_stop_ = 0.2; // TODO: parametri
@@ -43,6 +45,13 @@ class ObstacleNode : public rclcpp::Node
     {
         v_base_ = msg->twist.twist.linear.x;
         w_base_ = msg->twist.twist.angular.z;
+        x_base_ = msg->pose.pose.position.x;
+        y_base_ = msg->pose.pose.position.y;
+        double qx = msg->pose.pose.orientation.x;
+        double qy = msg->pose.pose.orientation.y;
+        double qz = msg->pose.pose.orientation.z;
+        double qw = msg->pose.pose.orientation.w;
+        phi_base_ = std::atan2(2.0 * (qw * qz + qx * qy), 1.0 - 2.0 * (qy * qy + qz * qz));
     }
 
     void check_scan(const sensor_msgs::msg::LaserScan::SharedPtr msg)
@@ -62,23 +71,24 @@ class ObstacleNode : public rclcpp::Node
         {
             unsigned ui = (i + resolution_) % resolution_;
             double range = msg->ranges[ui];
-            // RCLCPP_INFO(this->get_logger(), "\ni = %d , ui =%d", i, ui);
-            // RCLCPP_INFO(this->get_logger(), "\ndistance = %.2f m, angle =%.2f degrees", range,
-            //             ui * msg->angle_increment * 180 / M_PI);
             if (range >= msg->range_min && range <= msg->range_max)
             {
-                // double angle = ui * msg->angle_increment;
-                double r_x = fabs(range * cos_lut_[ui]);
-                double r_y = fabs(range * sin_lut_[ui]);
-                // RCLCPP_INFO(this->get_logger(), "point@%.2f degrees = (%.2f, %.2f)", angle * 180 / M_PI, r_x, r_y);
-                if (r_y < y_max_ && r_x < x_max_)
+                double obst_x_robot = range * cos_lut_[ui];
+                double obst_y_robot = range * sin_lut_[ui];
+                double obst_x_table = x_base_ + obst_x_robot * cos(phi_base_) - obst_y_robot * sin(phi_base_);
+                double obst_y_table = y_base_ + obst_x_robot * sin(phi_base_) + obst_y_robot * cos(phi_base_);
+                if (fabs(obst_x_table) < TABLE_X_LIMIT && fabs(obst_y_table) < TABLE_Y_LIMIT)
                 {
-                    stop_num++;
-                    // RCLCPP_INFO(this->get_logger(), "point@%.2f degrees = (%.2f, %.2f)", angle * 180 / M_PI, r_x,
-                    // r_y);
+                    if (fabs(obst_y_robot) < y_max_ && fabs(obst_x_robot) < x_max_)
+                        stop_num++;
+                    else if (fabs(obst_y_robot) < y_max_slow_ && fabs(obst_x_robot) < x_max_slow_)
+                        slow_num++;
+                    // if (ui == 0 || ui == 1600)
+                    // {
+                        // RCLCPP_INFO(this->get_logger(), "P_r = (%.2f, %.2f), P_t = (%.2f, %.2f)", obst_x_robot,
+                        //             obst_y_robot, obst_x_table, obst_y_table);
+                    // }
                 }
-                else if (r_y < y_max_slow_ && r_x < x_max_slow_)
-                    slow_num++;
             }
         }
         if (stop_num >= threshold_)

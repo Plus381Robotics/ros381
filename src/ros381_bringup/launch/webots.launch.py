@@ -78,6 +78,17 @@ def generate_launch_description():
             ('robot_name', 'ros381')
 		],
 	)
+    
+    obstacle_node = Node(
+        package="ros381_base",
+        executable="obstacle",
+        name="obstacle",
+        namespace="ros381",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/2_robots.params.yaml"
+        ],
+    )
 
     return LaunchDescription(
         [
@@ -88,7 +99,8 @@ def generate_launch_description():
             odometry_node,
             tactics_node,
             uc_node,
-            visualization_node,
+            # visualization_node,
+            obstacle_node,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(
                     target_action=webots,

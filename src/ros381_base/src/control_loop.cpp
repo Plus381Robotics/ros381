@@ -75,6 +75,7 @@ class ControlLoopNode : public rclcpp::Node
     bool was_slowed_ = false;
     unsigned short obstacle_ = 0;
     bool obstacle_status_changed_ = false;
+    uint8_t obstacle_dir_ = 0;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_subscription_;
@@ -233,7 +234,7 @@ class ControlLoopNode : public rclcpp::Node
         if (odom_initialized_)
         {
             L_ = correct_param(L_, fabs(w_ref_) - fabs(w_base_), eta_, L_MIN_, L_MAX_);
-
+            obstacle_dir_ = 0;
             switch (reg_type_)
             {
             case -1:
@@ -347,6 +348,7 @@ class ControlLoopNode : public rclcpp::Node
         case 3:
             distance_ = sqrt(x_error_ * x_error_ + y_error_ * y_error_);
             distance_proj_ = distance_ * cos(phi_error_);
+            obstacle_dir_ = get_sign(distance_proj_);
             if (obstacle_status_changed_)
             {
                 v0_ = v_base_;
@@ -356,6 +358,7 @@ class ControlLoopNode : public rclcpp::Node
                                         v_max_temp_, V_MIN_, dt_, v0_, obstacle_, V_SLOWED_MAX_);
             w_ref_ =
                 P_w_ * std::clamp((distance_ - D_SHORT_TOL_) / (D_LONG_TOL_ - D_SHORT_TOL_), 0.0, 1.0) * phi_error_;
+			// TODO: publish obstacle dir
             if (distance_proj_ < D_PROJ_TOL_ * d_tol_perc_ && fabs(distance_) < D_TOL_ * d_tol_perc_)
             {
                 reset_movement();

@@ -1,6 +1,14 @@
 from ros381_tactics.get_set import *
 import math
 
+current_retry = 0
+retry_fsm_state = 0
+saved_return_state = 0
+saved_exit_state = 0
+saved_number_of_retries = 0
+saved_distance = 0.0
+saved_direction = 0
+
 
 def _send_goal(
     GT,
@@ -34,6 +42,63 @@ def _send_goal(
         stop_coeff_v,
         stop_coeff_w,
     )
+
+
+def set_retry(direction, number_of_retries, return_state, exit_state, distance=0.1):
+    global saved_number_of_retries, saved_distance, saved_return_state, saved_exit_state, saved_direction
+    saved_direction = direction
+    saved_number_of_retries = number_of_retries
+    saved_return_state = return_state
+    saved_exit_state = exit_state
+    saved_distance = distance
+    return -10
+
+
+def exec_retry():
+    global current_retry, retry_fsm_state, saved_number_of_retries, saved_distance, saved_return_state, saved_exit_state, saved_direction
+    retval = -10
+    match retry_fsm_state:
+        case 0:
+            current_retry += 1
+            print(f"Retry {current_retry} of {saved_number_of_retries}...")
+            move_on_direction(saved_distance, saved_direction)
+            retry_fsm_state = 1
+            pass
+        case 1:
+            if get_move_result() < 0:
+                retry_fsm_state = 2
+            pass
+        case 2:
+            if current_retry >= saved_number_of_retries:
+                retval = saved_exit_state
+                current_retry = 0
+                saved_number_of_retries = 0
+                saved_distance = 0.0
+                saved_direction = 0
+                saved_return_state = 0
+                saved_exit_state = 0
+            else:
+                retval = saved_return_state
+            retry_fsm_state = 0
+    return retval
+
+
+def move_success():
+    if get_move_result() == -1:
+        return True
+    return False
+
+
+def move_stacked():
+    if get_move_result() == -3:
+        return True
+    return False
+
+
+def move_interrupted():
+    if get_move_result() == -4:
+        return True
+    return False
 
 
 def rotate_to_phi(

@@ -27,41 +27,46 @@ def tactic_1():
             move_to_xy(first_x, first_y, first_dir)
             tactic_state = 1
         case 1:
-            if get_move_result() == -1:
+            if move_success():
                 tactic_state = 2
         case 2:
             move_to_xy(-0.4, -0.5, 1)
             tactic_state = 3
         case 3:
-            if get_move_result() == -1:
+            if move_success():
                 tactic_state = 4
-            elif get_move_result() == -4:
-                # get_GT().cancel_goal()
+            elif move_interrupted():
                 tactic_state = 2
         case 4:
             rotate_to_phi(0.0)
             tactic_state = 5
         case 5:
-            if get_move_result() == -1:
+            if move_success():
                 tactic_state = 7
         case 7:
             move_to_xy(-1.25, 0.75, -1)
             tactic_state = 8
         case 8:
-            if get_move_result() == -1:
+            if move_success():
                 tactic_state = 9
-            elif get_move_result() == -4:
-                # get_GT().cancel_goal()
+            elif move_interrupted():
                 tactic_state = 7
         case 9:
             move_to_xy(1.25, 0.0, -1)
             tactic_state = 10
         case 10:
-            if get_move_result() == -1:
+            if move_success():
                 tactic_state = -1
-            elif get_move_result() == -4:
-                # get_GT().cancel_goal()
-                tactic_state = 9
+            elif move_interrupted():
+                tactic_state = set_retry(1, 3, 9, 11)
+        case 11:
+            move_to_xy(0, 0, -1)
+            tactic_state = 12
+        case 12:
+            if move_success():
+                tactic_state = -1
         case -1:
             print("Tactic 1 finished.")
+        case -10:
+            tactic_state = exec_retry()
     return tactic_state

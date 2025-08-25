@@ -31,16 +31,16 @@ class ObstacleNode : public rclcpp::Node
     unsigned resolution_ = 3200, threshold_ = 5;     // TODO: u parametre
     double TABLE_X_LIMIT = 1.3, TABLE_Y_LIMIT = 0.8; // TODO: u parametre
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
-    double j_max_ = 50.0;                                                           // TODO: parametar
-    double inf_x_stop_ = 0.1, robot_l_ = 0.15, inf_y_stop_ = 0.22, dis_stop_ = 0.2; // TODO: parametri
-    double inf_y_slow_ = 0.05, dis_slow_ = 1.0;                                     // TODO: parametri
+    double j_max_ = 50.0;                                                            // TODO: parametar
+    double inf_x_stop_ = 0.1, robot_l_ = 0.15, inf_y_stop_ = 0.22, dis_stop_ = 0.05; // TODO: parametri
+    double inf_y_slow_ = 0.05, dis_slow_ = 1.0;                                      // TODO: parametri
     int num_pts_half_ = 800, num_offset_;
     uint8_t obstacle_status_ = 0;
+	uint8_t obstacle_dir_ = 0;
     double sin_lut_[3200], cos_lut_[3200];
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Publisher<example_interfaces::msg::UInt8>::SharedPtr obstacle_pub_;
-
     void set_odom(const nav_msgs::msg::Odometry::SharedPtr msg)
     {
         v_base_ = msg->twist.twist.linear.x;
@@ -58,11 +58,10 @@ class ObstacleNode : public rclcpp::Node
     {
         unsigned stop_num = 0;
         unsigned slow_num = 0;
-        x_max_ = 5 / 3 * pow(fabs(v_base_), 5 / 3) / sqrt(j_max_) + inf_y_stop_ + inf_x_stop_ + dis_stop_;
+        x_max_ = 5 / 3 * pow(fabs(v_base_ * 2.0), 5 / 3) / sqrt(j_max_) + inf_y_stop_ + inf_x_stop_ + dis_stop_;
         x_max_slow_ = x_max_ + dis_slow_;
         y_max_ = robot_l_ + inf_y_stop_;
         y_max_slow_ = y_max_ + inf_y_slow_;
-        // RCLCPP_INFO(this->get_logger(), "\n\n\n");
         if (v_base_ < 0.0)
             num_offset_ = num_pts_half_;
         else
@@ -83,11 +82,6 @@ class ObstacleNode : public rclcpp::Node
                         stop_num++;
                     else if (fabs(obst_y_robot) < y_max_slow_ && fabs(obst_x_robot) < x_max_slow_)
                         slow_num++;
-                    // if (ui == 0 || ui == 1600)
-                    // {
-                        // RCLCPP_INFO(this->get_logger(), "P_r = (%.2f, %.2f), P_t = (%.2f, %.2f)", obst_x_robot,
-                        //             obst_y_robot, obst_x_table, obst_y_table);
-                    // }
                 }
             }
         }

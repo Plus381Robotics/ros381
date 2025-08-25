@@ -56,11 +56,11 @@ def tactic_1():
             tactic_state = 10
         case 10:
             if move_success():
-                tactic_state = -1
+                tactic_state = 1
             elif move_interrupted():
                 tactic_state = set_retry(1, 3, 9, 11)
         case 11:
-            move_to_xy(0, 0, -1)
+            move_to_xy(0, 0, 1)
             tactic_state = 12
         case 12:
             if move_success():

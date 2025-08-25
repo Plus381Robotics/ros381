@@ -5,6 +5,7 @@
 #include "ros381_interfaces/action/move.hpp"
 #include "ros381_interfaces/msg/float2.hpp"
 #include "tf2/utils.h"
+#include <example_interfaces/msg/int8.hpp>
 #include <example_interfaces/msg/u_int8.hpp>
 #include <functional>
 #include <memory>
@@ -33,6 +34,8 @@ class ControlLoopNode : public rclcpp::Node
                                                std::bind(&ControlLoopNode::handle_accepted, this, _1));
         obstacle_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
             "obstacle_status", 10, std::bind(&ControlLoopNode::callback_obstacle, this, _1));
+
+        obstacle_dir_pub_ = this->create_publisher<example_interfaces::msg::Int8>("obstacle_direction", 10);
 
         RCLCPP_INFO(this->get_logger(), "Control loop node is running.");
     }
@@ -75,13 +78,14 @@ class ControlLoopNode : public rclcpp::Node
     bool was_slowed_ = false;
     unsigned short obstacle_ = 0;
     bool obstacle_status_changed_ = false;
-    uint8_t obstacle_dir_ = 0;
+    int8_t obstacle_dir_ = 0;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_subscription_;
     rclcpp_action::Server<Move>::SharedPtr move_action_server_;
     std::shared_ptr<GoalHandleMove> current_goal_handle_;
     rclcpp::Subscription<example_interfaces::msg::UInt8>::SharedPtr obstacle_sub_;
+    rclcpp::Publisher<example_interfaces::msg::Int8>::SharedPtr obstacle_dir_pub_;
 
     void callback_obstacle(const example_interfaces::msg::UInt8::SharedPtr msg)
     {
@@ -264,6 +268,7 @@ class ControlLoopNode : public rclcpp::Node
             prev_time_ = time_ns_;
 
             this->publish_motor_cmd();
+            this->publish_obstacle_dir();
         }
     }
 
@@ -348,7 +353,6 @@ class ControlLoopNode : public rclcpp::Node
         case 3:
             distance_ = sqrt(x_error_ * x_error_ + y_error_ * y_error_);
             distance_proj_ = distance_ * cos(phi_error_);
-            obstacle_dir_ = get_sign(distance_proj_);
             if (obstacle_status_changed_)
             {
                 v0_ = v_base_;
@@ -358,7 +362,8 @@ class ControlLoopNode : public rclcpp::Node
                                         v_max_temp_, V_MIN_, dt_, v0_, obstacle_, V_SLOWED_MAX_);
             w_ref_ =
                 P_w_ * std::clamp((distance_ - D_SHORT_TOL_) / (D_LONG_TOL_ - D_SHORT_TOL_), 0.0, 1.0) * phi_error_;
-			// TODO: publish obstacle dir
+
+            obstacle_dir_ = get_sign(v_ref_);
             if (distance_proj_ < D_PROJ_TOL_ * d_tol_perc_ && fabs(distance_) < D_TOL_ * d_tol_perc_)
             {
                 reset_movement();
@@ -384,6 +389,13 @@ class ControlLoopNode : public rclcpp::Node
         msg.float2[0] = v_right_;
         msg.float2[1] = v_left_;
         motor_cmd_publisher_->publish(msg);
+    }
+
+    void publish_obstacle_dir()
+    {
+        auto msg = example_interfaces::msg::Int8();
+        msg.data = obstacle_dir_;
+        obstacle_dir_pub_->publish(msg);
     }
 
     void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)

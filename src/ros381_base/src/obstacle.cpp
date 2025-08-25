@@ -1,3 +1,4 @@
+#include <example_interfaces/msg/int8.hpp>
 #include <example_interfaces/msg/u_int8.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -16,7 +17,10 @@ class ObstacleNode : public rclcpp::Node
 
         obstacle_pub_ = this->create_publisher<example_interfaces::msg::UInt8>("obstacle_status", 10);
 
-        num_pts_half_ = resolution_ / 4;
+        obstacle_dir_sub_ = this->create_subscription<example_interfaces::msg::Int8>(
+            "obstacle_direction", 10, std::bind(&ObstacleNode::callback_obstacle_dir, this, std::placeholders::_1));
+
+        num_pts_quarter_ = resolution_ / 4;
         double angle_increment_ = 2 * M_PI / resolution_;
         for (int i = 0; i < 3200; i++)
         {
@@ -34,13 +38,24 @@ class ObstacleNode : public rclcpp::Node
     double j_max_ = 50.0;                                                            // TODO: parametar
     double inf_x_stop_ = 0.1, robot_l_ = 0.15, inf_y_stop_ = 0.22, dis_stop_ = 0.05; // TODO: parametri
     double inf_y_slow_ = 0.05, dis_slow_ = 1.0;                                      // TODO: parametri
-    int num_pts_half_ = 800, num_offset_;
+    int num_pts_quarter_ = 800;
+	// int num_offset_;
+    int start_pt_ = 0, end_pt_ = 0;
     uint8_t obstacle_status_ = 0;
-	uint8_t obstacle_dir_ = 0;
+    int8_t obstacle_dir_ref_ = 0;
+    uint8_t obstacle_dir_vel_ = 0;
+    bool check_forw_ = false, check_back_ = false;
     double sin_lut_[3200], cos_lut_[3200];
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Publisher<example_interfaces::msg::UInt8>::SharedPtr obstacle_pub_;
+    rclcpp::Subscription<example_interfaces::msg::Int8>::SharedPtr obstacle_dir_sub_;
+
+    void callback_obstacle_dir(const example_interfaces::msg::Int8::SharedPtr msg)
+    {
+        obstacle_dir_ref_ = msg->data;
+    }
+
     void set_odom(const nav_msgs::msg::Odometry::SharedPtr msg)
     {
         v_base_ = msg->twist.twist.linear.x;
@@ -52,45 +67,58 @@ class ObstacleNode : public rclcpp::Node
         double qz = msg->pose.pose.orientation.z;
         double qw = msg->pose.pose.orientation.w;
         phi_base_ = std::atan2(2.0 * (qw * qz + qx * qy), 1.0 - 2.0 * (qy * qy + qz * qz));
+        // if (v_base_ < 0.0)
+        //     num_offset_ = num_pts_quarter_;
+        // else
+        //     num_offset_ = 0;
     }
 
     void check_scan(const sensor_msgs::msg::LaserScan::SharedPtr msg)
     {
-        unsigned stop_num = 0;
-        unsigned slow_num = 0;
-        x_max_ = 5 / 3 * pow(fabs(v_base_ * 2.0), 5 / 3) / sqrt(j_max_) + inf_y_stop_ + inf_x_stop_ + dis_stop_;
-        x_max_slow_ = x_max_ + dis_slow_;
-        y_max_ = robot_l_ + inf_y_stop_;
-        y_max_slow_ = y_max_ + inf_y_slow_;
-        if (v_base_ < 0.0)
-            num_offset_ = num_pts_half_;
-        else
-            num_offset_ = 0;
-        for (int i = num_offset_ - num_pts_half_; i <= num_pts_half_ + num_offset_; i++)
+        obstacle_status_ = 0;
+        if (obstacle_dir_ref_ != 0)
         {
-            unsigned ui = (i + resolution_) % resolution_;
-            double range = msg->ranges[ui];
-            if (range >= msg->range_min && range <= msg->range_max)
+            unsigned stop_num = 0;
+            unsigned slow_num = 0;
+            x_max_ = 5 / 3 * pow(fabs(v_base_ * 2.0), 5 / 3) / sqrt(j_max_) + inf_y_stop_ + inf_x_stop_ + dis_stop_;
+            x_max_slow_ = x_max_ + dis_slow_;
+            y_max_ = robot_l_ + inf_y_stop_;
+            y_max_slow_ = y_max_ + inf_y_slow_;
+            if (obstacle_dir_ref_ == 1)
             {
-                double obst_x_robot = range * cos_lut_[ui];
-                double obst_y_robot = range * sin_lut_[ui];
-                double obst_x_table = x_base_ + obst_x_robot * cos(phi_base_) - obst_y_robot * sin(phi_base_);
-                double obst_y_table = y_base_ + obst_x_robot * sin(phi_base_) + obst_y_robot * cos(phi_base_);
-                if (fabs(obst_x_table) < TABLE_X_LIMIT && fabs(obst_y_table) < TABLE_Y_LIMIT)
+                start_pt_ = -num_pts_quarter_;
+                end_pt_ = num_pts_quarter_;
+            }
+            else if (obstacle_dir_ref_ == -1)
+            {
+                start_pt_ = num_pts_quarter_;
+                end_pt_ = 3 * num_pts_quarter_;
+            }
+
+            for (int i = start_pt_; i <= end_pt_; i++)
+            {
+                unsigned ui = (i + resolution_) % resolution_;
+                double range = msg->ranges[ui];
+                if (range >= msg->range_min && range <= msg->range_max)
                 {
-                    if (fabs(obst_y_robot) < y_max_ && fabs(obst_x_robot) < x_max_)
-                        stop_num++;
-                    else if (fabs(obst_y_robot) < y_max_slow_ && fabs(obst_x_robot) < x_max_slow_)
-                        slow_num++;
+                    double obst_x_robot = range * cos_lut_[ui];
+                    double obst_y_robot = range * sin_lut_[ui];
+                    double obst_x_table = x_base_ + obst_x_robot * cos(phi_base_) - obst_y_robot * sin(phi_base_);
+                    double obst_y_table = y_base_ + obst_x_robot * sin(phi_base_) + obst_y_robot * cos(phi_base_);
+                    if (fabs(obst_x_table) < TABLE_X_LIMIT && fabs(obst_y_table) < TABLE_Y_LIMIT)
+                    {
+                        if (fabs(obst_y_robot) < y_max_ && fabs(obst_x_robot) < x_max_)
+                            stop_num++;
+                        else if (fabs(obst_y_robot) < y_max_slow_ && fabs(obst_x_robot) < x_max_slow_)
+                            slow_num++;
+                    }
                 }
             }
+            if (stop_num >= threshold_)
+                obstacle_status_ = 1;
+            else if (slow_num + stop_num >= threshold_)
+                obstacle_status_ = 2;
         }
-        if (stop_num >= threshold_)
-            obstacle_status_ = 1;
-        else if (slow_num + stop_num >= threshold_)
-            obstacle_status_ = 2;
-        else
-            obstacle_status_ = 0;
         publish_obstacle();
     }
 

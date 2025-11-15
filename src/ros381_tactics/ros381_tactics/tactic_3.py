@@ -4,9 +4,9 @@ from ros381_tactics.get_set import *
 
 tactic_state = 0
 
-start_x = -1.0
-start_y = 0.0
-start_phi = 0.0
+start_x = -1.1
+start_y = 0.723
+start_phi = -math.pi/2
 
 first_x = 0.0
 first_y = 0.5

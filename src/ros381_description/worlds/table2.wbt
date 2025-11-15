@@ -2044,6 +2044,410 @@ Solid {
   }
 }
 Solid {
+  translation -0.475 -0.825 0.015
+  rotation 0.7071067811865476 -0.7071067811865476 0 3.14159
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 -0.025 0.015
+            0.075 -0.025 0.015
+            0.075 0.025 0.015
+            -0.075 0.025 0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0
+            1 0
+            1 0.5
+            0 0.5
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 0.025 -0.015
+            0.075 0.025 -0.015
+            0.075 -0.025 -0.015
+            -0.075 -0.025 -0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0.5
+            1 0.5
+            1 1
+            0 1
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance OsbWood {
+      }
+      geometry Box {
+        size 0.15 0.05 0.029
+      }
+    }
+  ]
+  name "crate-z44"
+  model "crate"
+  boundingObject Box {
+    size 0.15 0.05 0.03
+  }
+  physics Physics {
+    mass 0.05
+  }
+}
+Solid {
+  translation -0.425 -0.825 0.015
+  rotation 0 0 1 1.5708
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 -0.025 0.015
+            0.075 -0.025 0.015
+            0.075 0.025 0.015
+            -0.075 0.025 0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0
+            1 0
+            1 0.5
+            0 0.5
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 0.025 -0.015
+            0.075 0.025 -0.015
+            0.075 -0.025 -0.015
+            -0.075 -0.025 -0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0.5
+            1 0.5
+            1 1
+            0 1
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance OsbWood {
+      }
+      geometry Box {
+        size 0.15 0.05 0.029
+      }
+    }
+  ]
+  name "crate-z43"
+  model "crate"
+  boundingObject Box {
+    size 0.15 0.05 0.03
+  }
+  physics Physics {
+    mass 0.05
+  }
+}
+Solid {
+  translation -0.375 -0.825 0.015
+  rotation 0.7071067811865476 -0.7071067811865476 0 3.14159
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 -0.025 0.015
+            0.075 -0.025 0.015
+            0.075 0.025 0.015
+            -0.075 0.025 0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0
+            1 0
+            1 0.5
+            0 0.5
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 0.025 -0.015
+            0.075 0.025 -0.015
+            0.075 -0.025 -0.015
+            -0.075 -0.025 -0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0.5
+            1 0.5
+            1 1
+            0 1
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance OsbWood {
+      }
+      geometry Box {
+        size 0.15 0.05 0.029
+      }
+    }
+  ]
+  name "crate-z42"
+  model "crate"
+  boundingObject Box {
+    size 0.15 0.05 0.03
+  }
+  physics Physics {
+    mass 0.05
+  }
+}
+Solid {
+  translation -0.325 -0.825 0.015
+  rotation 0 0 1 1.5708
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 -0.025 0.015
+            0.075 -0.025 0.015
+            0.075 0.025 0.015
+            -0.075 0.025 0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0
+            1 0
+            1 0.5
+            0 0.5
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 0.025 -0.015
+            0.075 0.025 -0.015
+            0.075 -0.025 -0.015
+            -0.075 -0.025 -0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0.5
+            1 0.5
+            1 1
+            0 1
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance OsbWood {
+      }
+      geometry Box {
+        size 0.15 0.05 0.029
+      }
+    }
+  ]
+  name "crate-z41"
+  model "crate"
+  boundingObject Box {
+    size 0.15 0.05 0.03
+  }
+  physics Physics {
+    mass 0.05
+  }
+}
+Solid {
   translation 1.325 0.275 0.015
   children [
     Shape {
@@ -3243,6 +3647,410 @@ Solid {
     }
   ]
   name "crate-p31"
+  model "crate"
+  boundingObject Box {
+    size 0.15 0.05 0.03
+  }
+  physics Physics {
+    mass 0.05
+  }
+}
+Solid {
+  translation 0.475 -0.825 0.015
+  rotation 0.7071067811865476 -0.7071067811865476 0 3.14159
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 -0.025 0.015
+            0.075 -0.025 0.015
+            0.075 0.025 0.015
+            -0.075 0.025 0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0
+            1 0
+            1 0.5
+            0 0.5
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 0.025 -0.015
+            0.075 0.025 -0.015
+            0.075 -0.025 -0.015
+            -0.075 -0.025 -0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0.5
+            1 0.5
+            1 1
+            0 1
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance OsbWood {
+      }
+      geometry Box {
+        size 0.15 0.05 0.029
+      }
+    }
+  ]
+  name "crate-p44"
+  model "crate"
+  boundingObject Box {
+    size 0.15 0.05 0.03
+  }
+  physics Physics {
+    mass 0.05
+  }
+}
+Solid {
+  translation 0.425 -0.825 0.015
+  rotation 0 0 1 1.5708
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 -0.025 0.015
+            0.075 -0.025 0.015
+            0.075 0.025 0.015
+            -0.075 0.025 0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0
+            1 0
+            1 0.5
+            0 0.5
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 0.025 -0.015
+            0.075 0.025 -0.015
+            0.075 -0.025 -0.015
+            -0.075 -0.025 -0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0.5
+            1 0.5
+            1 1
+            0 1
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance OsbWood {
+      }
+      geometry Box {
+        size 0.15 0.05 0.029
+      }
+    }
+  ]
+  name "crate-p43"
+  model "crate"
+  boundingObject Box {
+    size 0.15 0.05 0.03
+  }
+  physics Physics {
+    mass 0.05
+  }
+}
+Solid {
+  translation 0.375 -0.825 0.015
+  rotation 0.7071067811865476 -0.7071067811865476 0 3.14159
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 -0.025 0.015
+            0.075 -0.025 0.015
+            0.075 0.025 0.015
+            -0.075 0.025 0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0
+            1 0
+            1 0.5
+            0 0.5
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 0.025 -0.015
+            0.075 0.025 -0.015
+            0.075 -0.025 -0.015
+            -0.075 -0.025 -0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0.5
+            1 0.5
+            1 1
+            0 1
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance OsbWood {
+      }
+      geometry Box {
+        size 0.15 0.05 0.029
+      }
+    }
+  ]
+  name "crate-p42"
+  model "crate"
+  boundingObject Box {
+    size 0.15 0.05 0.03
+  }
+  physics Physics {
+    mass 0.05
+  }
+}
+Solid {
+  translation 0.325 -0.825 0.015
+  rotation 0 0 1 1.5708
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 -0.025 0.015
+            0.075 -0.025 0.015
+            0.075 0.025 0.015
+            -0.075 0.025 0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0
+            1 0
+            1 0.5
+            0 0.5
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "../photos/crates.jpg"
+          ]
+          repeatS FALSE
+          repeatT FALSE
+          filtering 0
+        }
+        metalness 0
+        normalMapFactor 0
+        occlusionMapStrength 0
+        emissiveIntensity 0
+      }
+      geometry IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.075 0.025 -0.015
+            0.075 0.025 -0.015
+            0.075 -0.025 -0.015
+            -0.075 -0.025 -0.015
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0.5
+            1 0.5
+            1 1
+            0 1
+          ]
+        }
+        coordIndex [
+          0, 1, 2, 3, -1
+        ]
+        texCoordIndex [
+          0, 1, 2, 3, -1
+        ]
+      }
+    }
+    Shape {
+      appearance OsbWood {
+      }
+      geometry Box {
+        size 0.15 0.05 0.029
+      }
+    }
+  ]
+  name "crate-p41"
   model "crate"
   boundingObject Box {
     size 0.15 0.05 0.03

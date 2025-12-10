@@ -33,9 +33,9 @@ class EncoderReader:
         )
 
         self.encoders_ = Float3()
-        self.encoders_.float3[0] = 0  # Right passive wheel encoder [m/s]
-        self.encoders_.float3[1] = 0  # Left passive wheel encoder [m/s]
-        self.encoders_.float3[2] = 0  # Delta time [s]
+        self.encoders_.float3[0] = 0.0  # Right passive wheel encoder [m/s]
+        self.encoders_.float3[1] = 0.0  # Left passive wheel encoder [m/s]
+        self.encoders_.float3[2] = 0.0  # Delta time [s]
         self.prev_time_ = self.robot_.getTime()
 
         self.prev_right_pos_ = self.right_encoder_.getValue()

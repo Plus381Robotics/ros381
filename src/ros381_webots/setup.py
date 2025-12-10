@@ -23,6 +23,7 @@ setup(
             'encoder_reader = ros381_webots.encoder_reader:main',
             'lidar_reader = ros381_webots.lidar_reader:main',
             'global_chinch = ros381_webots.global_chinch:main',
+            'odometry = ros381_webots.odometry:main',
         ]
     },
 )

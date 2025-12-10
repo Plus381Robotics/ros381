@@ -407,7 +407,12 @@ class ControlLoopNode : public rclcpp::Node
         w_base_ = msg->twist.twist.angular.z;
         time_ns_ = rclcpp::Time(msg->header.stamp).nanoseconds();
         if (!odom_initialized_)
+        {
             odom_initialized_ = true;
+            prev_time_ = time_ns_;
+            prev_v_ = v_base_;
+            prev_w_ = w_base_;
+        }
     }
 
     void reset_movement()

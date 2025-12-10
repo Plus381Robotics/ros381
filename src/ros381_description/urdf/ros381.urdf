@@ -309,5 +309,6 @@
     <plugin type="ros381_webots.motor_driver.MotorDriver"/>
     <plugin type="ros381_webots.encoder_reader.EncoderReader"/>
     <plugin type="ros381_webots.lidar_reader.LidarReader"/>
+    <!-- <plugin type="ros381_webots.odometry.OdometryW"/> -->
   </webots>
 </robot>

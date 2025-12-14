@@ -1,5 +1,4 @@
 #include "ros381_tactics/global.hpp"
-#include <pybind11/embed.h>
 
 namespace py = pybind11;
 
@@ -11,9 +10,13 @@ PYBIND11_EMBEDDED_MODULE(ros381_tactics_py, m)
         .def("update_pose", &TacticGlobalNode::update_pose)
         .def("publish_pose_offset", &TacticGlobalNode::publish_pose_offset)
         .def("ax_move_goal", &TacticGlobalNode::ax_move_goal)
+        .def("ax_hybrid_move_goal", &TacticGlobalNode::ax_hybrid_move_goal)
+        .def("ax_bulk_move_goal", &TacticGlobalNode::ax_bulk_move_goal)
         .def_readonly("move_result_", &TacticGlobalNode::move_result_)
         .def_readonly("update_pose_result_", &TacticGlobalNode::update_pose_result_)
-        .def_readonly("ax_move_result_", &TacticGlobalNode::ax_move_result_);
+        .def_readonly("ax_move_result_", &TacticGlobalNode::ax_move_result_)
+        .def_readonly("ax_hybrid_move_result_", &TacticGlobalNode::ax_hybrid_move_result_)
+        .def_readonly("ax_bulk_move_result_", &TacticGlobalNode::ax_bulk_move_result_);
 
     m.def(
         "get_node_instance",
@@ -21,11 +24,18 @@ PYBIND11_EMBEDDED_MODULE(ros381_tactics_py, m)
         py::return_value_policy::reference);
 
     py::class_<AxMoveGoal>(m, "AxMoveGoal")
-        .def(pybind11::init<>())
+        .def(py::init<>())
+        .def(py::init<const AxMoveGoal&>())
         .def_readwrite("id", &AxMoveGoal::id)
         .def_readwrite("position", &AxMoveGoal::position)
         .def_readwrite("velocity", &AxMoveGoal::velocity)
         .def_readwrite("position_tolerance", &AxMoveGoal::position_tolerance);
+
+    // py::class_<std::vector<AxMoveGoal>>(m, "AxMoveGoalVector")
+    //     .def(py::init<>())
+    //     .def("clear", &std::vector<AxMoveGoal>::clear)
+    //     .def("pop_back", &std::vector<AxMoveGoal>::pop_back)
+    //     .def("push_back", &std::vector<AxMoveGoal>::push_back);
 }
 
 void init_python(TacticGlobalNode *node)

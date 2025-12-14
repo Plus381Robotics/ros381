@@ -17,6 +17,7 @@
 #include "ros381_tactics/defines.hpp"
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <pybind11/embed.h>
+#include <pybind11/stl.h>
 
 namespace py = pybind11;
 using namespace std::placeholders;
@@ -41,7 +42,7 @@ class TacticGlobalNode : public rclcpp::Node
 {
   public:
     int8_t move_result_ = 0, update_pose_result_ = 0;
-    int8_t ax_move_result_ = 0;
+    int8_t ax_move_result_ = 0, ax_hybrid_move_result_ = 0, ax_bulk_move_result_ = 0;
     py::module *tactics_module_ = nullptr;
 
     TacticGlobalNode();
@@ -53,8 +54,8 @@ class TacticGlobalNode : public rclcpp::Node
     void update_pose(double x, double y, double phi, uint16_t type);
     void publish_pose_offset(double x, double y, double phi);
     void ax_move_goal(AxMoveGoal goal);
-    void ax_bulk_move_goal(std::vector<AxMoveGoal> goals);
-    void ax_hybrid_move_goal(uint8_t id, uint16_t velocity, float zero_time, int8_t direction, uint16_t delta_pos);
+    void ax_bulk_move_goal(const std::vector<AxMoveGoal>& goals);
+    void ax_hybrid_move_goal(uint8_t id, uint16_t velocity, float zero_time, int16_t delta_pos);
 
   private:
     std::unique_ptr<py::scoped_interpreter> guard_;
@@ -83,10 +84,8 @@ class TacticGlobalNode : public rclcpp::Node
     py::object tactic_result_;
 
     void global_fsm();
-    void goal_response_callback(
-        const GoalHandleMove::SharedPtr &goal_handle);
-    void feedback_callback(GoalHandleMove::SharedPtr,
-                           const std::shared_ptr<const Move::Feedback> feedback);
+    void goal_response_callback(const GoalHandleMove::SharedPtr &goal_handle);
+    void feedback_callback(GoalHandleMove::SharedPtr, const std::shared_ptr<const Move::Feedback> feedback);
     void result_callback(const GoalHandleMove::WrappedResult &result);
     void pub_time();
     void callback_chinch_state(const example_interfaces::msg::Bool::SharedPtr msg);
@@ -98,6 +97,14 @@ class TacticGlobalNode : public rclcpp::Node
     void ax_move_goal_response_callback(const AxMoveGoalHandle::SharedPtr &goal_handle);
     void ax_move_feedback_callback(AxMoveGoalHandle::SharedPtr, const std::shared_ptr<const AxMove::Feedback> feedback);
     void ax_move_result_callback(const AxMoveGoalHandle::WrappedResult &result);
+    void ax_bulk_move_goal_response_callback(const AxBulkMoveGoalHandle::SharedPtr &goal_handle);
+    void ax_bulk_move_feedback_callback(AxBulkMoveGoalHandle::SharedPtr,
+                                        const std::shared_ptr<const AxBulkMove::Feedback> feedback);
+    void ax_bulk_move_result_callback(const AxBulkMoveGoalHandle::WrappedResult &result);
+    void ax_hybrid_move_goal_response_callback(const AxHybridMoveGoalHandle::SharedPtr &goal_handle);
+    void ax_hybrid_move_feedback_callback(AxHybridMoveGoalHandle::SharedPtr,
+                                          const std::shared_ptr<const AxHybridMove::Feedback> feedback);
+    void ax_hybrid_move_result_callback(const AxHybridMoveGoalHandle::WrappedResult &result);
 };
 
 void init_python(TacticGlobalNode *node);

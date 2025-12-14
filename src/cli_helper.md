@@ -17,9 +17,9 @@ ros2 topic pub --once /global_chinch example_interfaces/msg/Empty
 ros2 topic pub --once /ros381/switches example_interfaces/msg/UInt8 "{data: 17}" #10001
 ros2 topic pub --once /ros381/switches example_interfaces/msg/UInt8 "{data: 1}" #00001
 ## Send AxMove action goal
-ros2 action send_goal /ax_move dynamixel_sdk_custom_interfaces/action/AxMove "{id: 4, position: 1023, velocity: 1000, position_tolerance: 25}" --feedback
-ros2 action send_goal /ax_hybrid_move dynamixel_sdk_custom_interfaces/action/AxHybridMove "{id: 4, velocity: 1000, zero_time: 0.2, delta_pos: -200}" --feedback
-ros2 action send_goal /ax_bulk_move dynamixel_sdk_custom_interfaces/action/AxBulkMove "
+ros2 action send_goal /ros381/ax_move dynamixel_sdk_custom_interfaces/action/AxMove "{id: 4, position: 1023, velocity: 1000, position_tolerance: 25}" --feedback
+ros2 action send_goal /ros381/ax_hybrid_move dynamixel_sdk_custom_interfaces/action/AxHybridMove "{id: 4, velocity: 1000, zero_time: 0.2, delta_pos: -200}" --feedback
+ros2 action send_goal /ros381/ax_bulk_move dynamixel_sdk_custom_interfaces/action/AxBulkMove "
 id: [1, 2, 3, 4]
 position: [0, 0, 0, 0]
 velocity: [100, 200, 400, 1000]

@@ -1,9 +1,5 @@
 #include "ros381_tactics/global.hpp"
 
-using namespace std::placeholders;
-using Move = ros381_interfaces::action::Move;
-using GoalHandleMove = rclcpp_action::ClientGoalHandle<Move>;
-
 TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
 {
     guard_ = std::make_unique<py::scoped_interpreter>();
@@ -32,6 +28,9 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
     switches_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
         "switches", 10, std::bind(&TacticGlobalNode::callback_switches, this, _1));
     pose_offs_pub_ = this->create_publisher<ros381_interfaces::msg::Float3>("pose_offset", 10);
+    ax_move_client_ = rclcpp_action::create_client<AxMove>(this, "ax_move");
+    ax_bulk_move_client_ = rclcpp_action::create_client<AxBulkMove>(this, "ax_bulk_move");
+    ax_hybrid_move_client_ = rclcpp_action::create_client<AxHybridMove>(this, "ax_hybrid_move");
 
     init_python(this);
 
@@ -75,6 +74,67 @@ void TacticGlobalNode::pub_chinch_waiting()
         auto msg = example_interfaces::msg::Empty();
         chinch_waiting_pub_->publish(msg);
     }
+}
+
+void TacticGlobalNode::ax_move_goal(AxMoveGoal goal)
+{
+    ax_move_result_ = 0;
+    rclcpp::Rate rate(std::chrono::milliseconds(100));
+
+    auto start = this->now();
+    while (rclcpp::ok() && (this->now() - start) < rclcpp::Duration::from_seconds(0.5))
+    {
+        if (this->ax_move_client_->wait_for_action_server())
+        {
+            break;
+        }
+        RCLCPP_WARN(this->get_logger(), "Waiting for action server...");
+        rate.sleep();
+    }
+    if (!this->ax_move_client_->wait_for_action_server())
+    {
+        RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting.");
+        return;
+    }
+
+    auto goal_msg = AxMove::Goal();
+    goal_msg.id = goal.id;
+    goal_msg.position = goal.position;
+    goal_msg.velocity = goal.velocity;
+    goal_msg.position_tolerance = goal.position_tolerance;
+
+    RCLCPP_INFO(this->get_logger(), "Sending ax move goal...");
+
+    auto send_goal_options = rclcpp_action::Client<AxMove>::SendGoalOptions();
+    send_goal_options.goal_response_callback = std::bind(&TacticGlobalNode::ax_move_goal_response_callback, this, _1);
+    send_goal_options.feedback_callback = std::bind(&TacticGlobalNode::ax_move_feedback_callback, this, _1, _2);
+    send_goal_options.result_callback = std::bind(&TacticGlobalNode::ax_move_result_callback, this, _1);
+    this->ax_move_client_->async_send_goal(goal_msg, send_goal_options);
+}
+
+void TacticGlobalNode::ax_move_goal_response_callback(const AxMoveGoalHandle::SharedPtr &goal_handle)
+{
+    if (!goal_handle)
+    {
+        RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server.");
+    }
+    else
+    {
+        RCLCPP_INFO(this->get_logger(), "Goal accepted by server, waiting for result.");
+    }
+}
+
+void TacticGlobalNode::ax_move_feedback_callback(AxMoveGoalHandle::SharedPtr,
+                                                 const std::shared_ptr<const AxMove::Feedback> feedback)
+{
+    RCLCPP_DEBUG(this->get_logger(), "Current position: %d\t Position error: %d\t Current velocity: %d",
+                 feedback->current_position, feedback->position_error, feedback->current_velocity);
+}
+
+void TacticGlobalNode::ax_move_result_callback(const AxMoveGoalHandle::WrappedResult &result)
+{
+    ax_move_result_ = result.result->status;
+    RCLCPP_INFO(this->get_logger(), "Move status: %d", ax_move_result_);
 }
 
 void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,

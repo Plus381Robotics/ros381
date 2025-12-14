@@ -192,7 +192,7 @@ def generate_launch_description():
             # visualization_node,
             gridmap_node_1,
             gridmap_node_2,
-            # obstacle_node_1,
+            obstacle_node_1,
             obstacle_node_2,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(

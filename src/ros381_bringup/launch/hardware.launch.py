@@ -53,12 +53,56 @@ def generate_launch_description():
 		],
 	)
 
+    ax12a_setup = Node(
+        package="dynamixel_sdk_examples",
+        executable="ax12a_setup",
+        name="ax12a_setup",
+        namespace="ros381",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+		],
+    )
+
+    ax12a_single = Node(
+        package="dynamixel_sdk_examples",
+        executable="ax12a_single",
+        name="ax12a_single",
+        namespace="ros381",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+		],
+    )
+
+    ax12a_bulk = Node(
+        package="dynamixel_sdk_examples",
+        executable="ax12a_bulk",
+        name="ax12a_bulk",
+        namespace="ros381",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+		],
+    )
+
+    ax12a_hybrid = Node(
+        package="dynamixel_sdk_examples",
+        executable="ax12a_single_hybrid",
+        name="ax12a_hybrid",
+        namespace="ros381",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+		],
+    )
+
     return LaunchDescription(
         [
             control_loop_node,
             odometry_node,
             tactics_node,
             uc_node,
+            ax12a_setup,
+            ax12a_single,
+            ax12a_bulk,
+            ax12a_hybrid,
             # launch.actions.RegisterEventHandler(
             #     event_handler=launch.event_handlers.OnProcessExit(
             #         target_action=hardware,

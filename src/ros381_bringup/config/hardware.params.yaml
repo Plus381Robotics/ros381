@@ -1,4 +1,4 @@
-control_loop:
+ros381/control_loop:
   ros__parameters:
     # Control loop frequency [Hz]
     FREQ: 50.0
@@ -28,13 +28,15 @@ control_loop:
     D_SHORT_TOL: 0.05 # minimal distance for rotation during translation
     PHI_TOL: 0.0157 # absolute angle from target
 
-odometry:
+ros381/odometry:
   ros__parameters:
     use_sim_time: False
     # Distance between encoder wheels: [m]
     L: 0.297
 
-tactic_global:
+ros381/tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
     tick_freq: 100.0
+    default_tactic: 4
+    default_side: blue

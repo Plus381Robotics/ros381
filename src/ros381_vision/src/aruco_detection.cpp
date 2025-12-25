@@ -36,7 +36,7 @@ class ArUcoDetection : public rclcpp::Node
         cv_bridge::CvImagePtr cv_ptr;
         try
         {
-            cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::RGB8);
+            cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
         }
         catch (cv_bridge::Exception &e)
         {
@@ -45,26 +45,18 @@ class ArUcoDetection : public rclcpp::Node
         }
 
         cv::Mat img = cv_ptr->image;
-        cv::Mat gray_img;
-        cv::cvtColor(img, gray_img, cv::COLOR_RGB2GRAY);
-
         cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_100);
-        cv::aruco::detectMarkers(gray_img, dictionary, markerCorners, markerIds);
+        cv::aruco::detectMarkers(img, dictionary, markerCorners, markerIds);
 
-        cv::Mat out_img = img.clone();
-            if (markerIds.size() > 0) {
-                cv::aruco::drawDetectedMarkers(out_img, markerCorners, markerIds);
-            }
+        cv::Mat bgr_img;
+        cv::cvtColor(img, bgr_img, cv::COLOR_GRAY2BGR);
 
-        cv_bridge::CvImage img_bridge = cv_bridge::CvImage(msg->header, sensor_msgs::image_encodings::RGB8, out_img);
-        sensor_msgs::msg::Image out_msg;
-        img_bridge.toImageMsg(out_msg);
+        if (markerIds.size() > 0)
+        {
+            cv::aruco::drawDetectedMarkers(bgr_img, markerCorners, markerIds);
+        }
 
-        publisher_->publish(out_msg);
-
-        cv::Mat display_image;
-        cv::cvtColor(out_img, display_image, cv::COLOR_RGB2BGR);
-        cv::imshow("Aruco Detection", display_image);
+        cv::imshow("Aruco Detection", bgr_img);
         cv::waitKey(3);
     }
 

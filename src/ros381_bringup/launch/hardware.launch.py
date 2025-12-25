@@ -6,10 +6,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    hardware_pkg = get_package_share_directory("ros381_hardware")
-    base_pkg = get_package_share_directory("ros381_base")
-    tactics_pkg = get_package_share_directory("ros381_tactics")
-
     control_loop_node = Node(
         package="ros381_base",
         executable="control_loop",
@@ -103,6 +99,16 @@ def generate_launch_description():
         ],
     )
 
+    aruco_detection_node = Node(
+        package="ros381_vision",
+        executable="aruco_detection",
+        name="aruco_detection",
+        namespace="ros381",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+        ],
+    )
+
     return LaunchDescription(
         [
             control_loop_node,
@@ -114,6 +120,7 @@ def generate_launch_description():
             ax12a_bulk,
             ax12a_hybrid,
             csi_camera_node,
+            aruco_detection_node,
             # launch.actions.RegisterEventHandler(
             #     event_handler=launch.event_handlers.OnProcessExit(
             #         target_action=hardware,

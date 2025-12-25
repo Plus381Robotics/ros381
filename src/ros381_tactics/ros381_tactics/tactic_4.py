@@ -25,10 +25,17 @@ def tactic_4():
 
     match tactic_state:
         case 0:
-            ax_move(4, 511, 250, 50)
+            ax_bulk_move(
+                [
+                    (11, 0, 1000, 100),
+                    (12, 0, 1000, 100),
+                    (13, 0, 1000, 100),
+                    (14, 0, 1000, 100),
+                ]
+            )
             tactic_state = 1
         case 10:
-            if get_move_result() == -1:
+            if get_ax_bulk_move_result() == -1:
                 tactic_state = -1
         case -1:
             print("Tactic 4 finished.")

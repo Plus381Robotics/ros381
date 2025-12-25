@@ -93,6 +93,16 @@ def generate_launch_description():
 		],
     )
 
+    csi_camera_node = Node(
+        package="v4l2_camera",
+        executable="v4l2_camera_node",
+        name="csi_camera",
+        namespace="ros381",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+        ],
+    )
+
     return LaunchDescription(
         [
             control_loop_node,
@@ -103,6 +113,7 @@ def generate_launch_description():
             ax12a_single,
             ax12a_bulk,
             ax12a_hybrid,
+            csi_camera_node,
             # launch.actions.RegisterEventHandler(
             #     event_handler=launch.event_handlers.OnProcessExit(
             #         target_action=hardware,

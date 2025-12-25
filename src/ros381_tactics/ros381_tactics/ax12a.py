@@ -13,26 +13,25 @@ def init_ax():
     global init_state
     match init_state:
         case 0:
-            ax_hybrid_move(4, 1000, 0.2, 200)
+            ax_hybrid_move(11, 1000, 0.2, 200)
             init_state = 1
         case 1:
             if get_ax_hybrid_move_result() < 0:
                 init_state = 2
         case 2:
-            ax_hybrid_move(3, 1000, 0.2, -200)
+            ax_hybrid_move(12, 1000, 0.2, -200)
             init_state = 3
         case 3:
             if get_ax_hybrid_move_result() < 0:
                 init_state = 4
         case 4:
-            ax_move(2, 0, 300, 50)
+            ax_move(13, 0, 300, 50)
             init_state = 5
         case 5:
             if get_ax_move_result() < 0:
                 init_state = 6
         case 6:
-
-            ax_move(1, 1023, 300, 50)
+            ax_move(14, 1023, 300, 50)
             init_state = 7
         case 7:
             if get_ax_move_result() < 0:
@@ -40,10 +39,10 @@ def init_ax():
         case 8:
             ax_bulk_move(
                 [
-                    (1, 511, 1000, 100),
-                    (2, 511, 1000, 100),
-                    (3, 511, 1000, 100),
-                    (4, 511, 1000, 100),
+                    (11, 511, 1000, 100),
+                    (12, 511, 1000, 100),
+                    (13, 511, 1000, 100),
+                    (14, 511, 1000, 100),
                 ]
             )
             init_state = 9

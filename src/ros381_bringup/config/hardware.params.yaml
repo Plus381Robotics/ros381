@@ -40,3 +40,8 @@ ros381/tactic_global:
     tick_freq: 100.0
     default_tactic: 4
     default_side: blue
+
+ros381/csi_camera:
+  ros__parameters:
+    image_size: [640,480]
+    output_encoding: mono8

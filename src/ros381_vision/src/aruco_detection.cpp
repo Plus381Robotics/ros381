@@ -1,13 +1,13 @@
-#include <memory>
-
+#include "cv_bridge/cv_bridge.h"
 #include "rclcpp/rclcpp.hpp"
+#include "ros381_interfaces/msg/crate.hpp"
+#include "ros381_interfaces/msg/crate_stack.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "std_msgs/msg/string.hpp"
-#include <image_transport/image_transport.hpp>
-
-#include "cv_bridge/cv_bridge.h"
 #include <Eigen/Dense>
+#include <image_transport/image_transport.hpp>
+#include <memory>
 #include <opencv2/aruco.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -20,12 +20,13 @@ class ArUcoDetection : public rclcpp::Node
     {
         this->load_parameters();
 
-        subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
+        image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
             "image_raw", 10, std::bind(&ArUcoDetection::topic_callback, this, std::placeholders::_1));
+        crate_pub_ = this->create_publisher<ros381_interfaces::msg::CrateStack>("crate_stack", 10);
 
         if (pub_cv_image_)
         {
-            publisher_ = this->create_publisher<sensor_msgs::msg::Image>("cv_image", 10);
+            cv_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("cv_image", 10);
             RCLCPP_INFO(this->get_logger(), "CV image publishing is on.");
         }
         else
@@ -69,6 +70,9 @@ class ArUcoDetection : public rclcpp::Node
             objPoints.ptr<cv::Vec3f>(0)[2] = cv::Vec3f(markerLength / 2.f, -markerLength / 2.f, 0);
             objPoints.ptr<cv::Vec3f>(0)[3] = cv::Vec3f(-markerLength / 2.f, -markerLength / 2.f, 0);
 
+            auto crate_msg = ros381_interfaces::msg::CrateStack();
+            std::vector<ros381_interfaces::msg::Crate> crate_vector;
+
             for (size_t i = 0; i < markerIds.size(); i++)
             {
                 cv::Vec3d rvec, tvec;
@@ -94,10 +98,46 @@ class ArUcoDetection : public rclcpp::Node
                     R.at<double>(1, 1), R.at<double>(1, 2), R.at<double>(2, 0), R.at<double>(2, 1), R.at<double>(2, 2);
                 Eigen::Vector3d euler = R_eigen.eulerAngles(0, 1, 2);
 
-                RCLCPP_INFO(this->get_logger(), "Marker %d: Pos[%.3f, %.3f, %.3f] RPY[%.3f, %.3f, %.3f]", markerIds[i],
-                            x, y, z, euler[0], euler[1], euler[2]);
-                cv::drawFrameAxes(bgr_img, camera_matrix_, dist_coeffs_, rvec, tvec, 0.05);
+                bool height_ok = true;
+                bool angles_ok = true;
+                if (enable_height_check_)
+                {
+                    double lower_limit = target_height_ - height_tolerance_;
+                    double upper_limit = target_height_ + height_tolerance_;
+
+                    height_ok = (z >= lower_limit) && (z <= upper_limit);
+                }
+                if (enable_angle_check_)
+                {
+                    bool roll_ok = (euler[0] >= -angle_tolerance_) && (euler[0] <= angle_tolerance_);
+                    bool pitch_ok = (euler[1] >= -angle_tolerance_) && (euler[1] <= angle_tolerance_);
+                    angles_ok = roll_ok && pitch_ok;
+                }
+
+                if (height_ok && angles_ok)
+                {
+                    auto crate = ros381_interfaces::msg::Crate();
+                    crate.color = markerIds[i];
+                    crate.x = x;
+                    crate.y = y;
+                    crate.phi = euler[2];
+                    // RCLCPP_INFO(this->get_logger(), "Marker %d: Pos[%.3f, %.3f, %.3f] RPY[%.3f, %.3f, %.3f]",
+                    // markerIds[i],
+                    //             x, y, z, euler[0], euler[1], euler[2]);
+                    cv::drawFrameAxes(bgr_img, camera_matrix_, dist_coeffs_, rvec, tvec, 0.05);
+                    crate_vector.push_back(crate);
+                }
             }
+            std::sort(crate_vector.begin(), crate_vector.end(), [](const auto &a, const auto &b) {
+                if (std::fabs(a.y - b.y) > 0.001)
+                    return a.y > b.y;
+                return a.x < b.x;
+            });
+            crate_msg.crate_list = crate_vector;
+            crate_msg.valid = check_crate_stack(crate_msg);
+
+            if (!crate_msg.crate_list.empty())
+                crate_pub_->publish(crate_msg);
         }
 
         // cv::imshow("Aruco Detection", bgr_img);
@@ -106,12 +146,52 @@ class ArUcoDetection : public rclcpp::Node
         if (pub_cv_image_)
         {
             auto msg_out = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", bgr_img).toImageMsg();
-            publisher_->publish(*msg_out);
+            cv_image_pub_->publish(*msg_out);
         }
+    }
+
+    bool check_crate_stack(const ros381_interfaces::msg::CrateStack &crate_stack) const
+    {
+        const auto &crates = crate_stack.crate_list;
+        if (crates.size() != 4)
+        {
+            return false;
+        }
+        double ref_angle = wrap(crates[0].phi);
+        for (size_t i = 1; i < 4; i++)
+        {
+            double angle = wrap(crates[i].phi);
+            if (std::fabs(angle - ref_angle) > angle_tolerance_)
+                return false;
+        }
+        for (size_t i = 0; i < 3; i++)
+        {
+            double dx = crates[i].x - crates[i + 1].x;
+            double dy = crates[i].y - crates[i + 1].y;
+            double distance = std::sqrt(dx * dx + dy * dy);
+
+            if (std::fabs(distance - 0.05) > height_tolerance_)
+                return false;
+        }
+        return true;
+    }
+
+    double wrap(double angle) const
+    {
+        double wrapped_angle;
+        wrapped_angle = std::fabs(angle);
+        wrapped_angle -= M_PI/2;
+        wrapped_angle = std::fabs(wrapped_angle);
+        return wrapped_angle;
     }
 
     void load_parameters()
     {
+        this->declare_parameter<double>("target_height", 0.03);
+        this->declare_parameter<double>("height_tolerance", 0.01);
+        this->declare_parameter<double>("angle_tolerance", 0.1);
+        this->declare_parameter<bool>("enable_height_check", true);
+        this->declare_parameter<bool>("enable_angle_check", true);
         this->declare_parameter<std::vector<double>>(
             "camera_matrix", std::vector<double>{615.0, 0.0, 320.0, 0.0, 615.0, 240.0, 0.0, 0.0, 1.0});
         this->declare_parameter<std::vector<double>>("dist_coeffs", std::vector<double>{0.25, -1.4, -0.01, 0.005, 2.5});
@@ -134,42 +214,25 @@ class ArUcoDetection : public rclcpp::Node
         {
             memcpy(camera2baseTF_.data, flat_matrix.data(), 16 * sizeof(double));
         }
-
-        RCLCPP_INFO(this->get_logger(), "Loaded Parameters:");
-        RCLCPP_INFO(this->get_logger(), "==================");
-
-        RCLCPP_INFO(this->get_logger(), "Camera Matrix (3x3):");
-        RCLCPP_INFO(this->get_logger(), "  [%.3f, %.3f, %.3f]", K_vec[0], K_vec[1], K_vec[2]);
-        RCLCPP_INFO(this->get_logger(), "  [%.3f, %.3f, %.3f]", K_vec[3], K_vec[4], K_vec[5]);
-        RCLCPP_INFO(this->get_logger(), "  [%.3f, %.3f, %.3f]", K_vec[6], K_vec[7], K_vec[8]);
-
-        std::string dist_str = "Distortion Coefficients: [";
-        for (size_t i = 0; i < D_vec.size(); ++i)
-        {
-            dist_str += std::to_string(D_vec[i]);
-            if (i < D_vec.size() - 1)
-                dist_str += ", ";
-        }
-        dist_str += "]";
-        RCLCPP_INFO(this->get_logger(), "%s", dist_str.c_str());
-
-        RCLCPP_INFO(this->get_logger(), "Camera to Base Transform (4x4):");
-        for (int i = 0; i < 4; ++i)
-        {
-            RCLCPP_INFO(this->get_logger(), "  [%.6f, %.6f, %.6f, %.6f]", flat_matrix[i * 4], flat_matrix[i * 4 + 1],
-                        flat_matrix[i * 4 + 2], flat_matrix[i * 4 + 3]);
-        }
-
-        RCLCPP_INFO(this->get_logger(), "Publish CV Image: %s", pub_cv_image_ ? "true" : "false");
-        RCLCPP_INFO(this->get_logger(), "==================");
+        target_height_ = this->get_parameter("target_height").as_double();
+        height_tolerance_ = this->get_parameter("height_tolerance").as_double();
+        angle_tolerance_ = this->get_parameter("angle_tolerance").as_double();
+        enable_height_check_ = this->get_parameter("enable_height_check").as_bool();
+        enable_angle_check_ = this->get_parameter("enable_angle_check").as_bool();
     }
 
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub_;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr cv_image_pub_;
+    rclcpp::Publisher<ros381_interfaces::msg::CrateStack>::SharedPtr crate_pub_;
     cv::Mat camera2baseTF_;
     cv::Mat camera_matrix_;
     cv::Mat dist_coeffs_;
     bool pub_cv_image_;
+    double target_height_;
+    double height_tolerance_;
+    double angle_tolerance_;
+    bool enable_height_check_;
+    bool enable_angle_check_;
 };
 
 int main(int argc, char *argv[])

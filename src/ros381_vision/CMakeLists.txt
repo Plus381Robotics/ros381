@@ -12,6 +12,7 @@ find_package(cv_bridge REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(ros381_interfaces REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 link_directories(${OpenCV_LIBRARY_DIRS})
@@ -31,6 +32,7 @@ ament_target_dependencies(
   "sensor_msgs"
   "std_msgs"
   "OpenCV"
+  "ros381_interfaces"
 )
 
 install(TARGETS

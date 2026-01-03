@@ -12,6 +12,8 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Float2.msg"
   "msg/Float3.msg"
+  "msg/Crate.msg"
+  "msg/CrateStack.msg"
   "srv/UpdatePose.srv"
   "action/Move.action"
 )

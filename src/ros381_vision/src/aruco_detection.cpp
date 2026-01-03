@@ -134,7 +134,29 @@ class ArUcoDetection : public rclcpp::Node
                 return a.x < b.x;
             });
             crate_msg.crate_list = crate_vector;
+            for (auto &crate : crate_msg.crate_list)
+                crate.phi = wrap(crate.phi);
             crate_msg.valid = check_crate_stack(crate_msg);
+            if (crate_msg.valid)
+            {
+                double x_sum = 0.0, y_sum = 0.0, phi_sum = 0.0;
+                for (size_t i = 0; i < 4; i++)
+                {
+                    x_sum += crate_msg.crate_list[i].x;
+                    y_sum += crate_msg.crate_list[i].y;
+                    phi_sum += crate_msg.crate_list[i].phi;
+                }
+                crate_msg.x = x_sum * 0.25;
+                crate_msg.y = y_sum * 0.25;
+                crate_msg.phi = phi_sum * 0.25;
+                ;
+            }
+            else
+            {
+                crate_msg.x = 0.0;
+                crate_msg.y = 0.0;
+                crate_msg.phi = 0.0;
+            }
 
             if (!crate_msg.crate_list.empty())
                 crate_pub_->publish(crate_msg);
@@ -180,7 +202,7 @@ class ArUcoDetection : public rclcpp::Node
     {
         double wrapped_angle;
         wrapped_angle = std::fabs(angle);
-        wrapped_angle -= M_PI/2;
+        wrapped_angle -= M_PI / 2;
         wrapped_angle = std::fabs(wrapped_angle);
         return wrapped_angle;
     }

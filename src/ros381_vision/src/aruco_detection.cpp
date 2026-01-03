@@ -30,10 +30,10 @@ class ArUcoDetection : public rclcpp::Node
         camera_matrix_ = cv::Mat(3, 3, CV_64F, K_vec.data()).clone();
         dist_coeffs_ = cv::Mat(1, D_vec.size(), CV_64F, D_vec.data()).clone();
 
-        this->computeTransform();
+        this->setTransform();
 
         subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
-            "/image_raw", 10, std::bind(&ArUcoDetection::topic_callback, this, std::placeholders::_1));
+            "image_raw", 10, std::bind(&ArUcoDetection::topic_callback, this, std::placeholders::_1));
 
         publisher_ = this->create_publisher<sensor_msgs::msg::Image>("cv_image", 10);
 
@@ -68,7 +68,7 @@ class ArUcoDetection : public rclcpp::Node
         {
             cv::aruco::drawDetectedMarkers(bgr_img, markerCorners, markerIds);
 
-            float markerLength = 0.04f;
+            float markerLength = 0.03f;
             cv::Mat objPoints(4, 1, CV_32FC3);
             objPoints.ptr<cv::Vec3f>(0)[0] = cv::Vec3f(-markerLength / 2.f, markerLength / 2.f, 0);
             objPoints.ptr<cv::Vec3f>(0)[1] = cv::Vec3f(markerLength / 2.f, markerLength / 2.f, 0);
@@ -97,13 +97,11 @@ class ArUcoDetection : public rclcpp::Node
 
                 Eigen::Matrix3d R_eigen;
                 R_eigen << R.at<double>(0, 0), R.at<double>(0, 1), R.at<double>(0, 2), R.at<double>(1, 0),
-                    R.at<double>(1, 1), R.at<double>(1, 2), R.at<double>(2, 0), R.at<double>(2, 1), R.at<double>(2,
-                    2);
-                Eigen::Vector3d euler = R_eigen.eulerAngles(2, 1, 0);
+                    R.at<double>(1, 1), R.at<double>(1, 2), R.at<double>(2, 0), R.at<double>(2, 1), R.at<double>(2, 2);
+                Eigen::Vector3d euler = R_eigen.eulerAngles(0, 1, 2);
 
-                RCLCPP_INFO(this->get_logger(), "Marker %d: Pos[%.3f, %.3f, %.3f] RPY[%.3f, %.3f, %.3f]",
-                markerIds[i],
-                            x, y, z, euler[2], euler[1], euler[0]);
+                RCLCPP_INFO(this->get_logger(), "Marker %d: Pos[%.3f, %.3f, %.3f] RPY[%.3f, %.3f, %.3f]", markerIds[i],
+                            x, y, z, euler[0], euler[1], euler[2]);
                 cv::drawFrameAxes(bgr_img, camera_matrix_, dist_coeffs_, rvec, tvec, 0.05);
             }
         }
@@ -112,42 +110,18 @@ class ArUcoDetection : public rclcpp::Node
         cv::waitKey(3);
     }
 
-    void computeTransform()
+    void setTransform()
     {
-        this->declare_parameter<double>("camera_x", 0.1);
-        this->declare_parameter<double>("camera_y", 0.0);
-        this->declare_parameter<double>("camera_z", 0.3);
-        this->declare_parameter<double>("camera_roll", 0.0);
-        this->declare_parameter<double>("camera_pitch", M_PI);
-        this->declare_parameter<double>("camera_yaw", -M_PI / 2);
-
-        double x = this->get_parameter("camera_x").as_double();
-        double y = this->get_parameter("camera_y").as_double();
-        double z = this->get_parameter("camera_z").as_double();
-        double roll = this->get_parameter("camera_roll").as_double();
-        double pitch = this->get_parameter("camera_pitch").as_double();
-        double yaw = this->get_parameter("camera_yaw").as_double();
-
         camera2baseTF_ = cv::Mat::eye(4, 4, CV_64F);
+        this->declare_parameter<std::vector<double>>(
+            "camera2base_transform", std::vector<double>{0.0, 0.707107, 0.707107, 0.164, 1.0, 0.0, 0.0, 0.0, 0.0,
+                                                         0.707107, -0.707107, 0.225, 0.0, 0.0, 0.0, 1.0});
+        std::vector<double> flat_matrix = get_parameter("camera2base_transform").as_double_array();
 
-        double cr = cos(roll), sr = sin(roll);
-        double cp = cos(pitch), sp = sin(pitch);
-        double cy = cos(yaw), sy = sin(yaw);
-
-        camera2baseTF_.at<double>(0, 0) = cy * cp;
-        camera2baseTF_.at<double>(0, 1) = cy * sp * sr - sy * cr;
-        camera2baseTF_.at<double>(0, 2) = cy * sp * cr + sy * sr;
-        camera2baseTF_.at<double>(0, 3) = x;
-
-        camera2baseTF_.at<double>(1, 0) = sy * cp;
-        camera2baseTF_.at<double>(1, 1) = sy * sp * sr + cy * cr;
-        camera2baseTF_.at<double>(1, 2) = sy * sp * cr - cy * sr;
-        camera2baseTF_.at<double>(1, 3) = y;
-
-        camera2baseTF_.at<double>(2, 0) = -sp;
-        camera2baseTF_.at<double>(2, 1) = cp * sr;
-        camera2baseTF_.at<double>(2, 2) = cp * cr;
-        camera2baseTF_.at<double>(2, 3) = z;
+        if (flat_matrix.size() == 16)
+        {
+            memcpy(camera2baseTF_.data, flat_matrix.data(), 16 * sizeof(double));
+        }
     }
 
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;

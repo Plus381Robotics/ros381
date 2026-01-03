@@ -18,24 +18,18 @@ class ArUcoDetection : public rclcpp::Node
   public:
     ArUcoDetection() : Node("aruco_detection")
     {
-        this->declare_parameter<std::vector<double>>(
-            "camera_matrix", std::vector<double>{615.0, 0.0, 320.0, 0.0, 615.0, 240.0, 0.0, 0.0, 1.0});
-
-        this->declare_parameter<std::vector<double>>("dist_coeffs", std::vector<double>{0.25, -1.4, -0.01, 0.005, 2.5});
-
-        std::vector<double> K_vec, D_vec;
-        this->get_parameter("camera_matrix", K_vec);
-        this->get_parameter("dist_coeffs", D_vec);
-
-        camera_matrix_ = cv::Mat(3, 3, CV_64F, K_vec.data()).clone();
-        dist_coeffs_ = cv::Mat(1, D_vec.size(), CV_64F, D_vec.data()).clone();
-
-        this->setTransform();
+        this->load_parameters();
 
         subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
             "image_raw", 10, std::bind(&ArUcoDetection::topic_callback, this, std::placeholders::_1));
 
-        publisher_ = this->create_publisher<sensor_msgs::msg::Image>("cv_image", 10);
+        if (pub_cv_image_)
+        {
+            publisher_ = this->create_publisher<sensor_msgs::msg::Image>("cv_image", 10);
+            RCLCPP_INFO(this->get_logger(), "CV image publishing is on.");
+        }
+        else
+            RCLCPP_INFO(this->get_logger(), "CV image publishing is off.");
 
         RCLCPP_INFO(this->get_logger(), "ArUco detection node is running.");
     }
@@ -106,22 +100,68 @@ class ArUcoDetection : public rclcpp::Node
             }
         }
 
-        cv::imshow("Aruco Detection", bgr_img);
-        cv::waitKey(3);
+        // cv::imshow("Aruco Detection", bgr_img);
+        // cv::waitKey(3);
+
+        if (pub_cv_image_)
+        {
+            auto msg_out = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", bgr_img).toImageMsg();
+            publisher_->publish(*msg_out);
+        }
     }
 
-    void setTransform()
+    void load_parameters()
     {
-        camera2baseTF_ = cv::Mat::eye(4, 4, CV_64F);
+        this->declare_parameter<std::vector<double>>(
+            "camera_matrix", std::vector<double>{615.0, 0.0, 320.0, 0.0, 615.0, 240.0, 0.0, 0.0, 1.0});
+        this->declare_parameter<std::vector<double>>("dist_coeffs", std::vector<double>{0.25, -1.4, -0.01, 0.005, 2.5});
+        this->declare_parameter<bool>("pub_cv_image", true);
         this->declare_parameter<std::vector<double>>(
             "camera2base_transform", std::vector<double>{0.0, 0.707107, 0.707107, 0.164, 1.0, 0.0, 0.0, 0.0, 0.0,
                                                          0.707107, -0.707107, 0.225, 0.0, 0.0, 0.0, 1.0});
-        std::vector<double> flat_matrix = get_parameter("camera2base_transform").as_double_array();
 
+        std::vector<double> K_vec, D_vec, flat_matrix;
+        this->get_parameter("camera_matrix", K_vec);
+        this->get_parameter("dist_coeffs", D_vec);
+        this->get_parameter("pub_cv_image", pub_cv_image_);
+        this->get_parameter("camera2base_transform", flat_matrix);
+
+        camera_matrix_ = cv::Mat(3, 3, CV_64F, K_vec.data()).clone();
+        dist_coeffs_ = cv::Mat(1, D_vec.size(), CV_64F, D_vec.data()).clone();
+
+        camera2baseTF_ = cv::Mat::eye(4, 4, CV_64F);
         if (flat_matrix.size() == 16)
         {
             memcpy(camera2baseTF_.data, flat_matrix.data(), 16 * sizeof(double));
         }
+
+        RCLCPP_INFO(this->get_logger(), "Loaded Parameters:");
+        RCLCPP_INFO(this->get_logger(), "==================");
+
+        RCLCPP_INFO(this->get_logger(), "Camera Matrix (3x3):");
+        RCLCPP_INFO(this->get_logger(), "  [%.3f, %.3f, %.3f]", K_vec[0], K_vec[1], K_vec[2]);
+        RCLCPP_INFO(this->get_logger(), "  [%.3f, %.3f, %.3f]", K_vec[3], K_vec[4], K_vec[5]);
+        RCLCPP_INFO(this->get_logger(), "  [%.3f, %.3f, %.3f]", K_vec[6], K_vec[7], K_vec[8]);
+
+        std::string dist_str = "Distortion Coefficients: [";
+        for (size_t i = 0; i < D_vec.size(); ++i)
+        {
+            dist_str += std::to_string(D_vec[i]);
+            if (i < D_vec.size() - 1)
+                dist_str += ", ";
+        }
+        dist_str += "]";
+        RCLCPP_INFO(this->get_logger(), "%s", dist_str.c_str());
+
+        RCLCPP_INFO(this->get_logger(), "Camera to Base Transform (4x4):");
+        for (int i = 0; i < 4; ++i)
+        {
+            RCLCPP_INFO(this->get_logger(), "  [%.6f, %.6f, %.6f, %.6f]", flat_matrix[i * 4], flat_matrix[i * 4 + 1],
+                        flat_matrix[i * 4 + 2], flat_matrix[i * 4 + 3]);
+        }
+
+        RCLCPP_INFO(this->get_logger(), "Publish CV Image: %s", pub_cv_image_ ? "true" : "false");
+        RCLCPP_INFO(this->get_logger(), "==================");
     }
 
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
@@ -129,6 +169,7 @@ class ArUcoDetection : public rclcpp::Node
     cv::Mat camera2baseTF_;
     cv::Mat camera_matrix_;
     cv::Mat dist_coeffs_;
+    bool pub_cv_image_;
 };
 
 int main(int argc, char *argv[])

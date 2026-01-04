@@ -166,6 +166,7 @@ class Ax12aSingleHybridNode : public rclcpp::Node
                                                          present_position, &dxl_error);
 
         result->status = status;
+        result->position = present_position;
         if (rclcpp::ok())
         {
             switch (result->status)

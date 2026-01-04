@@ -33,10 +33,27 @@ def tactic_4():
                     (14, 0, 1000, 100),
                 ]
             )
-            tactic_state = 1
+            tactic_state = 10
         case 10:
             if get_ax_bulk_move_result() == -1:
-                tactic_state = -1
+                tactic_state = 20
+        case 20:
+            ax_hybrid_move(15, 1000, 0.2, 200)
+            tactic_state = 30
+        case 30:
+            if get_ax_hybrid_move_result() == -1:
+                position = get_ax_hybrid_end_position()
+                print(f"ID 15 reached position: {position}")
+                if position > 1000:
+                    tactic_state = 40
+                else:
+                    tactic_state = 50
+        case 40:
+            print("Reached the end position!")
+            tactic_state = -1
+        case 50:
+            print("Did NOT reach the end position!")
+            tactic_state = -1
         case -1:
             print("Tactic 4 finished.")
     return tactic_state

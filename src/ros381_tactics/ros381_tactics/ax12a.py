@@ -13,40 +13,61 @@ def init_ax():
     global init_state
     match init_state:
         case 0:
-            ax_hybrid_move(11, 1000, 0.2, 200)
+            # Lift gore
+            ax_hybrid_move(15, 1000, 0.2, -200)
             init_state = 1
         case 1:
             if get_ax_hybrid_move_result() < 0:
+                print(f"ID 15 reached position: {get_ax_hybrid_end_position()}")
                 init_state = 2
         case 2:
-            ax_hybrid_move(12, 1000, 0.2, -200)
+            # Lift dole
+            ax_hybrid_move(15, 1000, 0.2, 200)
             init_state = 3
         case 3:
             if get_ax_hybrid_move_result() < 0:
+                print(f"ID 15 reached position: {get_ax_hybrid_end_position()}")
                 init_state = 4
         case 4:
-            ax_move(13, 0, 300, 50)
+            # Clanak 1
+            ax_move(11, 0, 300, 50)
             init_state = 5
         case 5:
             if get_ax_move_result() < 0:
                 init_state = 6
         case 6:
-            ax_move(14, 1023, 300, 50)
+            # Clanak 2
+            ax_move(12, 0, 300, 50)
             init_state = 7
         case 7:
             if get_ax_move_result() < 0:
                 init_state = 8
         case 8:
+            # Clanak 3
+            ax_move(13, 0, 300, 50)
+            init_state = 9
+        case 9:
+            if get_ax_move_result() < 0:
+                init_state = 10
+        case 10:
+            # Clanak 4
+            ax_move(14, 0, 300, 50)
+            init_state = 11
+        case 11:
+            if get_ax_move_result() < 0:
+                init_state = 12
+        case 12:
             ax_bulk_move(
                 [
                     (11, 511, 1000, 100),
                     (12, 511, 1000, 100),
                     (13, 511, 1000, 100),
                     (14, 511, 1000, 100),
+                    (15, 511, 1000, 100),
                 ]
             )
-            init_state = 9
-        case 9:
+            init_state = 99
+        case 99:
             if get_ax_bulk_move_result() < 0:
                 init_state = -1
         case -1:
@@ -64,6 +85,10 @@ def get_ax_bulk_move_result():
 
 def get_ax_hybrid_move_result():
     return get_GT().ax_hybrid_move_result_
+
+
+def get_ax_hybrid_end_position():
+    return get_GT().ax_hybrid_end_position_
 
 
 def ax_move(id, position, velocity, position_tolerance):

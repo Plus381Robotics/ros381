@@ -43,6 +43,7 @@ class TacticGlobalNode : public rclcpp::Node
   public:
     int8_t move_result_ = 0, update_pose_result_ = 0;
     int8_t ax_move_result_ = 0, ax_hybrid_move_result_ = 0, ax_bulk_move_result_ = 0;
+    uint16_t ax_hybrid_end_position_ = 0;
     py::module *tactics_module_ = nullptr;
 
     TacticGlobalNode();

@@ -1,7 +1,7 @@
 ros381/control_loop:
   ros__parameters:
     # Control loop frequency [Hz]
-    FREQ: 50.0
+    FREQ: 100.0
     # Max base velocities: [m/s], [rad/s]
     V_MAX: 2.0
     V_MIN: 0.1

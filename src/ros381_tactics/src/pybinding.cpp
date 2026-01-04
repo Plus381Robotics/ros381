@@ -16,6 +16,7 @@ PYBIND11_EMBEDDED_MODULE(ros381_tactics_py, m)
         .def_readonly("update_pose_result_", &TacticGlobalNode::update_pose_result_)
         .def_readonly("ax_move_result_", &TacticGlobalNode::ax_move_result_)
         .def_readonly("ax_hybrid_move_result_", &TacticGlobalNode::ax_hybrid_move_result_)
+        .def_readonly("ax_hybrid_end_position_", &TacticGlobalNode::ax_hybrid_end_position_)
         .def_readonly("ax_bulk_move_result_", &TacticGlobalNode::ax_bulk_move_result_);
 
     m.def(

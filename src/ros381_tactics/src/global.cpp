@@ -270,7 +270,8 @@ void TacticGlobalNode::ax_hybrid_move_feedback_callback(AxHybridMoveGoalHandle::
 void TacticGlobalNode::ax_hybrid_move_result_callback(const AxHybridMoveGoalHandle::WrappedResult &result)
 {
     ax_hybrid_move_result_ = result.result->status;
-    RCLCPP_INFO(this->get_logger(), "Move status: %d", ax_hybrid_move_result_);
+    ax_hybrid_end_position_ = result.result->position;
+    RCLCPP_INFO(this->get_logger(), "Move status: %d, Position: %d", ax_hybrid_move_result_, ax_hybrid_end_position_);
 }
 
 void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,

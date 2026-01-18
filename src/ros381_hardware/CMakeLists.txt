@@ -9,9 +9,12 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(ros381_interfaces REQUIRED)
 find_package(example_interfaces REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 add_executable(uc src/uc.cpp)
-ament_target_dependencies(uc rclcpp ros381_interfaces example_interfaces)
+ament_target_dependencies(uc rclcpp ros381_interfaces nav_msgs tf2 tf2_geometry_msgs example_interfaces)
 
 install(TARGETS
   uc

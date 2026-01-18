@@ -1,10 +1,17 @@
-#include "example_interfaces/msg/bool.hpp"
-#include "example_interfaces/msg/empty.hpp"
-#include "example_interfaces/msg/u_int8.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "ros381_interfaces/msg/float2.hpp"
-#include "ros381_interfaces/msg/float3.hpp"
+#include <atomic>
+#include <cstdint>
+#include <cstring>
+#include <fcntl.h>
+#include <mutex>
+#include <rclcpp/rclcpp.hpp>
+#include <termios.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <thread>
+#include <unistd.h>
 
+using namespace std::chrono_literals;
 using namespace std::placeholders;
 
 class uCNode : public rclcpp::Node
@@ -12,119 +19,209 @@ class uCNode : public rclcpp::Node
   public:
     uCNode() : Node("uc")
     {
-        motor_cmd_sub_ = this->create_subscription<ros381_interfaces::msg::Float2>(
-            "motor_cmd", 10, std::bind(&uCNode::callback_motor_cmd, this, _1));
-        chinch_waiting_sub_ = this->create_subscription<example_interfaces::msg::Empty>(
-            "chinch_waiting", 10, std::bind(&uCNode::callback_chinch_waiting, this, _1));
-        encoder_pub_ = this->create_publisher<ros381_interfaces::msg::Float3>("base_encoders", 10);
-        switches_pub_ = this->create_publisher<example_interfaces::msg::UInt8>("switches", 10);
-        sensors_pub_ = this->create_publisher<example_interfaces::msg::UInt8>("sensors", 10);
-        chinch_trigger_pub_ = this->create_publisher<example_interfaces::msg::Bool>("chinch_trigger", 10);
-
-        RCLCPP_INFO(this->get_logger(), "uC node is running.");
-    }
-
-  private:
-    void uc_communication_loop()
-    {
-        // UART interrupt treba da triggeruje izvrsenje ove funkcije
-        // uzme pristigle podatke
-        memcpy(&from_stm[0], &v_passive_right_, sizeof(double));
-        memcpy(&from_stm[1], &v_passive_left_, sizeof(double));
-        memcpy(&from_stm[2], &dt_, sizeof(double));
-        switches_ = (from_stm[3] >> (64 - 5)) & 0b11111;
-        chinch_state_ = (from_stm[3] >> (64 - 5 - 1)) & 0b1;
-        sensors_ = (from_stm[3] >> (64 - 5 - 1 - 8)) & 0b11111111;
-        // pripremi poruku za stm
-        memcpy(&v_motor_right_, &to_stm[0], sizeof(double));
-        memcpy(&v_motor_left_, &to_stm[1], sizeof(double));
-        memcpy(&chinch_waiting_, &to_stm[2], sizeof(int64_t));
-        // TODO: posalje poruku stm-u
-        // publish-uje
-        publish_encoders();
-        publish_chinch_trigger();
-        publish_switches();
-        publish_sensors();
-		// podesi promenljive
-		chinch_waiting_ = 0;
-		chinch_prev_ = chinch_state_;
-		// TODO: vidi za was promenljivu
-    }
-
-    void callback_motor_cmd(const ros381_interfaces::msg::Float2::SharedPtr msg)
-    {
-        v_motor_right_ = msg->float2[0];
-        v_motor_left_ = msg->float2[1];
-    }
-
-    void callback_chinch_waiting(const example_interfaces::msg::Empty::SharedPtr msg)
-    {
-        (void)msg;
-        chinch_waiting_ = 1;
-    }
-
-    void publish_encoders()
-    {
-        auto msg = ros381_interfaces::msg::Float3();
-        msg.float3[0] = v_passive_right_;
-        msg.float3[1] = v_passive_left_;
-        msg.float3[2] = dt_;
-        encoder_pub_->publish(msg);
-    }
-
-    void publish_switches()
-    {
-        auto msg = example_interfaces::msg::UInt8();
-        msg.data = switches_;
-        switches_pub_->publish(msg);
-    }
-
-    void publish_sensors()
-    {
-        auto msg = example_interfaces::msg::UInt8();
-        msg.data = sensors_;
-        sensors_pub_->publish(msg);
-    }
-
-    void publish_chinch_trigger()
-    {
-        // TODO: porazmisli, (zapravo trigger) ili (ceka, a cinc nije tu, a cinc je bio tu u nekom trenutku)
-        if ((chinch_state_ != chinch_prev_) || (chinch_state_ && chinch_waiting_ && chinch_was_))
+        if (!init_uart())
         {
-            auto msg = example_interfaces::msg::Bool();
-            msg.data = chinch_state_;
-            chinch_trigger_pub_->publish(msg);
+            rclcpp::shutdown();
+            return;
+        }
+
+        motor_cmd_sub_ = this->create_subscription<ros381_interfaces::msg::Float2>(
+            "motor_cmd", 10, std::bind(&uCNode::motor_cmd_callback, this, _1));
+
+        odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom_raw", 10);
+
+        uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
+
+        RCLCPP_INFO(this->get_logger(), "uC node running with interrupt-driven UART");
+    }
+
+    ~uCNode()
+    {
+        running_ = false;
+        std::terminate();
+        if (uart_rx_thread_.joinable())
+        {
+            uart_rx_thread_.join();
+        }
+        if (uart_fd_ >= 0)
+        {
+            close(uart_fd_);
         }
     }
 
-    // void publish_hearbeat()
-    // {
-    //     auto msg = example_interfaces::msg::Empty();
-    //     heartbeat_pub_->publish(msg);
-    // }
+  private:
+    void uart_rx_interrupt_loop()
+    {
+        while (running_ && rclcpp::ok())
+        {
+            uint8_t raw_data[8];
+            read_uart(raw_data, 8);
+            // RCLCPP_INFO(this->get_logger(), "%d %d %d %d %d %d %d %d", raw_data[0], raw_data[1], raw_data[2],
+            // raw_data[3], raw_data[4], raw_data[5], raw_data[6], raw_data[7]);
+            for (uint8_t i = 0; i < 8; i++)
+                process_rx_byte(raw_data[i]);
 
-    double v_motor_right_, v_motor_left_;
-    double v_passive_right_, v_passive_left_, dt_;
-    uint8_t switches_, sensors_;
-    bool chinch_waiting_;
-    bool chinch_state_, chinch_prev_, chinch_was_ = false;
-    uint64_t from_stm[4], to_stm[3];
+            x_base_ = ((int8_t)rxba[1] << 8 | rxba[0]) / 20000.0;
+            y_base_ = ((int8_t)rxba[3] << 8 | rxba[2]) / 20000.0;
+            phi_base_ = ((int8_t)rxba[5] << 8 | rxba[4]) / phi_conversion_;
 
+            auto current_time = now();
+            if (odom_initialized_)
+            {
+                double dt = (current_time - last_odom_time_).seconds();
+                RCLCPP_INFO(this->get_logger(), "%.2f ms", dt * 1000);
+                if (dt > 0.009 && dt < 0.011)
+                {
+                    dt = 0.01;
+                    v_base_ = (x_base_ - prev_x_base_) / dt;
+                    w_base_ = (phi_base_ - prev_phi_base_) / dt;
+                }
+                else
+                {
+                    v_base_ = 0;
+                    w_base_ = 0;
+                }
+                publish_odometry();
+            }
+            else
+            {
+                odom_initialized_ = true;
+                RCLCPP_INFO(this->get_logger(), "Odometry initialized!");
+            }
+            last_odom_time_ = current_time;
+            prev_x_base_ = x_base_;
+            prev_y_base_ = y_base_;
+            prev_phi_base_ = phi_base_;
+        }
+    }
+
+    void process_rx_byte(uint8_t b)
+    {
+        sync = (sync << 8) | b;
+        if (idx == 0)
+        {
+            if (sync == 0xFFFF)
+                idx = 1;
+            return;
+        }
+        rxba[idx - 1] = b;
+        idx++;
+
+        if (idx == 7)
+            idx = 0;
+    }
+
+    void publish_odometry()
+    {
+        auto msg = nav_msgs::msg::Odometry();
+
+        msg.header.stamp = now();
+        msg.header.frame_id = "odom";
+        msg.child_frame_id = "base_link";
+        msg.pose.pose.position.x = x_base_;
+        msg.pose.pose.position.y = y_base_;
+        msg.pose.pose.position.z = 0.0;
+        tf2::Quaternion q;
+        q.setRPY(0, 0, phi_base_);
+        msg.pose.pose.orientation.x = q.x();
+        msg.pose.pose.orientation.y = q.y();
+        msg.pose.pose.orientation.z = q.z();
+        msg.pose.pose.orientation.w = q.w();
+        msg.twist.twist.linear.x = v_base_;
+        msg.twist.twist.linear.y = 0.0;
+        msg.twist.twist.linear.z = 0.0;
+        msg.twist.twist.angular.x = 0.0;
+        msg.twist.twist.angular.y = 0.0;
+        msg.twist.twist.angular.z = w_base_;
+        odom_pub_->publish(msg);
+    }
+
+    void motor_cmd_callback(const ros381_interfaces::msg::Float2::SharedPtr msg)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        uint8_t cmd_bytes[8];
+        for (int i = 0; i < 8; i++)
+            cmd_bytes[i] = 69;
+        // double_to_bytes(msg->float2[0], &cmd_bytes[0]);
+        // double_to_bytes(msg->float2[1], &cmd_bytes[3]);
+        send_uart(cmd_bytes, 8);
+        // RCLCPP_INFO(this->get_logger(), "Sent motor commands: %.3f, %.3f", msg->float2[0], msg->float2[1]);
+    }
+
+    bool init_uart()
+    {
+        uart_fd_ = open("/dev/serial0", O_RDWR | O_NOCTTY);
+        if (uart_fd_ < 0)
+            return false;
+
+        struct termios tty;
+        memset(&tty, 0, sizeof(tty));
+        if (tcgetattr(uart_fd_, &tty) != 0)
+        {
+            close(uart_fd_);
+            return false;
+        }
+
+        cfsetospeed(&tty, B921600);
+        cfsetispeed(&tty, B921600);
+
+        tty.c_cflag &= ~PARENB;
+        tty.c_cflag &= ~CSTOPB;
+        tty.c_cflag &= ~CSIZE;
+        tty.c_cflag |= CS8;
+        tty.c_cflag &= ~CRTSCTS;
+        tty.c_cflag |= CREAD | CLOCAL;
+
+        tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHONL | ISIG);
+        tty.c_iflag &= ~(IXON | IXOFF | IXANY);
+        tty.c_oflag &= ~OPOST;
+
+        tty.c_cc[VMIN] = 8;
+        tty.c_cc[VTIME] = 1;
+
+        if (tcsetattr(uart_fd_, TCSANOW, &tty) != 0)
+        {
+            close(uart_fd_);
+            return false;
+        }
+
+        tcflush(uart_fd_, TCIOFLUSH);
+        return true;
+    }
+
+    void read_uart(uint8_t *buffer, size_t size)
+    {
+        read(uart_fd_, buffer, size);
+    }
+
+    void send_uart(const uint8_t *data, size_t size)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        write(uart_fd_, data, size);
+        tcdrain(uart_fd_);
+    }
+
+    uint8_t rxba[6];
+    uint8_t idx = 0;
+    uint16_t sync = 0;
+    double phi_conversion_ = pow(2, 15) / M_PI;
+    int uart_fd_ = -1;
+    std::atomic<bool> running_{true};
+    std::thread uart_rx_thread_;
+    std::mutex mutex_;
+    double x_base_ = 0.0, y_base_ = 0.0, phi_base_ = 0.0;
+    double v_base_ = 0.0, w_base_ = 0.0;
+    double prev_x_base_ = 0.0, prev_y_base_ = 0.0, prev_phi_base_ = 0.0;
+    bool odom_initialized_ = false;
+    rclcpp::Time last_odom_time_;
     rclcpp::Subscription<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_sub_;
-    rclcpp::Subscription<example_interfaces::msg::Empty>::SharedPtr chinch_waiting_sub_;
-    rclcpp::Publisher<ros381_interfaces::msg::Float3>::SharedPtr encoder_pub_;
-    rclcpp::Publisher<example_interfaces::msg::UInt8>::SharedPtr switches_pub_;
-    rclcpp::Publisher<example_interfaces::msg::UInt8>::SharedPtr sensors_pub_;
-    rclcpp::Publisher<example_interfaces::msg::Bool>::SharedPtr chinch_trigger_pub_;
-    // rclcpp::Publisher<example_interfaces::msg::Empty>::SharedPtr heartbeat_pub_;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 };
 
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<uCNode>();
-    sleep(1);
-    rclcpp::spin(node);
+    rclcpp::spin(std::make_shared<uCNode>());
     rclcpp::shutdown();
     return 0;
 }

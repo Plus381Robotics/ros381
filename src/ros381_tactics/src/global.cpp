@@ -393,6 +393,10 @@ void TacticGlobalNode::global_fsm()
         }
         break;
     case GL_END:
+        cancel_goal();
+        ax_move_client_->async_cancel_all_goals();
+        ax_bulk_move_client_->async_cancel_all_goals();
+        ax_hybrid_move_client_->async_cancel_all_goals();
         RCLCPP_INFO(this->get_logger(), "Match ended.");
         RCLCPP_INFO(this->get_logger(), "Time: %.3f", time_);
         rclcpp::shutdown();

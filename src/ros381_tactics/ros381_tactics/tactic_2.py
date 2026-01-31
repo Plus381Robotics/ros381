@@ -4,12 +4,12 @@ from ros381_tactics.get_set import *
 
 tactic_state = 0
 
-start_x = -1.1
-start_y = 0.723
-start_phi = -math.pi/2
+start_x = -1.06
+start_y = 0.735
+start_phi = -math.pi / 2
 
-first_x = 0.0
-first_y = 0.5
+first_x = -1.06
+first_y = 0.0
 first_dir = 1
 
 
@@ -27,14 +27,20 @@ def tactic_2():
             move_to_xy(first_x, first_y, first_dir)
             tactic_state = 1
         case 1:
-            if get_move_result() == -1:
+            if move_success():
                 tactic_state = 2
         case 2:
-            move_to_xy(0.5, 0.25, 1)
-            tactic_state = 10
-        case 10:
-            if get_move_result() == -1:
-                tactic_state = -1
+            move_to_xy(0.0, 0.0, 1)
+            tactic_state = 3
+        case 3:
+            if move_success():
+                tactic_state = 4
+        case 4:
+            move_to_xy(-1.0, 0.0, 1)
+            tactic_state = 5
+        case 5:
+            if move_success():
+                tactic_state = 2
         case -1:
             print("Tactic 2 finished.")
     return tactic_state

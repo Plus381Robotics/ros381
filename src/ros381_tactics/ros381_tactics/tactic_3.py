@@ -4,12 +4,12 @@ from ros381_tactics.get_set import *
 
 tactic_state = 0
 
-start_x = -1.1
-start_y = 0.723
+start_x = -1.06
+start_y = 0.735
 start_phi = -math.pi/2
 
-first_x = 0.0
-first_y = 0.5
+first_x = -1.06
+first_y = 0.2
 first_dir = 1
 
 
@@ -27,20 +27,32 @@ def tactic_3():
             move_to_xy(first_x, first_y, first_dir)
             tactic_state = 1
         case 1:
-            if get_move_result() == -1:
+            if move_success():
                 tactic_state = 4
-        # case 2:
-        #     move_on_angle(0.25, 1, -math.pi / 2)
-        #     tactic_state = 3
-        # case 3:
-        #     if get_move_result() == -1:
-        #         tactic_state = 4
+        case 2:
+            move_on_angle(dist = 0.3, dir = 1, phi = math.pi)
+            tactic_state = 3
+        case 3:
+            if move_success() or move_stacked():
+                tactic_state = 4
         case 4:
-            move_to_xy(-1.25, 0.0, 1)
-            tactic_state = 10
-        case 10:
-            if get_move_result() == -1:
-                tactic_state = -1
+            move_to_xy(x = -1.0, y = 0.2, dir = -1)
+            tactic_state = 5
+        case 5:
+            if move_success():
+                tactic_state = 6
+        case 6:
+            move_to_xy(x = -1.0 , y = -0.6, dir = 1)
+            tactic_state = 7
+        case 7:
+            if move_success():
+                tactic_state = 8
+        case 8:
+            move_on_angle(dist = 0.3, dir = -1, phi = 0)
+            tactic_state = 9
+        case 9:
+            if move_success() or move_stacked():
+                tactic_state = 10
         case -1:
             print("Tactic 3 finished.")
     return tactic_state

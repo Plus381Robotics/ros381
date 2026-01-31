@@ -826,12 +826,12 @@ Solid {
   model "granary"
 }
 blue {
-  translation 1.1 0.723 0.02
+  translation 1.06 0.735 0.02
   rotation 0 0 1 -1.5708
   controller "<extern>"
 }
 yellow {
-  translation -1.1 0.723 0.002
+  translation -1.06 0.735 0.002
   rotation 0 0 1 -1.5708
   controller "<extern>"
 }

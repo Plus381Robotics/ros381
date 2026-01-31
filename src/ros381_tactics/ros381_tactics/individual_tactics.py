@@ -6,6 +6,7 @@ from ros381_tactics.tactic_1 import tactic_1, load_t1
 from ros381_tactics.tactic_2 import tactic_2, load_t2
 from ros381_tactics.tactic_3 import tactic_3, load_t3
 from ros381_tactics.tactic_4 import tactic_4, load_t4
+from ros381_tactics.tactic_5 import tactic_5, load_t5
 from ros381_tactics.get_set import *
 
 
@@ -52,7 +53,9 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:
-                load_state = 3
+                print("Pose updated, going to ax_init")
+                # TODO: vidi kako da stavis parametar skip_ax_init
+                load_state = 4
         case 3:
             if init_ax():
                 load_state = 4

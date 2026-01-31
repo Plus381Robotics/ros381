@@ -378,7 +378,7 @@ void TacticGlobalNode::global_fsm()
             global_state_ = GL_TACTIC;
             chinch_waiting_ = false;
             chinch_trigger_ = false;
-            match_started_ = !match_started_;
+            match_started_ = true;
             start_time_ = this->get_clock()->now();
             RCLCPP_INFO(this->get_logger(), "Going to GL_TACTIC");
         }
@@ -393,7 +393,8 @@ void TacticGlobalNode::global_fsm()
         }
         break;
     case GL_END:
-        RCLCPP_INFO(this->get_logger(), "Tactic ended.");
+        RCLCPP_INFO(this->get_logger(), "Match ended.");
+        RCLCPP_INFO(this->get_logger(), "Time: %.3f", time_);
         rclcpp::shutdown();
         break;
     }
@@ -439,6 +440,12 @@ void TacticGlobalNode::tactic_tick()
         pub_time();
     }
     global_fsm();
+    if (time_ > 100.0 && match_started_)
+    {
+        global_state_ = GL_END;
+        RCLCPP_INFO(this->get_logger(), "Time ran out.");
+        match_started_ = false;
+    }
 }
 
 void TacticGlobalNode::update_pose(double x, double y, double phi, uint16_t type)

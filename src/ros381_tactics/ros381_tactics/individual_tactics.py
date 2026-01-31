@@ -53,7 +53,6 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:
-                print("Pose updated, going to ax_init")
                 # TODO: vidi kako da stavis parametar skip_ax_init
                 load_state = 4
         case 3:

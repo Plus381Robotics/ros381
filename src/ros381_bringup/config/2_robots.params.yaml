@@ -17,9 +17,9 @@ blue/control_loop:
     # P value for rotation during translation
     P_w: 10.0
     # Max base jerk values: [m/s^3], [rad/s^3]
-    J_MAX: 25.0
+    J_MAX: 10.0
     J_MAX_STOP: 50.0
-    J_ROT_MAX: 500.0
+    J_ROT_MAX: 400.0
     J_ROT_MAX_STOP: 1000.0
     # End of movement tolerances: [m], [rad]
     D_TOL: 0.005 # absolute distance from target
@@ -37,7 +37,7 @@ blue/odometry:
 blue/tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
-    tick_freq: 100.0
+    tick_freq: 20.0
     default_tactic: 3
     default_side: blue
 
@@ -61,10 +61,10 @@ yellow/control_loop:
     # P value for rotation during translation
     P_w: 10.0
     # Max base jerk values: [m/s^3], [rad/s^3]
-    J_MAX: 50.0
+    J_MAX: 10.0
     J_MAX_STOP: 50.0
-    J_ROT_MAX: 2000.0
-    J_ROT_MAX_STOP: 2000.0
+    J_ROT_MAX: 400.0
+    J_ROT_MAX_STOP: 1000.0
     # End of movement tolerances: [m], [rad]
     D_TOL: 0.005 # absolute distance from target
     D_PROJ_TOL: 0.0025 # projected distance from target
@@ -81,6 +81,6 @@ yellow/odometry:
 yellow/tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
-    tick_freq: 100.0
+    tick_freq: 20.0
     default_tactic: 5
     default_side: yellow

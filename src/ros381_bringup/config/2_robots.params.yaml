@@ -1,5 +1,6 @@
 blue/control_loop:
   ros__parameters:
+    use_sim_time: True
     # Control loop frequency [Hz]
     FREQ: 50.0
     # Max base velocities: [m/s], [rad/s]
@@ -36,6 +37,7 @@ blue/odometry:
 
 blue/tactic_global:
   ros__parameters:
+    use_sim_time: True
     # Desired frequency for tactics tick: [Hz]
     tick_freq: 20.0
     default_tactic: 3
@@ -44,6 +46,7 @@ blue/tactic_global:
 
 yellow/control_loop:
   ros__parameters:
+    use_sim_time: True
     # Control loop frequency [Hz]
     FREQ: 50.0
     # Max base velocities: [m/s], [rad/s]
@@ -80,6 +83,7 @@ yellow/odometry:
 
 yellow/tactic_global:
   ros__parameters:
+    use_sim_time: True
     # Desired frequency for tactics tick: [Hz]
     tick_freq: 20.0
     default_tactic: 5

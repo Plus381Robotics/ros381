@@ -1,5 +1,6 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "ros381_interfaces/msg/float2.hpp"
+#include "ros381_interfaces/srv/update_pose.hpp"
 #include <atomic>
 #include <cstdint>
 #include <cstring>
@@ -28,11 +29,15 @@ class uCNode : public rclcpp::Node
         motor_cmd_sub_ = this->create_subscription<ros381_interfaces::msg::Float2>(
             "motor_cmd", 10, std::bind(&uCNode::motor_cmd_callback, this, _1));
 
-        odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom_raw", 10);
+        odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
 
         uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
 
-        RCLCPP_INFO(this->get_logger(), "uC node running with interrupt-driven UART");
+        update_srv_ = this->create_service<ros381_interfaces::srv::UpdatePose>(
+            "update_pose",
+            std::bind(&uCNode::callback_update_pose, this, std::placeholders::_1, std::placeholders::_2));
+
+        RCLCPP_INFO(this->get_logger(), "uC node running.");
     }
 
     ~uCNode()
@@ -50,20 +55,73 @@ class uCNode : public rclcpp::Node
     }
 
   private:
+    void callback_update_pose(const std::shared_ptr<ros381_interfaces::srv::UpdatePose::Request> request,
+                              std::shared_ptr<ros381_interfaces::srv::UpdatePose::Response> response)
+    {
+
+        response->success = false;
+
+        bool update_x = (request->type / 100) % 10;
+        bool update_y = (request->type / 10) % 10;
+        bool update_phi = (request->type / 1) % 10;
+
+        if (update_x)
+        {
+            req_x.store(request->x);
+            set_x.store(true);
+        }
+        if (update_y)
+        {
+            req_y.store(request->y);
+            set_y.store(true);
+        }
+        if (update_phi)
+        {
+            req_phi.store(request->phi);
+            set_phi.store(true);
+        }
+
+        response->success = update_x || update_y || update_phi;
+    }
+
     void uart_rx_interrupt_loop()
     {
         while (running_ && rclcpp::ok())
         {
             uint8_t raw_data[8];
             read_uart(raw_data, 8);
-            // RCLCPP_INFO(this->get_logger(), "%d %d %d %d %d %d %d %d", raw_data[0], raw_data[1], raw_data[2],
-            // raw_data[3], raw_data[4], raw_data[5], raw_data[6], raw_data[7]);
             for (uint8_t i = 0; i < 8; i++)
                 process_rx_byte(raw_data[i]);
 
-            x_base_ = ((int8_t)rxba[1] << 8 | rxba[0]) / 20000.0;
-            y_base_ = ((int8_t)rxba[3] << 8 | rxba[2]) / 20000.0;
-            phi_base_ = ((int8_t)rxba[5] << 8 | rxba[4]) / phi_conversion_;
+            double x_raw = (int16_t)(rxba[1] << 8 | rxba[0]) / 10000.0;
+            double y_raw = (int16_t)(rxba[3] << 8 | rxba[2]) / 10000.0;
+            double phi_raw = (int16_t)(rxba[5] << 8 | rxba[4]) / phi_conversion_;
+
+            bool log = false;
+
+            if (set_x.exchange(false))
+            {
+                x_base_offs_ = req_x.load() - x_base_;
+                log = true;
+            }
+            if (set_y.exchange(false))
+            {
+                y_base_offs_ = req_y.load() - y_base_;
+                log = true;
+            }
+            if (set_phi.exchange(false))
+            {
+                phi_base_offs_ = req_phi.load() - phi_base_;
+                log = true;
+            }
+
+            x_base_ = x_raw + x_base_offs_;
+            y_base_ = y_raw + y_base_offs_;
+            phi_base_ = phi_raw + phi_base_offs_;
+
+            if (log)
+                RCLCPP_INFO(this->get_logger(), "New pose :\nx = %.2f m\ny = %.2f m\nphi = %.2f rad",
+                            x_base_, y_base_, phi_base_);
 
             auto current_time = now();
             if (odom_initialized_)
@@ -204,18 +262,22 @@ class uCNode : public rclcpp::Node
     uint8_t rxba[6];
     uint8_t idx = 0;
     uint16_t sync = 0;
-    double phi_conversion_ = pow(2, 15) / M_PI;
+    double phi_conversion_ = pow(2, 14) / M_PI;
     int uart_fd_ = -1;
     std::atomic<bool> running_{true};
     std::thread uart_rx_thread_;
     std::mutex mutex_;
     double x_base_ = 0.0, y_base_ = 0.0, phi_base_ = 0.0;
+    double x_base_offs_ = 0.0, y_base_offs_ = 0.0, phi_base_offs_ = 0.0;
+    std::atomic<bool> set_x{false}, set_y{false}, set_phi{false};
+    std::atomic<double> req_x, req_y, req_phi;
     double v_base_ = 0.0, w_base_ = 0.0;
     double prev_x_base_ = 0.0, prev_y_base_ = 0.0, prev_phi_base_ = 0.0;
     bool odom_initialized_ = false;
     rclcpp::Time last_odom_time_;
     rclcpp::Subscription<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_sub_;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
+    rclcpp::Service<ros381_interfaces::srv::UpdatePose>::SharedPtr update_srv_;
 };
 
 int main(int argc, char **argv)

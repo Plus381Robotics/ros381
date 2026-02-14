@@ -112,7 +112,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             control_loop_node,
-            odometry_node,
+            # odometry_node,
             tactics_node,
             uc_node,
             ax12a_setup,

@@ -69,7 +69,6 @@ class uCNode : public rclcpp::Node
             if (odom_initialized_)
             {
                 double dt = (current_time - last_odom_time_).seconds();
-                RCLCPP_INFO(this->get_logger(), "%.2f ms", dt * 1000);
                 if (dt > 0.009 && dt < 0.011)
                 {
                     dt = 0.01;
@@ -78,6 +77,7 @@ class uCNode : public rclcpp::Node
                 }
                 else
                 {
+                    RCLCPP_WARN(this->get_logger(), "Bad dt: %.4f ms, setting velocities to 0.", dt * 1000);
                     v_base_ = 0;
                     w_base_ = 0;
                 }

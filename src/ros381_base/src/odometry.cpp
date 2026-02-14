@@ -13,7 +13,7 @@ class OdometryNode : public rclcpp::Node
         this->declare_parameter("L", 0.297);
         L_ = this->get_parameter("L").as_double();
         L_recip_ = 1 / L_;
-        this->set_parameter(rclcpp::Parameter("use_sim_time", true));
+        this->set_parameter(rclcpp::Parameter("use_sim_time", false));
 
         passive_vel_sub_ = this->create_subscription<ros381_interfaces::msg::Float3>(
             "base_encoders", 10, std::bind(&OdometryNode::callback_passive_vel, this, std::placeholders::_1));

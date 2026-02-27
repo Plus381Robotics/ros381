@@ -2,6 +2,7 @@
 #include "ros381_interfaces/msg/float2.hpp"
 #include "ros381_interfaces/srv/update_pose.hpp"
 #include <atomic>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <fcntl.h>
@@ -25,6 +26,7 @@ class uCNode : public rclcpp::Node
             rclcpp::shutdown();
             return;
         }
+      
 
         motor_cmd_sub_ = this->create_subscription<ros381_interfaces::msg::Float2>(
             "motor_cmd", 10, std::bind(&uCNode::motor_cmd_callback, this, _1));
@@ -32,6 +34,17 @@ class uCNode : public rclcpp::Node
         odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
 
         uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
+
+      // TODO: added blindly
+      if (!init_uart2())
+{
+    RCLCPP_ERROR(this->get_logger(), "Failed to init UART2");
+    rclcpp::shutdown();
+    return;
+}
+
+uart2_rx_thread_ = std::thread(&uCNode::uart2_rx_loop, this);
+      
 
         update_srv_ = this->create_service<ros381_interfaces::srv::UpdatePose>(
             "update_pose",
@@ -43,7 +56,7 @@ class uCNode : public rclcpp::Node
     ~uCNode()
     {
         running_ = false;
-        std::terminate();
+        
         if (uart_rx_thread_.joinable())
         {
             uart_rx_thread_.join();
@@ -52,6 +65,18 @@ class uCNode : public rclcpp::Node
         {
             close(uart_fd_);
         }
+      uart2_running_ = false;
+
+if (uart2_rx_thread_.joinable())
+{
+    uart2_rx_thread_.join();
+}
+
+if (uart2_fd_ >= 0)
+{
+    close(uart2_fd_);
+}
+      std::terminate();
     }
 
   private:
@@ -196,7 +221,6 @@ class uCNode : public rclcpp::Node
 
     void motor_cmd_callback(const ros381_interfaces::msg::Float2::SharedPtr msg)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         uint8_t cmd_bytes[8];
         for (int i = 0; i < 8; i++)
             cmd_bytes[i] = 69;
@@ -250,6 +274,9 @@ class uCNode : public rclcpp::Node
     void read_uart(uint8_t *buffer, size_t size)
     {
         read(uart_fd_, buffer, size);
+      // TODO: treba ovako:
+      // ssize_t n = read(uart_fd_, buffer, size);
+// if (n != size) return;
     }
 
     void send_uart(const uint8_t *data, size_t size)
@@ -258,6 +285,8 @@ class uCNode : public rclcpp::Node
         write(uart_fd_, data, size);
         tcdrain(uart_fd_);
     }
+
+
 
     uint8_t rxba[6];
     uint8_t idx = 0;
@@ -278,6 +307,88 @@ class uCNode : public rclcpp::Node
     rclcpp::Subscription<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_sub_;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
     rclcpp::Service<ros381_interfaces::srv::UpdatePose>::SharedPtr update_srv_;
+
+
+// TODO: added blindly
+int uart2_fd_ = -1;
+std::thread uart2_rx_thread_;
+std::atomic<bool> uart2_running_{true};
+
+uint8_t uart2_tx_byte_ = 0x00;   // fixed for now
+std::atomic<uint8_t> uart2_rx_byte_{0};
+
+std::mutex uart2_mutex_;
+
+
+bool init_uart2()
+{
+    uart2_fd_ = open("/dev/serial1", O_RDWR | O_NOCTTY);
+    if (uart2_fd_ < 0)
+        return false;
+
+    struct termios tty;
+    memset(&tty, 0, sizeof(tty));
+    if (tcgetattr(uart2_fd_, &tty) != 0)
+    {
+        close(uart2_fd_);
+        return false;
+    }
+
+    cfsetospeed(&tty, B115200);
+    cfsetispeed(&tty, B115200);
+
+    tty.c_cflag &= ~PARENB;
+    tty.c_cflag &= ~CSTOPB;
+    tty.c_cflag &= ~CSIZE;
+    tty.c_cflag |= CS8;
+    tty.c_cflag &= ~CRTSCTS;
+    tty.c_cflag |= CREAD | CLOCAL;
+
+    tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHONL | ISIG);
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY);
+    tty.c_oflag &= ~OPOST;
+
+    tty.c_cc[VMIN] = 1;
+    tty.c_cc[VTIME] = 1;
+
+    if (tcsetattr(uart2_fd_, TCSANOW, &tty) != 0)
+    {
+        close(uart2_fd_);
+        return false;
+    }
+
+    tcflush(uart2_fd_, TCIOFLUSH);
+    return true;
+}
+void uart2_rx_loop()
+{
+    while (uart2_running_ && rclcpp::ok())
+    {
+        uint8_t byte;
+        int n = read(uart2_fd_, &byte, 1);
+        if (n == 1)
+        {
+            uart2_rx_byte_.store(byte, std::memory_order_relaxed);
+            //RCLCPP_INFO(this->get_logger(), "UART2 RX: %u", static_cast<unsigned>(byte));
+          // TODO: ucitavas u pub funkciji sa: uint8_t latest = uart2_rx_byte_.load();
+        }
+    }
+}
+
+
+void send_uart2_byte(uint8_t byte)
+{
+    std::lock_guard<std::mutex> lock(uart2_mutex_);
+    write(uart2_fd_, &byte, 1);
+    tcdrain(uart2_fd_);
+}
+
+
+// TODO: ovo salji na sub za vakuum
+// send_uart2_byte(uart2_tx_byte_);
+
+
+
 };
 
 int main(int argc, char **argv)

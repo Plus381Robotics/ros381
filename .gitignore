@@ -1,6 +1,11 @@
-build/*
-install/*
-log/*
+**/build/**
+**/install/**
+**/log/**
+build/**
+install/**
+log/**
+*.log
+
 **/__pycache__/*
 
 # Visual Studio

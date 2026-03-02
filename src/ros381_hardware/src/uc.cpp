@@ -2,6 +2,7 @@
 #include "ros381_interfaces/msg/float2.hpp"
 #include "ros381_interfaces/srv/update_pose.hpp"
 #include <atomic>
+#include <bitset>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -21,33 +22,29 @@ class uCNode : public rclcpp::Node
   public:
     uCNode() : Node("uc")
     {
-        if (!init_uart())
-        {
-            rclcpp::shutdown();
-            return;
-        }
+        // uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
+        // uart2_rx_thread_ = std::thread(&uCNode::uart2_rx_loop, this);
 
         motor_cmd_sub_ = this->create_subscription<ros381_interfaces::msg::Float2>(
             "motor_cmd", 10, std::bind(&uCNode::motor_cmd_callback, this, _1));
 
         odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
-
-        uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
-
-        if (!init_uart2())
-        {
-            RCLCPP_ERROR(this->get_logger(), "Failed to init UART2");
-            rclcpp::shutdown();
-            return;
-        }
-
-        uart2_rx_thread_ = std::thread(&uCNode::uart2_rx_loop, this);
-
         update_srv_ = this->create_service<ros381_interfaces::srv::UpdatePose>(
             "update_pose",
             std::bind(&uCNode::callback_update_pose, this, std::placeholders::_1, std::placeholders::_2));
 
-        timer_ = this->create_wall_timer(std::chrono::milliseconds(200), std::bind(&uCNode::uart2_tx, this));
+        if (!init_uart())
+        {
+            RCLCPP_ERROR(this->get_logger(), "Failed to init UART1.");
+            // rclcpp::shutdown();
+            // return;
+        }
+        if (!init_uart2())
+        {
+            RCLCPP_ERROR(this->get_logger(), "Failed to init UART2.");
+            // rclcpp::shutdown();
+            // return;
+        }
 
         RCLCPP_INFO(this->get_logger(), "uC node running.");
     }
@@ -223,11 +220,31 @@ class uCNode : public rclcpp::Node
         uint8_t cmd_bytes[8];
         cmd_bytes[0] = 255;
         cmd_bytes[1] = 255;
-        for (int i = 2; i < 8; i++)
-            cmd_bytes[i] = 69;
-        // double_to_bytes(msg->float2[0], &cmd_bytes[0]);
-        // double_to_bytes(msg->float2[1], &cmd_bytes[3]);
+        // for (int i = 2; i < 8; i++)
+        //     cmd_bytes[i] = 69;
+        int32_t cmdR_3B = motor_cmd_3B(msg->float2[0]);
+        int32_t cmdL_3B = motor_cmd_3B(msg->float2[1]);
+        cmd_bytes[2] = static_cast<uint8_t>((cmdR_3B >> 24) & 0xFF);
+        cmd_bytes[3] = static_cast<uint8_t>((cmdR_3B >> 16) & 0xFF);
+        cmd_bytes[4] = static_cast<uint8_t>((cmdR_3B >> 8) & 0xFF);
+        cmd_bytes[5] = static_cast<uint8_t>((cmdL_3B >> 24) & 0xFF);
+        cmd_bytes[6] = static_cast<uint8_t>((cmdL_3B >> 16) & 0xFF);
+        cmd_bytes[7] = static_cast<uint8_t>((cmdL_3B >> 8) & 0xFF);
         send_uart(cmd_bytes, 8);
+    }
+
+    int32_t motor_cmd_3B(double cmd)
+    {
+        cmd = std::clamp(cmd, -4.0, 3.999);
+
+        constexpr int SCALE = 1 << 21;
+        int32_t cmd4B = static_cast<int32_t>(cmd * SCALE);
+        int32_t cmd3B = cmd4B << 8;
+        // RCLCPP_INFO(this->get_logger(), "cmd = %.4f, cmd4B = %d, cmd3B = %d", cmd, cmd4B, cmd3B);
+        // RCLCPP_INFO(this->get_logger(), "cmd = %.4f, cmd4B = %s, cmd3B = %s", cmd,
+        // std::bitset<32>(cmd4B).to_string().c_str(), std::bitset<32>(cmd3B).to_string().c_str());
+        // RCLCPP_INFO(this->get_logger(), "Recovered cmd = %.4f", ((cmd3B >> 8) * pow(2, -21)));
+        return cmd3B;
     }
 
     bool init_uart()
@@ -274,11 +291,15 @@ class uCNode : public rclcpp::Node
     void read_uart(uint8_t *buffer, size_t size)
     {
         ssize_t n = read(uart_fd_, buffer, size);
-        if (n != size)
+        if (n < 0)
         {
-            RCLCPP_INFO(this->get_logger(), "Recieved %d bytes.", n);
+            RCLCPP_ERROR(this->get_logger(), "UART read failed");
+        }
+        else if (static_cast<size_t>(n) != size)
+        {
+            RCLCPP_INFO(this->get_logger(), "Recieved %ld bytes.", n);
             for (int i = 0; i < n; i++)
-                RCLCPP_INFO(this->get_logger(), "%d", buffer[n]);
+                RCLCPP_INFO(this->get_logger(), "%d", buffer[i]);
         }
     }
 
@@ -288,37 +309,6 @@ class uCNode : public rclcpp::Node
         write(uart_fd_, data, size);
         tcdrain(uart_fd_);
     }
-
-    uint8_t rxba[6];
-    uint8_t idx = 0;
-    uint16_t sync = 0;
-    double phi_conversion_ = pow(2, 14) / M_PI;
-    int uart_fd_ = -1;
-    std::atomic<bool> running_{true};
-    std::thread uart_rx_thread_;
-    std::mutex mutex_;
-    double x_base_ = 0.0, y_base_ = 0.0, phi_base_ = 0.0;
-    double x_base_offs_ = 0.0, y_base_offs_ = 0.0, phi_base_offs_ = 0.0;
-    std::atomic<bool> set_x{false}, set_y{false}, set_phi{false};
-    std::atomic<double> req_x, req_y, req_phi;
-    double v_base_ = 0.0, w_base_ = 0.0;
-    double prev_x_base_ = 0.0, prev_y_base_ = 0.0, prev_phi_base_ = 0.0;
-    bool odom_initialized_ = false;
-    rclcpp::Time last_odom_time_;
-    rclcpp::Subscription<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_sub_;
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
-    rclcpp::Service<ros381_interfaces::srv::UpdatePose>::SharedPtr update_srv_;
-    rclcpp::TimerBase::SharedPtr timer_;
-
-    // TODO: added blindly
-    int uart2_fd_ = -1;
-    std::thread uart2_rx_thread_;
-    std::atomic<bool> uart2_running_{true};
-
-    uint8_t uart2_tx_byte_ = 0x00;
-    std::atomic<uint8_t> uart2_rx_byte_{0};
-
-    std::mutex uart2_mutex_;
 
     bool init_uart2()
     {
@@ -384,18 +374,44 @@ class uCNode : public rclcpp::Node
         tcdrain(uart2_fd_);
     }
 
-    // TODO: izbaci ovo je samo za debagovanje
-    uint8_t u2tx = 0;
-
     void uart2_tx()
     {
-        u2tx++;
-        send_uart2_byte(u2tx);
+        send_uart2_byte(vacuum_);
         // RCLCPP_INFO(this->get_logger(), "u2tx = %d", u2tx);
     }
 
     // TODO: ovo salji na sub za vakuum
     // send_uart2_byte(uart2_tx_byte_);
+
+    uint8_t rxba[6];
+    uint8_t idx = 0;
+    uint16_t sync = 0;
+    double phi_conversion_ = pow(2, 14) / M_PI;
+    int uart_fd_ = -1;
+    std::atomic<bool> running_{true};
+    std::thread uart_rx_thread_;
+    std::mutex mutex_;
+    double x_base_ = 0.0, y_base_ = 0.0, phi_base_ = 0.0;
+    double x_base_offs_ = 0.0, y_base_offs_ = 0.0, phi_base_offs_ = 0.0;
+    std::atomic<bool> set_x{false}, set_y{false}, set_phi{false};
+    std::atomic<double> req_x, req_y, req_phi;
+    double v_base_ = 0.0, w_base_ = 0.0;
+    double prev_x_base_ = 0.0, prev_y_base_ = 0.0, prev_phi_base_ = 0.0;
+    bool odom_initialized_ = false;
+    rclcpp::Time last_odom_time_;
+    rclcpp::Subscription<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_sub_;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
+    rclcpp::Service<ros381_interfaces::srv::UpdatePose>::SharedPtr update_srv_;
+    rclcpp::TimerBase::SharedPtr timer_;
+
+    int uart2_fd_ = -1;
+    std::thread uart2_rx_thread_;
+    std::atomic<bool> uart2_running_{true};
+
+    uint8_t vacuum_ = 0x00;
+    std::atomic<uint8_t> uart2_rx_byte_{0};
+
+    std::mutex uart2_mutex_;
 };
 
 int main(int argc, char **argv)

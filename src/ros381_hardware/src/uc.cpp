@@ -1,3 +1,6 @@
+#include "example_interfaces/msg/bool.hpp"
+#include "example_interfaces/msg/empty.hpp"
+#include "example_interfaces/msg/u_int8.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ros381_interfaces/msg/float2.hpp"
 #include "ros381_interfaces/srv/update_pose.hpp"
@@ -22,28 +25,34 @@ class uCNode : public rclcpp::Node
   public:
     uCNode() : Node("uc")
     {
-        // uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
-        // uart2_rx_thread_ = std::thread(&uCNode::uart2_rx_loop, this);
+        uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
+        uart2_rx_thread_ = std::thread(&uCNode::uart2_rx_loop, this);
 
         motor_cmd_sub_ = this->create_subscription<ros381_interfaces::msg::Float2>(
             "motor_cmd", 10, std::bind(&uCNode::motor_cmd_callback, this, _1));
 
         odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
         update_srv_ = this->create_service<ros381_interfaces::srv::UpdatePose>(
-            "update_pose",
-            std::bind(&uCNode::callback_update_pose, this, std::placeholders::_1, std::placeholders::_2));
+            "update_pose", std::bind(&uCNode::callback_update_pose, this, _1, _2));
+
+        switches_pub_ = this->create_publisher<example_interfaces::msg::UInt8>("switches", 10);
+        vacuum_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
+            "vacuum", 10, std::bind(&uCNode::vacuum_callback, this, _1));
+        chinch_waiting_sub_ = this->create_subscription<example_interfaces::msg::Empty>(
+            "chinch_waiting", 10, std::bind(&uCNode::chinch_waiting_callback, this, _1));
+        chinch_pub_ = this->create_publisher<example_interfaces::msg::Bool>("chinch_trigger", 10);
 
         if (!init_uart())
         {
             RCLCPP_ERROR(this->get_logger(), "Failed to init UART1.");
-            // rclcpp::shutdown();
-            // return;
+            rclcpp::shutdown();
+            return;
         }
         if (!init_uart2())
         {
             RCLCPP_ERROR(this->get_logger(), "Failed to init UART2.");
-            // rclcpp::shutdown();
-            // return;
+            rclcpp::shutdown();
+            return;
         }
 
         RCLCPP_INFO(this->get_logger(), "uC node running.");
@@ -361,8 +370,20 @@ class uCNode : public rclcpp::Node
             if (n == 1)
             {
                 uart2_rx_byte_.store(byte, std::memory_order_relaxed);
-                // RCLCPP_INFO(this->get_logger(), "UART2 RX: %u", static_cast<unsigned>(byte));
-                // TODO: ucitavas u pub funkciji sa: uint8_t latest = uart2_rx_byte_.load();
+
+                chinch_ = byte & 0b1;
+                auto chinch_msg = example_interfaces::msg::Bool();
+                chinch_msg.data = chinch_;
+                chinch_pub_->publish(chinch_msg);
+
+                switches_ = ((byte >> 1) & 0b111) | (byte & (0b1 << 4));
+                auto switches_msg = example_interfaces::msg::UInt8();
+                switches_msg.data = switches_;
+                switches_pub_->publish(switches_msg);
+
+                uint8_t uart2_tx =
+                    vacuum_.load(std::memory_order_relaxed) | chinch_waiting_.load(std::memory_order_relaxed);
+                send_uart2_byte(uart2_tx);
             }
         }
     }
@@ -374,14 +395,22 @@ class uCNode : public rclcpp::Node
         tcdrain(uart2_fd_);
     }
 
-    void uart2_tx()
+    void vacuum_callback(const example_interfaces::msg::UInt8::SharedPtr msg)
     {
-        send_uart2_byte(vacuum_);
-        // RCLCPP_INFO(this->get_logger(), "u2tx = %d", u2tx);
+        vacuum_.store(msg->data & 0b00011110, std::memory_order_relaxed);
     }
 
-    // TODO: ovo salji na sub za vakuum
-    // send_uart2_byte(uart2_tx_byte_);
+    void chinch_waiting_callback(const example_interfaces::msg::Empty::SharedPtr msg)
+    {
+        (void)msg;
+        chinch_waiting_.store(0b1, std::memory_order_relaxed);
+        if (clear_chinch_timer_)
+            clear_chinch_timer_->cancel();
+        clear_chinch_timer_ = this->create_wall_timer(1000ms, [this]() {
+            chinch_waiting_.store(0b0, std::memory_order_relaxed);
+            clear_chinch_timer_->cancel();
+        });
+    }
 
     uint8_t rxba[6];
     uint8_t idx = 0;
@@ -402,13 +431,20 @@ class uCNode : public rclcpp::Node
     rclcpp::Subscription<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_sub_;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
     rclcpp::Service<ros381_interfaces::srv::UpdatePose>::SharedPtr update_srv_;
-    rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Publisher<example_interfaces::msg::UInt8>::SharedPtr switches_pub_;
+    rclcpp::Subscription<example_interfaces::msg::UInt8>::SharedPtr vacuum_sub_;
+    rclcpp::Subscription<example_interfaces::msg::Empty>::SharedPtr chinch_waiting_sub_;
+    rclcpp::TimerBase::SharedPtr clear_chinch_timer_;
+    rclcpp::Publisher<example_interfaces::msg::Bool>::SharedPtr chinch_pub_;
 
     int uart2_fd_ = -1;
     std::thread uart2_rx_thread_;
     std::atomic<bool> uart2_running_{true};
 
-    uint8_t vacuum_ = 0x00;
+    std::atomic<uint8_t> vacuum_{0b0};
+    std::atomic<uint8_t> chinch_waiting_{0b0};
+    bool chinch_ = false;
+    uint8_t switches_ = 0b0;
     std::atomic<uint8_t> uart2_rx_byte_{0};
 
     std::mutex uart2_mutex_;

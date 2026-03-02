@@ -25,3 +25,5 @@ position: [511, 511, 511, 511]
 velocity: [100, 200, 400, 1000]
 position_tolerance: [25, 25, 25, 25]
 " --feedback
+## Publish motor_cmd
+ros2 topic pub /motor_cmd ros381_interfaces/msg/Float2 "{float2: [-2.0, 2.0]}" --once

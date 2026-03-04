@@ -7,75 +7,18 @@ import ros381_tactics_py  # type: ignore
 import math
 
 init_state = 0
+lift_front_id = lift_back_id = None
+clan1_front_id = clan2_front_id = clan3_front_id = clan4_front_id = None
+clan1_back_id = clan2_back_id = clan3_back_id = clan4_back_id = None
+cursor_id = None
+lift_up_pos = lift_down_pos = lift_carry_pos = lift_rotating_pos = None
+cursor_up_pos = None
+clanL_up_pos = clanL_down_pos = clanR_up_pos = clanR_down_pos = clanL_undep_pos = (
+    clanR_undep_pos
+) = None
 
-
-def init_ax():
-    global init_state
-    match init_state:
-        case 0:
-            # Lift gore
-            ax_hybrid_move(15, 1000, 0.2, -200)
-            init_state = 1
-        case 1:
-            if get_ax_hybrid_move_result() < 0:
-                print(f"ID 15 reached position: {get_ax_hybrid_end_position()}")
-                init_state = 2
-        case 2:
-            # Lift dole
-            ax_hybrid_move(15, 1000, 0.2, 200)
-            init_state = 3
-        case 3:
-            if get_ax_hybrid_move_result() < 0:
-                print(f"ID 15 reached position: {get_ax_hybrid_end_position()}")
-                init_state = 4
-        case 4:
-            # Clanak 1
-            ax_move(11, 0, 300, 50)
-            init_state = 5
-        case 5:
-            if get_ax_move_result() < 0:
-                init_state = 6
-        case 6:
-            # Clanak 2
-            ax_move(12, 0, 300, 50)
-            init_state = 7
-        case 7:
-            if get_ax_move_result() < 0:
-                init_state = 8
-        case 8:
-            # Clanak 3
-            ax_move(13, 0, 300, 50)
-            init_state = 9
-        case 9:
-            if get_ax_move_result() < 0:
-                init_state = 10
-        case 10:
-            # Clanak 4
-            ax_move(14, 0, 300, 50)
-            init_state = 11
-        case 11:
-            if get_ax_move_result() < 0:
-                init_state = 12
-        case 12:
-            ax_bulk_move(
-                [
-                    (11, 511, 1000, 100),
-                    (12, 511, 1000, 100),
-                    (13, 511, 1000, 100),
-                    (14, 511, 1000, 100),
-                    (15, 511, 1000, 100),
-                ]
-            )
-            init_state = 99
-        case 99:
-            if get_ax_bulk_move_result() < 0:
-                init_state = -1
-        case -1:
-            return True
-    return False
 
 cursor_state = 0
-cursor_id = 6
 
 
 def cursor(position):
@@ -87,7 +30,7 @@ def cursor(position):
             else:
                 cursor_state = 20
         case 10:
-            ax_move(cursor_id, 950, 1000, 50)
+            ax_move(cursor_id, cursor_up_pos, 1000, 50)
             cursor_state = 11
         case 11:
             if get_ax_move_result() < 0:
@@ -99,8 +42,8 @@ def cursor(position):
             if get_ax_hybrid_move_result() < 0:
                 cursor_state = 22
         case 22:
-            cursor_pos = get_ax_hybrid_end_position()
-            print ("Cursor reached position " + str(cursor_pos))
+            pos = get_ax_hybrid_end_position()
+            print("Cursor reached position " + str(pos))
             cursor_state = -1
         case -1:
             cursor_state = 0
@@ -108,7 +51,6 @@ def cursor(position):
 
 
 lift_state = 0
-lift_id = 5
 lift_pos = 511
 lift_dpos = 200
 lift_retpos = -1
@@ -120,15 +62,15 @@ def lift(side, state):
         case 0:
             lift_retpos = -1
             if side == 1:
-                lift_id = 15
+                lift_id = lift_front_id
             else:
-                lift_id = 5
+                lift_id = lift_back_id
             if state == 1:
-                lift_pos = 900
-                lift_dpos = 200
-            else:
-                lift_pos = 300
+                lift_pos = lift_up_pos
                 lift_dpos = -200
+            else:
+                lift_pos = lift_down_pos
+                lift_dpos = 200
             lift_state = 1
         case 1:
             ax_move(lift_id, lift_pos, 1000, 20)
@@ -155,12 +97,12 @@ def lift_carry(side):
     match lift_state:
         case 0:
             if side == 1:
-                lift_id = 15
+                lift_id = lift_front_id
             else:
-                lift_id = 5
+                lift_id = lift_back_id
             lift_state = 1
         case 1:
-            ax_move(lift_id, 400, 1000, 20)
+            ax_move(lift_id, lift_carry_pos, 1000, 20)
             lift_state = 2
         case 2:
             if get_ax_move_result() < 0:
@@ -212,3 +154,226 @@ def ax_bulk_move(moves):
 
 def ax_hybrid_move(id, velocity, zero_time, delta_pos):
     get_GT().ax_hybrid_move_goal(id, velocity, zero_time, delta_pos)
+
+
+def init_ax():
+    global init_state
+    match init_state:
+        case 0:
+            ax_hybrid_move(lift_front_id, 1000, 0.2, -200)
+            init_state = 10
+        case 10:
+            if get_ax_hybrid_move_result() < 0:
+                init_state = 20
+        case 20:
+            ax_hybrid_move(lift_front_id, 1000, 0.2, 200)
+            init_state = 30
+        case 30:
+            if get_ax_hybrid_move_result() < 0:
+                init_state = 40
+        case 40:
+            ax_hybrid_move(lift_back_id, 1000, 0.2, -200)
+            init_state = 50
+        case 50:
+            if get_ax_hybrid_move_result() < 0:
+                init_state = 60
+        case 60:
+            ax_hybrid_move(lift_back_id, 1000, 0.2, 200)
+            init_state = 70
+        case 70:
+            if get_ax_hybrid_move_result() < 0:
+                init_state = 72
+        case 72:
+            ax_bulk_move(
+                [
+                    (lift_front_id, lift_rotating_pos, 200, 100),
+                    (lift_back_id, lift_rotating_pos, 200, 100),
+                ]
+            )
+            init_state = 76
+        case 76:
+            if get_ax_bulk_move_result() < 0:
+                init_state = 80
+
+        case 80:
+            ax_move(clan1_front_id, clanL_up_pos, 1000, 100)
+            init_state = 90
+        case 90:
+            if get_ax_move_result() < 0:
+                init_state = 100
+        case 100:
+            ax_move(clan2_front_id, clanL_up_pos, 1000, 100)
+            init_state = 110
+        case 110:
+            if get_ax_move_result() < 0:
+                init_state = 120
+        case 120:
+            ax_move(clan3_front_id, clanR_up_pos, 1000, 100)
+            init_state = 130
+        case 130:
+            if get_ax_move_result() < 0:
+                init_state = 140
+        case 140:
+            ax_move(clan4_front_id, clanR_up_pos, 1000, 100)
+            init_state = 150
+        case 150:
+            if get_ax_move_result() < 0:
+                init_state = 81
+        case 81:
+            ax_move(clan1_back_id, clanL_up_pos, 1000, 100)
+            init_state = 91
+        case 91:
+            if get_ax_move_result() < 0:
+                init_state = 101
+        case 101:
+            ax_move(clan2_back_id, clanL_up_pos, 1000, 100)
+            init_state = 111
+        case 111:
+            if get_ax_move_result() < 0:
+                init_state = 121
+        case 121:
+            ax_move(clan3_back_id, clanR_up_pos, 1000, 100)
+            init_state = 131
+        case 131:
+            if get_ax_move_result() < 0:
+                init_state = 141
+        case 141:
+            ax_move(clan4_back_id, clanR_up_pos, 1000, 100)
+            init_state = 151
+        case 151:
+            if get_ax_move_result() < 0:
+                init_state = 82
+        case 82:
+            ax_move(clan1_front_id, clanL_down_pos, 1000, 100)
+            init_state = 92
+        case 92:
+            if get_ax_move_result() < 0:
+                init_state = 102
+        case 102:
+            ax_move(clan2_front_id, clanL_down_pos, 1000, 100)
+            init_state = 112
+        case 112:
+            if get_ax_move_result() < 0:
+                init_state = 122
+        case 122:
+            ax_move(clan3_front_id, clanR_down_pos, 1000, 100)
+            init_state = 132
+        case 132:
+            if get_ax_move_result() < 0:
+                init_state = 142
+        case 142:
+            ax_move(clan4_front_id, clanR_down_pos, 1000, 100)
+            init_state = 152
+        case 152:
+            if get_ax_move_result() < 0:
+                init_state = 83
+        case 83:
+            ax_move(clan1_back_id, clanL_down_pos, 1000, 100)
+            init_state = 93
+        case 93:
+            if get_ax_move_result() < 0:
+                init_state = 103
+        case 103:
+            ax_move(clan2_back_id, clanL_down_pos, 1000, 100)
+            init_state = 113
+        case 113:
+            if get_ax_move_result() < 0:
+                init_state = 123
+        case 123:
+            ax_move(clan3_back_id, clanR_down_pos, 1000, 100)
+            init_state = 133
+        case 133:
+            if get_ax_move_result() < 0:
+                init_state = 143
+        case 143:
+            ax_move(clan4_back_id, clanR_down_pos, 1000, 100)
+            init_state = 153
+        case 153:
+            if get_ax_move_result() < 0:
+                init_state = 160
+        case 160:
+            ax_hybrid_move(cursor_id, 1000, 0.2, -200)
+            init_state = 170
+        case 170:
+            if get_ax_hybrid_move_result() < 0:
+                init_state = 180
+        case 180:
+            ax_move(cursor_id, cursor_up_pos, 1000, 50)
+            init_state = 190
+        case 190:
+            if get_ax_move_result() < 0:
+                init_state = 200
+        case 200:
+            ax_bulk_move(
+                [
+                    (clan1_front_id, clanL_undep_pos, 200, 100),
+                    (clan2_front_id, clanL_undep_pos, 200, 100),
+                    (clan3_front_id, clanR_undep_pos, 200, 100),
+                    (clan4_front_id, clanR_undep_pos, 200, 100),
+                    (clan1_back_id, clanL_undep_pos, 200, 100),
+                    (clan2_back_id, clanL_undep_pos, 200, 100),
+                    (clan3_back_id, clanR_undep_pos, 200, 100),
+                    (clan4_back_id, clanR_undep_pos, 200, 100),
+                ]
+            )
+            init_state = 99
+        case 99:
+            if get_ax_bulk_move_result() < 0:
+                init_state = -1
+        case -1:
+            return True
+    return False
+
+
+def load_ax_params():
+    global lift_front_id, lift_back_id
+    global clan1_front_id, clan2_front_id, clan3_front_id, clan4_front_id
+    global clan1_back_id, clan2_back_id, clan3_back_id, clan4_back_id
+    global cursor_id
+    global lift_up_pos, lift_down_pos, lift_carry_pos, lift_rotating_pos
+    global cursor_up_pos
+    global clanL_up_pos, clanL_down_pos, clanR_up_pos, clanR_down_pos, clanL_undep_pos, clanR_undep_pos
+
+    GT = get_GT()
+
+    # IDs
+    lift_front_id = GT.lift_front_id_
+    lift_back_id = GT.lift_back_id_
+    clan1_front_id = GT.clan1_front_id_
+    clan2_front_id = GT.clan2_front_id_
+    clan3_front_id = GT.clan3_front_id_
+    clan4_front_id = GT.clan4_front_id_
+    clan1_back_id = GT.clan1_back_id_
+    clan2_back_id = GT.clan2_back_id_
+    clan3_back_id = GT.clan3_back_id_
+    clan4_back_id = GT.clan4_back_id_
+    cursor_id = GT.cursor_id_
+
+    # Positions
+    lift_up_pos = GT.lift_up_pos_
+    lift_down_pos = GT.lift_down_pos_
+    lift_carry_pos = GT.lift_carry_pos_
+    lift_rotating_pos = GT.lift_rotating_pos_
+    cursor_up_pos = GT.cursor_up_pos_
+    clanL_up_pos = GT.clanL_up_pos_
+    clanL_down_pos = GT.clanL_down_pos_
+    clanR_up_pos = GT.clanR_up_pos_
+    clanR_down_pos = GT.clanR_down_pos_
+    clanL_undep_pos = GT.clanL_undep_pos_
+    clanR_undep_pos = GT.clanR_undep_pos_
+
+    # Print AX parameters
+    print(f"Lift IDs: front: {lift_front_id}, back: {lift_back_id}")
+    print(
+        f"Clan Front IDs: {clan1_front_id}, {clan2_front_id}, {clan3_front_id}, {clan4_front_id}"
+    )
+    print(
+        f"Clan Back IDs: {clan1_back_id}, {clan2_back_id}, {clan3_back_id}, {clan4_back_id}"
+    )
+    print(f"Cursor ID: {cursor_id}")
+    print(
+        f"Lift Positions: up: {lift_up_pos}, down: {lift_down_pos}, carry: {lift_carry_pos}, rotating: {lift_rotating_pos}"
+    )
+    print(f"Cursor Position: up: {cursor_up_pos}")
+    print(f"ClanL Positions: up: {clanL_up_pos}, down: {clanL_down_pos}, undeployed: {clanL_undep_pos}")
+    print(f"ClanR Positions: up: {clanR_up_pos}, down: {clanR_down_pos}, undeployed: {clanR_undep_pos}")

@@ -40,6 +40,31 @@ ros381/tactic_global:
     tick_freq: 100.0
     default_tactic: 6
     default_side: blue
+    # AX parameters
+    # IDs
+    lift_front_id: 15
+    lift_back_id: 5
+    clan1_front_id: 11
+    clan2_front_id: 12
+    clan3_front_id: 13
+    clan4_front_id: 14
+    clan1_back_id: 1
+    clan2_back_id: 2
+    clan3_back_id: 3
+    clan4_back_id: 4
+    cursor_id: 6
+    # Positions
+    lift_up_pos: 100
+    lift_down_pos: 700
+    lift_carry_pos: 600
+    lift_rotating_pos: 250
+    cursor_up_pos: 950
+    clanL_up_pos: 701
+    clanL_down_pos: 0
+    clanL_undep_pos: 511
+    clanR_up_pos: 322
+    clanR_down_pos: 1023
+    clanR_undep_pos: 511
 
 ros381/csi_camera:
   ros__parameters:

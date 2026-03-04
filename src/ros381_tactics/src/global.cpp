@@ -34,6 +34,7 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
     ax_hybrid_move_client_ = rclcpp_action::create_client<AxHybridMove>(this, "ax_hybrid_move");
 
     init_python(this);
+    declare_ax_params();
 
     RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
 }
@@ -497,6 +498,55 @@ void TacticGlobalNode::update_pose_callback(rclcpp::Client<ros381_interfaces::sr
     auto response = future.get();
     RCLCPP_INFO(this->get_logger(), "Pose updated");
     update_pose_result_ = -1;
+}
+
+void TacticGlobalNode::declare_ax_params()
+{
+    this->declare_parameter<uint8_t>("lift_front_id", 15);
+    this->declare_parameter<uint8_t>("lift_back_id", 5);
+    this->declare_parameter<uint8_t>("clan1_front_id", 11);
+    this->declare_parameter<uint8_t>("clan2_front_id", 12);
+    this->declare_parameter<uint8_t>("clan3_front_id", 13);
+    this->declare_parameter<uint8_t>("clan4_front_id", 14);
+    this->declare_parameter<uint8_t>("clan1_back_id", 1);
+    this->declare_parameter<uint8_t>("clan2_back_id", 2);
+    this->declare_parameter<uint8_t>("clan3_back_id", 3);
+    this->declare_parameter<uint8_t>("clan4_back_id", 4);
+    this->declare_parameter<uint8_t>("cursor_id", 6);
+    lift_front_id_ = static_cast<uint8_t>(this->get_parameter("lift_front_id").as_int());
+    lift_back_id_ = static_cast<uint8_t>(this->get_parameter("lift_back_id").as_int());
+    clan1_front_id_ = static_cast<uint8_t>(this->get_parameter("clan1_front_id").as_int());
+    clan2_front_id_ = static_cast<uint8_t>(this->get_parameter("clan2_front_id").as_int());
+    clan3_front_id_ = static_cast<uint8_t>(this->get_parameter("clan3_front_id").as_int());
+    clan4_front_id_ = static_cast<uint8_t>(this->get_parameter("clan4_front_id").as_int());
+    clan1_back_id_ = static_cast<uint8_t>(this->get_parameter("clan1_back_id").as_int());
+    clan2_back_id_ = static_cast<uint8_t>(this->get_parameter("clan2_back_id").as_int());
+    clan3_back_id_ = static_cast<uint8_t>(this->get_parameter("clan3_back_id").as_int());
+    clan4_back_id_ = static_cast<uint8_t>(this->get_parameter("clan4_back_id").as_int());
+    cursor_id_ = static_cast<uint8_t>(this->get_parameter("cursor_id").as_int());
+
+    this->declare_parameter<uint16_t>("lift_up_pos", 900);
+    this->declare_parameter<uint16_t>("lift_down_pos", 300);
+    this->declare_parameter<uint16_t>("lift_carry_pos", 400);
+    this->declare_parameter<uint16_t>("lift_rotating_pos", 750);
+    this->declare_parameter<uint16_t>("cursor_up_pos", 950);
+    this->declare_parameter<uint16_t>("clanL_up_pos", 701);
+    this->declare_parameter<uint16_t>("clanL_down_pos", 0);
+    this->declare_parameter<uint16_t>("clanR_up_pos", 322);
+    this->declare_parameter<uint16_t>("clanR_down_pos", 1023);
+    this->declare_parameter<uint16_t>("clanL_undep_pos", 511);
+    this->declare_parameter<uint16_t>("clanR_undep_pos", 511);
+    lift_up_pos_ = static_cast<uint16_t>(this->get_parameter("lift_up_pos").as_int());
+    lift_down_pos_ = static_cast<uint16_t>(this->get_parameter("lift_down_pos").as_int());
+    lift_carry_pos_ = static_cast<uint16_t>(this->get_parameter("lift_carry_pos").as_int());
+    lift_rotating_pos_ = static_cast<uint16_t>(this->get_parameter("lift_rotating_pos").as_int());
+    cursor_up_pos_ = static_cast<uint16_t>(this->get_parameter("cursor_up_pos").as_int());
+    clanL_up_pos_ = static_cast<uint16_t>(this->get_parameter("clanL_up_pos").as_int());
+    clanL_down_pos_ = static_cast<uint16_t>(this->get_parameter("clanL_down_pos").as_int());
+    clanR_up_pos_ = static_cast<uint16_t>(this->get_parameter("clanR_up_pos").as_int());
+    clanR_down_pos_ = static_cast<uint16_t>(this->get_parameter("clanR_down_pos").as_int());
+    clanL_undep_pos_ = static_cast<uint16_t>(this->get_parameter("clanL_undep_pos").as_int());
+    clanR_undep_pos_ = static_cast<uint16_t>(this->get_parameter("clanR_undep_pos").as_int());
 }
 
 int main(int argc, char **argv)

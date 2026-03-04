@@ -12,6 +12,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "ros381_interfaces/action/move.hpp"
+#include "ros381_interfaces/msg/crate_stack.hpp"
 #include "ros381_interfaces/msg/float3.hpp"
 #include "ros381_interfaces/srv/update_pose.hpp"
 #include "ros381_tactics/defines.hpp"
@@ -46,6 +47,17 @@ class TacticGlobalNode : public rclcpp::Node
     uint16_t ax_hybrid_end_position_ = 0;
     py::module *tactics_module_ = nullptr;
 
+    // AX ids:
+    uint8_t lift_front_id_ = 15, lift_back_id_ = 5;
+    uint8_t clan1_front_id_ = 11, clan2_front_id_ = 12, clan3_front_id_ = 13, clan4_front_id_= 14;
+    uint8_t clan1_back_id_ = 1, clan2_back_id_ = 2, clan3_back_id_ = 3, clan4_back_id_ = 4;
+    uint8_t cursor_id_ = 6;
+    // AX positions:
+    uint16_t lift_up_pos_ = 900, lift_down_pos_ = 300, lift_carry_pos_ = 400, lift_rotating_pos_ = 750;
+    uint16_t cursor_up_pos_ = 950;
+    uint16_t clanL_up_pos_ = 701, clanL_down_pos_ = 0, clanR_up_pos_ = 322, clanR_down_pos_ = 1023;
+    uint16_t clanL_undep_pos_ = 511, clanR_undep_pos_ = 511;
+
     TacticGlobalNode();
 
     void send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,
@@ -55,7 +67,7 @@ class TacticGlobalNode : public rclcpp::Node
     void update_pose(double x, double y, double phi, uint16_t type);
     void publish_pose_offset(double x, double y, double phi);
     void ax_move_goal(AxMoveGoal goal);
-    void ax_bulk_move_goal(const std::vector<AxMoveGoal>& goals);
+    void ax_bulk_move_goal(const std::vector<AxMoveGoal> &goals);
     void ax_hybrid_move_goal(uint8_t id, uint16_t velocity, float zero_time, int16_t delta_pos);
     void set_vacuum(uint8_t vacuum_state);
 
@@ -109,6 +121,7 @@ class TacticGlobalNode : public rclcpp::Node
     void ax_hybrid_move_feedback_callback(AxHybridMoveGoalHandle::SharedPtr,
                                           const std::shared_ptr<const AxHybridMove::Feedback> feedback);
     void ax_hybrid_move_result_callback(const AxHybridMoveGoalHandle::WrappedResult &result);
+    void declare_ax_params();
 };
 
 void init_python(TacticGlobalNode *node);

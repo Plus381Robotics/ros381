@@ -74,6 +74,101 @@ def init_ax():
             return True
     return False
 
+cursor_state = 0
+cursor_id = 6
+
+
+def cursor(position):
+    global cursor_state, cursor_id
+    match cursor_state:
+        case 0:
+            if position == 1:
+                cursor_state = 10
+            else:
+                cursor_state = 20
+        case 10:
+            ax_move(cursor_id, 950, 1000, 50)
+            cursor_state = 11
+        case 11:
+            if get_ax_move_result() < 0:
+                cursor_state = -1
+        case 20:
+            ax_hybrid_move(cursor_id, 1000, 0.2, -200)
+            cursor_state = 21
+        case 21:
+            if get_ax_hybrid_move_result() < 0:
+                cursor_state = 22
+        case 22:
+            cursor_pos = get_ax_hybrid_end_position()
+            print ("Cursor reached position " + str(cursor_pos))
+            cursor_state = -1
+        case -1:
+            cursor_state = 0
+    return cursor_state
+
+
+lift_state = 0
+lift_id = 5
+lift_pos = 511
+lift_dpos = 200
+lift_retpos = -1
+
+
+def lift(side, state):
+    global lift_state, lift_id, lift_pos, lift_dpos, lift_retpos
+    match lift_state:
+        case 0:
+            lift_retpos = -1
+            if side == 1:
+                lift_id = 15
+            else:
+                lift_id = 5
+            if state == 1:
+                lift_pos = 900
+                lift_dpos = 200
+            else:
+                lift_pos = 300
+                lift_dpos = -200
+            lift_state = 1
+        case 1:
+            ax_move(lift_id, lift_pos, 1000, 20)
+            lift_state = 2
+        case 2:
+            if get_ax_move_result() < 0:
+                lift_state = 3
+        case 3:
+            ax_hybrid_move(lift_id, 1000, 0.2, lift_dpos)
+            lift_state = 4
+        case 4:
+            if get_ax_hybrid_move_result() < 0:
+                lift_state = 5
+        case 5:
+            lift_retpos = get_ax_hybrid_end_position()
+            lift_state = -1
+        case -1:
+            lift_state = 0
+    return lift_state, lift_retpos
+
+
+def lift_carry(side):
+    global lift_id, lift_state
+    match lift_state:
+        case 0:
+            if side == 1:
+                lift_id = 15
+            else:
+                lift_id = 5
+            lift_state = 1
+        case 1:
+            ax_move(lift_id, 400, 1000, 20)
+            lift_state = 2
+        case 2:
+            if get_ax_move_result() < 0:
+                lift_state = -1
+        case -1:
+            lift_state = 0
+    return lift_state
+
 
 def get_ax_move_result():
     return get_GT().ax_move_result_

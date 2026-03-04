@@ -27,6 +27,7 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
         "chinch_trigger", 10, std::bind(&TacticGlobalNode::callback_chinch_state, this, _1));
     switches_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
         "switches", 10, std::bind(&TacticGlobalNode::callback_switches, this, _1));
+    vacuum_pub_ = this->create_publisher<example_interfaces::msg::UInt8>("vacuum", 10);
     pose_offs_pub_ = this->create_publisher<ros381_interfaces::msg::Float3>("pose_offset", 10);
     ax_move_client_ = rclcpp_action::create_client<AxMove>(this, "ax_move");
     ax_bulk_move_client_ = rclcpp_action::create_client<AxBulkMove>(this, "ax_bulk_move");
@@ -35,6 +36,14 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
     init_python(this);
 
     RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
+}
+
+void TacticGlobalNode::set_vacuum(uint8_t vacuum_state)
+{
+    vacuum_ = vacuum_state;
+    auto msg = example_interfaces::msg::UInt8();
+    msg.data = vacuum_;
+    vacuum_pub_->publish(msg);
 }
 
 void TacticGlobalNode::publish_pose_offset(double x, double y, double phi)

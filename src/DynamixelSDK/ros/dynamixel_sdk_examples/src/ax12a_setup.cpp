@@ -11,7 +11,7 @@
 
 #define PROTOCOL_VERSION 1.0
 
-#define BAUDRATE 9600
+#define BAUDRATE 115200
 #define DEVICE_NAME "/dev/ttyUSB0"
 
 using namespace std::placeholders;

@@ -1,0 +1,64 @@
+import math
+from ros381_tactics.movement import *
+from ros381_tactics.get_set import *
+from ros381_tactics.ax12a import *
+
+tactic_state = 0
+
+start_x = -1.1
+start_y = 0.723
+start_phi = -math.pi / 2
+
+first_x = 0.0
+first_y = 0.5
+first_dir = 1
+
+
+def load_t6():
+    global start_x, start_y, start_phi, first_x, first_y, first_dir
+    print("Tactic 6 loaded.")
+    return start_x, start_y, start_phi, first_x, first_y, first_dir
+
+
+# TODO:
+#   lift nosi
+#   lift dole
+#   lift nosi
+#   mehanizam
+#   kursor dole
+#   kursor gore
+#   lift gore
+#   mehanizam
+#   lift dole
+
+
+def tactic_6():
+    global tactic_state
+
+    match tactic_state:
+        case 0:
+            if lift_carry(-1) < 0:
+                tactic_state = 10
+        case 10:
+            state, position = lift(-1, 0)
+            if state < 0:
+                if position < 100:
+                    print("Stack NOT here!")
+                else:
+                    print("Stack here!")
+                tactic_state = 20
+        case 20:
+            # mehanizam
+            tactic_state = 30
+        case 30:
+            if lift_carry(-1) < 0:
+                tactic_state = 40
+        case 40:
+            if cursor(0) < 0:
+                tactic_state = 50
+        case 50:
+            if cursor(1) < 0:
+                tactic_state = -1
+        case -1:
+            print("Tactic 6 finished.")
+    return tactic_state

@@ -235,7 +235,7 @@ class ControlLoopNode : public rclcpp::Node
     }
     
     // TODO: delete
-    int i = 0;
+    // int i = 0;
     void control_loop()
     {
         if (odom_initialized_)
@@ -275,13 +275,13 @@ class ControlLoopNode : public rclcpp::Node
             this->publish_motor_cmd();
             this->publish_obstacle_dir();
 
-            if (i < 40)
-            {
-                i++;
-                RCLCPP_INFO(this->get_logger(), "odom time: %.3f us, ctrl time: %.3f us", odom_time_ns_ / 1000.0,
-                                ctrl_time_ns_ / 1000.0);
-                RCLCPP_INFO(this->get_logger(), "Difference: %.3f us", (-odom_time_ns_ + ctrl_time_ns_) / 1000.0);
-            }
+            // if (i < 40)
+            // {
+            //     i++;
+            //     RCLCPP_INFO(this->get_logger(), "odom time: %.3f us, ctrl time: %.3f us", odom_time_ns_ / 1000.0,
+            //                     ctrl_time_ns_ / 1000.0);
+            //     RCLCPP_INFO(this->get_logger(), "Difference: %.3f us", (-odom_time_ns_ + ctrl_time_ns_) / 1000.0);
+            // }
         }
     }
 

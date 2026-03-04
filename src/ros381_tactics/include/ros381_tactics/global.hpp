@@ -57,6 +57,7 @@ class TacticGlobalNode : public rclcpp::Node
     void ax_move_goal(AxMoveGoal goal);
     void ax_bulk_move_goal(const std::vector<AxMoveGoal>& goals);
     void ax_hybrid_move_goal(uint8_t id, uint16_t velocity, float zero_time, int16_t delta_pos);
+    void set_vacuum(uint8_t vacuum_state);
 
   private:
     std::unique_ptr<py::scoped_interpreter> guard_;
@@ -69,6 +70,7 @@ class TacticGlobalNode : public rclcpp::Node
     int8_t tactic_side_ = 1;
     uint8_t tactic_num_ = 0;
     bool reset_on_, reset_was_on_ = false;
+    uint8_t vacuum_ = 0;
 
     rclcpp::Publisher<example_interfaces::msg::Float32>::SharedPtr time_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -77,6 +79,7 @@ class TacticGlobalNode : public rclcpp::Node
     rclcpp::Publisher<example_interfaces::msg::Empty>::SharedPtr chinch_waiting_pub_;
     rclcpp::Subscription<example_interfaces::msg::Bool>::SharedPtr chinch_trigger_sub_;
     rclcpp::Subscription<example_interfaces::msg::UInt8>::SharedPtr switches_sub_;
+    rclcpp::Publisher<example_interfaces::msg::UInt8>::SharedPtr vacuum_pub_;
     rclcpp::Publisher<ros381_interfaces::msg::Float3>::SharedPtr pose_offs_pub_;
     rclcpp_action::Client<dynamixel_sdk_custom_interfaces::action::AxMove>::SharedPtr ax_move_client_;
     rclcpp_action::Client<dynamixel_sdk_custom_interfaces::action::AxBulkMove>::SharedPtr ax_bulk_move_client_;

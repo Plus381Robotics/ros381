@@ -38,7 +38,7 @@ ros381/tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
     tick_freq: 100.0
-    default_tactic: 4
+    default_tactic: 6
     default_side: blue
 
 ros381/csi_camera:

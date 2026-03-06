@@ -22,7 +22,7 @@ class ArUcoDetection : public rclcpp::Node
 
         image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
             "image_raw", 10, std::bind(&ArUcoDetection::topic_callback, this, std::placeholders::_1));
-        crate_pub_ = this->create_publisher<ros381_interfaces::msg::CrateStack>("crate_stack", 10);
+        crate_pub_ = this->create_publisher<ros381_interfaces::msg::CrateStack>("crate_stack_back", 10);
 
         if (pub_cv_image_)
         {
@@ -124,12 +124,12 @@ class ArUcoDetection : public rclcpp::Node
                     // RCLCPP_INFO(this->get_logger(), "Marker %d: Pos[%.3f, %.3f, %.3f] RPY[%.3f, %.3f, %.3f]",
                     // markerIds[i],
                     //             x, y, z, euler[0], euler[1], euler[2]);
-                    cv::drawFrameAxes(bgr_img, camera_matrix_, dist_coeffs_, rvec, tvec, 0.05);
+                    // cv::drawFrameAxes(bgr_img, camera_matrix_, dist_coeffs_, rvec, tvec, 0.05);
                     crate_vector.push_back(crate);
                 }
             }
             std::sort(crate_vector.begin(), crate_vector.end(), [](const auto &a, const auto &b) {
-                if (std::fabs(a.y - b.y) > 0.001)
+                if (std::fabs(a.y - b.y) > 0.05)
                     return a.y > b.y;
                 return a.x < b.x;
             });
@@ -149,13 +149,12 @@ class ArUcoDetection : public rclcpp::Node
                 crate_msg.x = x_sum * 0.25;
                 crate_msg.y = y_sum * 0.25;
                 crate_msg.phi = phi_sum * 0.25;
-                ;
             }
             else
             {
-                crate_msg.x = 0.0;
-                crate_msg.y = 0.0;
-                crate_msg.phi = 0.0;
+                crate_msg.x = 9.9;
+                crate_msg.y = 9.9;
+                crate_msg.phi = 9.9;
             }
 
             if (!crate_msg.crate_list.empty())

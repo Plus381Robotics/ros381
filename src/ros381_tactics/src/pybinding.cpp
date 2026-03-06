@@ -40,7 +40,19 @@ PYBIND11_EMBEDDED_MODULE(ros381_tactics_py, m)
         .def_readonly("clanR_up_pos_", &TacticGlobalNode::clanR_up_pos_)
         .def_readonly("clanR_down_pos_", &TacticGlobalNode::clanR_down_pos_)
         .def_readonly("clanL_undep_pos_", &TacticGlobalNode::clanL_undep_pos_)
-        .def_readonly("clanR_undep_pos_", &TacticGlobalNode::clanR_undep_pos_);
+        .def_readonly("clanR_undep_pos_", &TacticGlobalNode::clanR_undep_pos_)
+        .def_readwrite("cs_front_x", &TacticGlobalNode::cs_front_x)
+        .def_readwrite("cs_front_y", &TacticGlobalNode::cs_front_y)
+        .def_readwrite("cs_front_phi", &TacticGlobalNode::cs_front_phi)
+        .def_readwrite("cs_back_x", &TacticGlobalNode::cs_back_x)
+        .def_readwrite("cs_back_y", &TacticGlobalNode::cs_back_y)
+        .def_readwrite("cs_back_phi", &TacticGlobalNode::cs_back_phi)
+        .def_readwrite("cs_front_full", &TacticGlobalNode::cs_front_full)
+        .def_readwrite("cs_back_full", &TacticGlobalNode::cs_back_full)
+        .def_readonly("crates_back_", &TacticGlobalNode::crates_back_)
+        .def_readonly("crates_front_", &TacticGlobalNode::crates_front_)
+        .def_readwrite("consumed_front", &TacticGlobalNode::consumed_front_)
+        .def_readwrite("consumed_back", &TacticGlobalNode::consumed_back_);
 
     m.def(
         "get_node_instance",

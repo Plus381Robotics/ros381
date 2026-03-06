@@ -12,11 +12,13 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "ros381_interfaces/action/move.hpp"
+#include "ros381_interfaces/msg/crate.hpp"
 #include "ros381_interfaces/msg/crate_stack.hpp"
 #include "ros381_interfaces/msg/float3.hpp"
 #include "ros381_interfaces/srv/update_pose.hpp"
 #include "ros381_tactics/defines.hpp"
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <array>
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 
@@ -49,7 +51,7 @@ class TacticGlobalNode : public rclcpp::Node
 
     // AX ids:
     uint8_t lift_front_id_ = 15, lift_back_id_ = 5;
-    uint8_t clan1_front_id_ = 11, clan2_front_id_ = 12, clan3_front_id_ = 13, clan4_front_id_= 14;
+    uint8_t clan1_front_id_ = 11, clan2_front_id_ = 12, clan3_front_id_ = 13, clan4_front_id_ = 14;
     uint8_t clan1_back_id_ = 1, clan2_back_id_ = 2, clan3_back_id_ = 3, clan4_back_id_ = 4;
     uint8_t cursor_id_ = 6;
     // AX positions:
@@ -57,6 +59,16 @@ class TacticGlobalNode : public rclcpp::Node
     uint16_t cursor_up_pos_ = 950;
     uint16_t clanL_up_pos_ = 701, clanL_down_pos_ = 0, clanR_up_pos_ = 322, clanR_down_pos_ = 1023;
     uint16_t clanL_undep_pos_ = 511, clanR_undep_pos_ = 511;
+
+    // CrateStacks:
+    double cs_front_x = 9.9, cs_front_y = 9.9, cs_front_phi = 9.9;
+    double cs_back_x = 9.9, cs_back_y = 9.9, cs_back_phi = 9.9;
+    bool cs_front_full = false, cs_back_full = false;
+    // int8_t crates_back_[4] = {-1, -1, -1, -1};
+    std::array<int8_t, 4> crates_back_ = {-1, -1, -1, -1};
+    std::array<int8_t, 4> crates_front_ = {-1, -1, -1, -1};
+    // int8_t crates_front_[4] = {-1, -1, -1, -1};
+    bool consumed_front_ = true, consumed_back_ = true;
 
     TacticGlobalNode();
 
@@ -96,6 +108,7 @@ class TacticGlobalNode : public rclcpp::Node
     rclcpp_action::Client<dynamixel_sdk_custom_interfaces::action::AxMove>::SharedPtr ax_move_client_;
     rclcpp_action::Client<dynamixel_sdk_custom_interfaces::action::AxBulkMove>::SharedPtr ax_bulk_move_client_;
     rclcpp_action::Client<dynamixel_sdk_custom_interfaces::action::AxHybridMove>::SharedPtr ax_hybrid_move_client_;
+    rclcpp::Subscription<ros381_interfaces::msg::CrateStack>::SharedPtr crate_stack_sub_;
 
     py::object tactic_result_;
 
@@ -109,6 +122,7 @@ class TacticGlobalNode : public rclcpp::Node
     void tactic_tick();
     void update_pose_callback(rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedFuture future);
     void callback_switches(const example_interfaces::msg::UInt8::SharedPtr msg);
+    void callback_crate_stack_back(const ros381_interfaces::msg::CrateStack msg);
 
     void ax_move_goal_response_callback(const AxMoveGoalHandle::SharedPtr &goal_handle);
     void ax_move_feedback_callback(AxMoveGoalHandle::SharedPtr, const std::shared_ptr<const AxMove::Feedback> feedback);
@@ -122,6 +136,7 @@ class TacticGlobalNode : public rclcpp::Node
                                           const std::shared_ptr<const AxHybridMove::Feedback> feedback);
     void ax_hybrid_move_result_callback(const AxHybridMoveGoalHandle::WrappedResult &result);
     void declare_ax_params();
+    uint8_t crate_position(double x);
 };
 
 void init_python(TacticGlobalNode *node);

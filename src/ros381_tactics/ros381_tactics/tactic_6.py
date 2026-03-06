@@ -35,6 +35,12 @@ def load_t6():
 def tactic_6():
     global tactic_state
 
+    if not get_GT().consumed_back:
+        print(f"Crate Stack position: ({get_GT().cs_back_x}, {get_GT().cs_back_y}, {get_GT().cs_back_phi})")
+        for i in range(4):
+            print(f"crate[{i}] color:", get_GT().crates_back_[i])
+        get_GT().consumed_back = True
+
     match tactic_state:
         case 0:
             if lift_carry(-1) < 0:

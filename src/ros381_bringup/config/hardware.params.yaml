@@ -54,10 +54,11 @@ ros381/tactic_global:
     clan4_back_id: 4
     cursor_id: 6
     # Positions
-    lift_up_pos: 100
-    lift_down_pos: 700
-    lift_carry_pos: 600
-    lift_rotating_pos: 250
+    lift_up_pos: 900
+    lift_down_pos: 300
+    lift_carry_pos: 400
+    lift_rotating_pos: 750
+    lift_dropoff_pos: 450
     cursor_up_pos: 950
     clanL_up_pos: 701
     clanL_down_pos: 0

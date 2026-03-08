@@ -21,7 +21,6 @@ def load_t6():
 
 
 # TODO:
-#   lift nosi
 #   lift dole
 #   lift nosi
 #   mehanizam
@@ -38,26 +37,26 @@ def tactic_6():
     if not get_GT().consumed_back:
         print(f"Crate Stack position: ({get_GT().cs_back_x}, {get_GT().cs_back_y}, {get_GT().cs_back_phi})")
         for i in range(4):
-            print(f"crate[{i}] color:", get_GT().crates_back_[i])
+            print(f"crate[{i}] color:", get_GT().crates_back[i])
         get_GT().consumed_back = True
 
     match tactic_state:
         case 0:
-            if lift_carry(-1) < 0:
+            if snapshot_fsm(-1, 47, 10) < 0:
                 tactic_state = 10
         case 10:
             state, position = lift(-1, 0)
             if state < 0:
-                if position < 100:
+                if position < 900:
                     print("Stack NOT here!")
                 else:
                     print("Stack here!")
                 tactic_state = 20
         case 20:
-            # mehanizam
-            tactic_state = 30
-        case 30:
             if lift_carry(-1) < 0:
+                tactic_state = 30
+        case 30:
+            if mechanism(-1, 47):
                 tactic_state = 40
         case 40:
             if cursor(0) < 0:

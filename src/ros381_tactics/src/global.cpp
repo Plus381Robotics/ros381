@@ -606,6 +606,7 @@ void TacticGlobalNode::declare_ax_params()
     this->declare_parameter<uint16_t>("lift_down_pos", 300);
     this->declare_parameter<uint16_t>("lift_carry_pos", 400);
     this->declare_parameter<uint16_t>("lift_rotating_pos", 750);
+    this->declare_parameter<uint16_t>("lift_dropoff_pos", 450);
     this->declare_parameter<uint16_t>("cursor_up_pos", 950);
     this->declare_parameter<uint16_t>("clanL_up_pos", 701);
     this->declare_parameter<uint16_t>("clanL_down_pos", 0);
@@ -617,6 +618,7 @@ void TacticGlobalNode::declare_ax_params()
     lift_down_pos_ = static_cast<uint16_t>(this->get_parameter("lift_down_pos").as_int());
     lift_carry_pos_ = static_cast<uint16_t>(this->get_parameter("lift_carry_pos").as_int());
     lift_rotating_pos_ = static_cast<uint16_t>(this->get_parameter("lift_rotating_pos").as_int());
+    lift_dropoff_pos_ = static_cast<uint16_t>(this->get_parameter("lift_dropoff_pos").as_int());
     cursor_up_pos_ = static_cast<uint16_t>(this->get_parameter("cursor_up_pos").as_int());
     clanL_up_pos_ = static_cast<uint16_t>(this->get_parameter("clanL_up_pos").as_int());
     clanL_down_pos_ = static_cast<uint16_t>(this->get_parameter("clanL_down_pos").as_int());

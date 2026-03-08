@@ -55,7 +55,7 @@ class TacticGlobalNode : public rclcpp::Node
     uint8_t clan1_back_id_ = 1, clan2_back_id_ = 2, clan3_back_id_ = 3, clan4_back_id_ = 4;
     uint8_t cursor_id_ = 6;
     // AX positions:
-    uint16_t lift_up_pos_ = 900, lift_down_pos_ = 300, lift_carry_pos_ = 400, lift_rotating_pos_ = 750;
+    uint16_t lift_up_pos_ = 900, lift_down_pos_ = 300, lift_carry_pos_ = 400, lift_rotating_pos_ = 750, lift_dropoff_pos_ = 450;
     uint16_t cursor_up_pos_ = 950;
     uint16_t clanL_up_pos_ = 701, clanL_down_pos_ = 0, clanR_up_pos_ = 322, clanR_down_pos_ = 1023;
     uint16_t clanL_undep_pos_ = 511, clanR_undep_pos_ = 511;

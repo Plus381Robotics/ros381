@@ -11,11 +11,144 @@ lift_front_id = lift_back_id = None
 clan1_front_id = clan2_front_id = clan3_front_id = clan4_front_id = None
 clan1_back_id = clan2_back_id = clan3_back_id = clan4_back_id = None
 cursor_id = None
-lift_up_pos = lift_down_pos = lift_carry_pos = lift_rotating_pos = None
+lift_up_pos = lift_down_pos = lift_carry_pos = lift_rotating_pos = lift_dropoff_pos = (
+    None
+)
 cursor_up_pos = None
 clanL_up_pos = clanL_down_pos = clanR_up_pos = clanR_down_pos = clanL_undep_pos = (
     clanR_undep_pos
 ) = None
+
+
+mech_state = 0
+mlift_id = lift_front_id
+mcl1_id = mcl2_id = mcl3_id = mcl4_id = 0
+mcl1_pos = mcl2_pos = mcl3_pos = mcl4_pos = 0
+mvf = mvb = False
+
+
+def mechanism(side, color):
+    global mech_state, mlift_id
+    global mcl1_id, mcl2_id, mcl3_id, mcl4_id
+    global mcl1_pos, mcl2_pos, mcl3_pos, mcl4_pos
+    global mvf, mvb
+    match mech_state:
+        case 0:
+            # 0. na osnovu strane inicijalizuj: mlift_id, mcl_ids, mcl_positions, mvf, mvb
+            if side == 1:
+                mlift_id = lift_front_id
+                mcl1_id = clan1_front_id
+                mcl2_id = clan2_front_id
+                mcl3_id = clan3_front_id
+                mcl4_id = clan4_front_id
+                mcl1_pos = (
+                    clanL_up_pos
+                    if get_GT().crates_front_[0] == color
+                    else clanL_down_pos
+                )
+                mcl2_pos = (
+                    clanL_up_pos
+                    if get_GT().crates_front_[1] == color
+                    else clanL_down_pos
+                )
+                mcl3_pos = (
+                    clanR_up_pos
+                    if get_GT().crates_front_[2] == color
+                    else clanR_down_pos
+                )
+                mcl4_pos = (
+                    clanR_up_pos
+                    if get_GT().crates_front_[3] == color
+                    else clanR_down_pos
+                )
+                mvf = True
+                mvb = False
+            else:
+                mlift_id = lift_back_id
+                mcl1_id = clan1_back_id
+                mcl2_id = clan2_back_id
+                mcl3_id = clan3_back_id
+                mcl4_id = clan4_back_id
+                mcl1_pos = (
+                    clanL_up_pos
+                    if get_GT().crates_back_[0] == color
+                    else clanL_down_pos
+                )
+                mcl2_pos = (
+                    clanL_up_pos
+                    if get_GT().crates_back_[1] == color
+                    else clanL_down_pos
+                )
+                mcl3_pos = (
+                    clanR_up_pos
+                    if get_GT().crates_back_[2] == color
+                    else clanR_down_pos
+                )
+                mcl4_pos = (
+                    clanR_up_pos
+                    if get_GT().crates_back_[3] == color
+                    else clanR_down_pos
+                )
+                mvf = False
+                mvb = True
+            mech_state = 10
+        case 10:
+            # 1. lift na rotating
+            ax_move(mlift_id, lift_rotating_pos, 1000, 20)
+            mech_state = 15
+        case 15:
+            if get_ax_move_result() < 0:
+                mech_state = 20
+        case 20:
+            # 2. bulk move za clanove
+            ax_bulk_move(
+                [
+                    (mcl1_id, mcl1_pos, 400, 100),
+                    (mcl2_id, mcl2_pos, 400, 100),
+                    (mcl3_id, mcl3_pos, 400, 100),
+                    (mcl4_id, mcl4_pos, 400, 100),
+                ]
+            )
+            mech_state = 25
+        case 25:
+            if get_ax_bulk_move_result() < 0:
+                mech_state = 30
+        case 30:
+            # 3. lift na dropoff
+            ax_move(mlift_id, lift_dropoff_pos, 1000, 20)
+            mech_state = 35
+        case 35:
+            if get_ax_move_result() < 0:
+                mech_state = 40
+        case 40:
+            # 4. iskljuci vakuum
+            get_GT().remove_vacuum(mvf, mvb)
+            mech_state = 50
+        case 50:
+            # 5. lift na rotating
+            ax_move(mlift_id, lift_rotating_pos, 1000, 20)
+            mech_state = 55
+        case 55:
+            if get_ax_move_result() < 0:
+                mech_state = 60
+        case 60:
+            # 6. bulk move za clanove
+            ax_bulk_move(
+                [
+                    (mcl1_id, clanL_down_pos, 400, 100),
+                    (mcl2_id, clanL_down_pos, 400, 100),
+                    (mcl3_id, clanR_down_pos, 400, 100),
+                    (mcl4_id, clanR_down_pos, 400, 100),
+                ]
+            )
+            mech_state = 65
+        case 65:
+            if get_ax_bulk_move_result() < 0:
+                mech_state = -1
+        case -1:
+            mech_state = 0
+
+    return mech_state
 
 
 cursor_state = 0
@@ -56,6 +189,7 @@ lift_dpos = 200
 lift_retpos = -1
 vf = False
 vb = False
+
 
 def lift(side, state):
     global lift_state, lift_id, lift_pos, lift_dpos, lift_retpos
@@ -385,5 +519,9 @@ def load_ax_params():
         f"Lift Positions: up: {lift_up_pos}, down: {lift_down_pos}, carry: {lift_carry_pos}, rotating: {lift_rotating_pos}"
     )
     print(f"Cursor Position: up: {cursor_up_pos}")
-    print(f"ClanL Positions: up: {clanL_up_pos}, down: {clanL_down_pos}, undeployed: {clanL_undep_pos}")
-    print(f"ClanR Positions: up: {clanR_up_pos}, down: {clanR_down_pos}, undeployed: {clanR_undep_pos}")
+    print(
+        f"ClanL Positions: up: {clanL_up_pos}, down: {clanL_down_pos}, undeployed: {clanL_undep_pos}"
+    )
+    print(
+        f"ClanR Positions: up: {clanR_up_pos}, down: {clanR_down_pos}, undeployed: {clanR_undep_pos}"
+    )

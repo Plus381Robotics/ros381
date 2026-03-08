@@ -81,7 +81,10 @@ class TacticGlobalNode : public rclcpp::Node
     void ax_move_goal(AxMoveGoal goal);
     void ax_bulk_move_goal(const std::vector<AxMoveGoal> &goals);
     void ax_hybrid_move_goal(uint8_t id, uint16_t velocity, float zero_time, int16_t delta_pos);
-    void set_vacuum(uint8_t vacuum_state);
+    void set_vacuum(bool front, bool back);
+    void add_vacuum(bool front, bool back);
+    void remove_vacuum(bool front, bool back);
+    uint8_t vacuum_mask(bool front, bool back);
 
   private:
     std::unique_ptr<py::scoped_interpreter> guard_;

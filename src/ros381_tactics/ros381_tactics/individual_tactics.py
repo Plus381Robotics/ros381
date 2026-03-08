@@ -38,7 +38,7 @@ def load_tactic(GT, tactic_number, tactic_side):
         case 0:
             set_GT(GT)
             load_ax_params()
-            
+
             chosen_tactic = tactic_number
             set_side(tactic_side)
             start_x, start_y, start_phi, first_x, first_y, first_dir = globals()[
@@ -49,19 +49,19 @@ def load_tactic(GT, tactic_number, tactic_side):
                 print("Yellow side chosen.")
             else:
                 print("Blue side chosen.")
-                
+
             # TODO: vrati na 1
-            load_state = -1
+            load_state = 3
         case 1:
             GT.update_pose(start_x, start_y, start_phi, 111)
             GT.publish_pose_offset(start_x, start_y, start_phi)
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:
-                # TODO: vidi kako da stavis parametar skip_ax_init
+                # TODO: parametar skip_ax_init
                 load_state = 3
         case 3:
-            GT.set_vacuum(0)
+            GT.set_vacuum(False, False)
             load_state = 4
         case 4:
             if init_ax():

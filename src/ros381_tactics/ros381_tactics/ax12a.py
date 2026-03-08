@@ -54,7 +54,8 @@ lift_state = 0
 lift_pos = 511
 lift_dpos = 200
 lift_retpos = -1
-
+vf = False
+vb = False
 
 def lift(side, state):
     global lift_state, lift_id, lift_pos, lift_dpos, lift_retpos
@@ -63,11 +64,17 @@ def lift(side, state):
             lift_retpos = -1
             if side == 1:
                 lift_id = lift_front_id
+                vf = True
+                vb = False
             else:
                 lift_id = lift_back_id
+                vf = False
+                vb = True
             if state == 1:
                 lift_pos = lift_up_pos
                 lift_dpos = -200
+                vf = False
+                vb = False
             else:
                 lift_pos = lift_down_pos
                 lift_dpos = 200
@@ -79,12 +86,15 @@ def lift(side, state):
             if get_ax_move_result() < 0:
                 lift_state = 3
         case 3:
-            ax_hybrid_move(lift_id, 1000, 0.2, lift_dpos)
+            get_GT().add_vacuum(vf, vb)
             lift_state = 4
         case 4:
-            if get_ax_hybrid_move_result() < 0:
-                lift_state = 5
+            ax_hybrid_move(lift_id, 1000, 0.2, lift_dpos)
+            lift_state = 5
         case 5:
+            if get_ax_hybrid_move_result() < 0:
+                lift_state = 6
+        case 6:
             lift_retpos = get_ax_hybrid_end_position()
             lift_state = -1
         case -1:

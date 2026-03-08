@@ -95,12 +95,33 @@ uint8_t TacticGlobalNode::crate_position(double x)
     return 3;
 }
 
-void TacticGlobalNode::set_vacuum(uint8_t vacuum_state)
+void TacticGlobalNode::set_vacuum(bool front, bool back)
 {
-    vacuum_ = vacuum_state;
+    vacuum_ = vacuum_mask(front, back);
     auto msg = example_interfaces::msg::UInt8();
     msg.data = vacuum_;
     vacuum_pub_->publish(msg);
+}
+
+void TacticGlobalNode::add_vacuum(bool front, bool back)
+{
+    vacuum_ |= vacuum_mask(front, back);
+    auto msg = example_interfaces::msg::UInt8();
+    msg.data = vacuum_;
+    vacuum_pub_->publish(msg);
+}
+
+void TacticGlobalNode::remove_vacuum(bool front, bool back)
+{
+    vacuum_ &= ~vacuum_mask(front, back);
+    auto msg = example_interfaces::msg::UInt8();
+    msg.data = vacuum_;
+    vacuum_pub_->publish(msg);
+}
+
+uint8_t TacticGlobalNode::vacuum_mask(bool front, bool back)
+{
+    return (front ? 0b1100 : 0) | (back ? 0b0011 : 0);
 }
 
 void TacticGlobalNode::publish_pose_offset(double x, double y, double phi)

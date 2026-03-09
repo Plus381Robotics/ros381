@@ -12,7 +12,7 @@
 #define PROTOCOL_VERSION 1.0
 
 #define BAUDRATE 115200
-#define DEVICE_NAME "/dev/ttyUSB0"
+#define DEVICE_NAME "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT7W95JA-if00-port0"
 
 using namespace std::placeholders;
 

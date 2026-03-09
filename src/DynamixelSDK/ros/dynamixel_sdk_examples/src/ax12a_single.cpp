@@ -20,7 +20,7 @@
 #define PROTOCOL_VERSION 1.0
 
 #define BAUDRATE 115200
-#define DEVICE_NAME "/dev/ttyUSB0"
+#define DEVICE_NAME "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT7W95JA-if00-port0"
 
 using namespace std::placeholders;
 
@@ -143,6 +143,11 @@ class Ax12aSingleNode : public rclcpp::Node
 
             if (position_error < goal->position_tolerance)
                 status = -1;
+            if (dxl_comm_result != COMM_SUCCESS)
+            {
+                RCLCPP_INFO(this->get_logger(), "%s", packetHandler_->getTxRxResult(dxl_comm_result));
+                status = -3;
+            }
 
             goal->position, loop_rate.sleep();
         }

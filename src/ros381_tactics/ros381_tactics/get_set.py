@@ -38,7 +38,7 @@ def sided_coords(x, phi):
 
 
 _snapshot_state = 0
-cf_local = [0, 0, 0, 0]
+cf_local = [47, 36, 36, 47]
 cb_local  = [0, 0, 0, 0]
 cfl_x = cfl_y = cfl_phi = 9.9
 cbl_x = cbl_y = cbl_phi = 9.9
@@ -101,6 +101,10 @@ def snapshot_fsm(side, color, repeat):
                     else:
                         _snapshot_repeat += 1
         case -1:
+            if side == 1:
+                print("Snapshot front:", cf_local, cfl_x, cfl_y, cfl_phi)
+            else:
+                print("Snapsho back:", cb_local, cbl_x, cbl_y, cbl_phi)  
             cfl_x_sum = 0.0
             cfl_y_sum = 0.0
             cfl_phi_sum = 0.0

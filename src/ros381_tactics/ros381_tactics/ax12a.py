@@ -7,17 +7,17 @@ import ros381_tactics_py  # type: ignore
 import math
 
 init_state = 0
-lift_front_id = lift_back_id = None
-clan1_front_id = clan2_front_id = clan3_front_id = clan4_front_id = None
-clan1_back_id = clan2_back_id = clan3_back_id = clan4_back_id = None
-cursor_id = None
+lift_front_id = lift_back_id = 69
+clan1_front_id = clan2_front_id = clan3_front_id = clan4_front_id = 69
+clan1_back_id = clan2_back_id = clan3_back_id = clan4_back_id = 69
+cursor_id = 69
 lift_up_pos = lift_down_pos = lift_carry_pos = lift_rotating_pos = lift_dropoff_pos = (
-    None
+    69
 )
-cursor_up_pos = None
+cursor_up_pos = 69
 clanL_up_pos = clanL_down_pos = clanR_up_pos = clanR_down_pos = clanL_undep_pos = (
     clanR_undep_pos
-) = None
+) = 69
 
 
 mech_state = 0
@@ -41,26 +41,10 @@ def mechanism(side, color):
                 mcl2_id = clan2_front_id
                 mcl3_id = clan3_front_id
                 mcl4_id = clan4_front_id
-                mcl1_pos = (
-                    clanL_up_pos
-                    if get_GT().crates_front_[0] == color
-                    else clanL_down_pos
-                )
-                mcl2_pos = (
-                    clanL_up_pos
-                    if get_GT().crates_front_[1] == color
-                    else clanL_down_pos
-                )
-                mcl3_pos = (
-                    clanR_up_pos
-                    if get_GT().crates_front_[2] == color
-                    else clanR_down_pos
-                )
-                mcl4_pos = (
-                    clanR_up_pos
-                    if get_GT().crates_front_[3] == color
-                    else clanR_down_pos
-                )
+                mcl1_pos = clanL_up_pos if cf_local[0] == color else clanL_down_pos
+                mcl2_pos = clanL_up_pos if cf_local[1] == color else clanL_down_pos
+                mcl3_pos = clanR_up_pos if cf_local[2] == color else clanR_down_pos
+                mcl4_pos = clanR_up_pos if cf_local[3] == color else clanR_down_pos
                 mvf = True
                 mvb = False
             else:
@@ -69,26 +53,10 @@ def mechanism(side, color):
                 mcl2_id = clan2_back_id
                 mcl3_id = clan3_back_id
                 mcl4_id = clan4_back_id
-                mcl1_pos = (
-                    clanL_up_pos
-                    if get_GT().crates_back_[0] == color
-                    else clanL_down_pos
-                )
-                mcl2_pos = (
-                    clanL_up_pos
-                    if get_GT().crates_back_[1] == color
-                    else clanL_down_pos
-                )
-                mcl3_pos = (
-                    clanR_up_pos
-                    if get_GT().crates_back_[2] == color
-                    else clanR_down_pos
-                )
-                mcl4_pos = (
-                    clanR_up_pos
-                    if get_GT().crates_back_[3] == color
-                    else clanR_down_pos
-                )
+                mcl1_pos = clanL_up_pos if cb_local[0] == color else clanL_down_pos
+                mcl2_pos = clanL_up_pos if cb_local[1] == color else clanL_down_pos
+                mcl3_pos = clanR_up_pos if cb_local[2] == color else clanR_down_pos
+                mcl4_pos = clanR_up_pos if cb_local[3] == color else clanR_down_pos
                 mvf = False
                 mvb = True
             mech_state = 10
@@ -123,32 +91,61 @@ def mechanism(side, color):
         case 40:
             # 4. iskljuci vakuum
             get_GT().remove_vacuum(mvf, mvb)
-            mech_state = 50
-        case 50:
-            # 5. lift na rotating
-            ax_move(mlift_id, lift_rotating_pos, 1000, 20)
-            mech_state = 55
-        case 55:
-            if get_ax_move_result() < 0:
-                mech_state = 60
-        case 60:
-            # 6. bulk move za clanove
-            ax_bulk_move(
-                [
-                    (mcl1_id, clanL_down_pos, 400, 100),
-                    (mcl2_id, clanL_down_pos, 400, 100),
-                    (mcl3_id, clanR_down_pos, 400, 100),
-                    (mcl4_id, clanR_down_pos, 400, 100),
-                ]
-            )
-            mech_state = 65
-        case 65:
-            if get_ax_bulk_move_result() < 0:
-                mech_state = -1
+            mech_state = -1
         case -1:
             mech_state = 0
 
     return mech_state
+
+
+mech_reset_state = 0
+mrcl1_id = mrcl2_id = mrcl3_id = mrcl4_id = 1
+mrlift_id = lift_front_id
+
+
+def mechanism_reset(side):
+    global mech_reset_state, mrlift_id
+    global mrcl1_id, mrcl2_id, mrcl3_id, mrcl4_id
+    match mech_reset_state:
+        case 0:
+            if side == 1:
+                mrlift_id = lift_front_id
+                mrcl1_id = clan1_front_id
+                mrcl2_id = clan2_front_id
+                mrcl3_id = clan3_front_id
+                mrcl4_id = clan4_front_id
+            else:
+                mrlift_id = lift_back_id
+                mrcl1_id = clan1_back_id
+                mrcl2_id = clan2_back_id
+                mrcl3_id = clan3_back_id
+                mrcl4_id = clan4_back_id
+            mech_reset_state = 5
+        case 5:
+            # 5. lift na rotating
+            ax_move(mrlift_id, lift_rotating_pos, 1000, 20)
+            mech_reset_state = 10
+        case 10:
+            if get_ax_move_result() < 0:
+                mech_reset_state = 15
+        case 15:
+            # 6. bulk move za clanove
+            ax_bulk_move(
+                [
+                    (mrcl1_id, clanL_down_pos, 400, 100),
+                    (mrcl2_id, clanL_down_pos, 400, 100),
+                    (mrcl3_id, clanR_down_pos, 400, 100),
+                    (mrcl4_id, clanR_down_pos, 400, 100),
+                ]
+            )
+            mech_reset_state = 20
+        case 20:
+            if get_ax_bulk_move_result() < 0:
+                mech_reset_state = -1
+        case -1:
+            mech_reset_state = 0
+
+    return mech_reset_state
 
 
 cursor_state = 0
@@ -169,7 +166,7 @@ def cursor(position):
             if get_ax_move_result() < 0:
                 cursor_state = -1
         case 20:
-            ax_hybrid_move(cursor_id, 1000, 0.2, -200)
+            ax_hybrid_move(cursor_id, 1000, 0.2, 200)
             cursor_state = 21
         case 21:
             if get_ax_hybrid_move_result() < 0:
@@ -189,10 +186,11 @@ lift_dpos = 200
 lift_retpos = -1
 vf = False
 vb = False
+lcl1_id = lcl2_id = lcl3_id = lcl4_id = 1
 
 
 def lift(side, state):
-    global lift_state, lift_id, lift_pos, lift_dpos, lift_retpos
+    global lift_state, lift_id, lift_pos, lift_dpos, lift_retpos, vf, vb, lcl1_id, lcl2_id, lcl3_id, lcl4_id
     match lift_state:
         case 0:
             lift_retpos = -1
@@ -200,10 +198,18 @@ def lift(side, state):
                 lift_id = lift_front_id
                 vf = True
                 vb = False
+                lcl1_id = clan1_front_id
+                lcl2_id = clan2_front_id
+                lcl3_id = clan3_front_id
+                lcl4_id = clan4_front_id
             else:
                 lift_id = lift_back_id
                 vf = False
                 vb = True
+                lcl1_id = clan1_back_id
+                lcl2_id = clan2_back_id
+                lcl3_id = clan3_back_id
+                lcl4_id = clan4_back_id
             if state == 1:
                 lift_pos = lift_up_pos
                 lift_dpos = -200
@@ -212,23 +218,36 @@ def lift(side, state):
             else:
                 lift_pos = lift_down_pos
                 lift_dpos = 200
-            lift_state = 1
-        case 1:
-            ax_move(lift_id, lift_pos, 1000, 20)
-            lift_state = 2
-        case 2:
-            if get_ax_move_result() < 0:
-                lift_state = 3
-        case 3:
-            get_GT().add_vacuum(vf, vb)
-            lift_state = 4
-        case 4:
-            ax_hybrid_move(lift_id, 1000, 0.2, lift_dpos)
             lift_state = 5
         case 5:
+            ax_bulk_move(
+                [
+                    (lcl1_id, clanL_down_pos, 400, 25),
+                    (lcl2_id, clanL_down_pos, 400, 25),
+                    (lcl3_id, clanR_down_pos, 400, 25),
+                    (lcl4_id, clanR_down_pos, 400, 25),
+                ]
+            )
+            lift_state = 8
+        case 8:
+            if get_ax_bulk_move_result() < 0:
+                lift_state = 10
+        case 10:
+            ax_move(lift_id, lift_pos, 1000, 20)
+            lift_state = 20
+        case 20:
+            if get_ax_move_result() < 0:
+                lift_state = 30
+        case 30:
+            get_GT().add_vacuum(vf, vb)
+            lift_state = 40
+        case 40:
+            ax_hybrid_move(lift_id, 1000, 0.2, lift_dpos)
+            lift_state = 50
+        case 50:
             if get_ax_hybrid_move_result() < 0:
-                lift_state = 6
-        case 6:
+                lift_state = 60
+        case 60:
             lift_retpos = get_ax_hybrid_end_position()
             lift_state = -1
         case -1:
@@ -474,7 +493,7 @@ def load_ax_params():
     global clan1_front_id, clan2_front_id, clan3_front_id, clan4_front_id
     global clan1_back_id, clan2_back_id, clan3_back_id, clan4_back_id
     global cursor_id
-    global lift_up_pos, lift_down_pos, lift_carry_pos, lift_rotating_pos
+    global lift_up_pos, lift_down_pos, lift_carry_pos, lift_rotating_pos, lift_dropoff_pos
     global cursor_up_pos
     global clanL_up_pos, clanL_down_pos, clanR_up_pos, clanR_down_pos, clanL_undep_pos, clanR_undep_pos
 
@@ -498,6 +517,7 @@ def load_ax_params():
     lift_down_pos = GT.lift_down_pos_
     lift_carry_pos = GT.lift_carry_pos_
     lift_rotating_pos = GT.lift_rotating_pos_
+    lift_dropoff_pos = GT.lift_dropoff_pos_
     cursor_up_pos = GT.cursor_up_pos_
     clanL_up_pos = GT.clanL_up_pos_
     clanL_down_pos = GT.clanL_down_pos_
@@ -516,7 +536,7 @@ def load_ax_params():
     )
     print(f"Cursor ID: {cursor_id}")
     print(
-        f"Lift Positions: up: {lift_up_pos}, down: {lift_down_pos}, carry: {lift_carry_pos}, rotating: {lift_rotating_pos}"
+        f"Lift Positions: up: {lift_up_pos}, down: {lift_down_pos}, carry: {lift_carry_pos}, rotating: {lift_rotating_pos}, ddropoff: {lift_dropoff_pos}"
     )
     print(f"Cursor Position: up: {cursor_up_pos}")
     print(

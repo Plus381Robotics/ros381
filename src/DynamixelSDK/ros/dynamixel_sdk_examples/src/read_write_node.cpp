@@ -49,7 +49,7 @@
 
 // Default setting
 #define BAUDRATE 115200 // Default Baudrate of DYNAMIXEL X series
-#define DEVICE_NAME "/dev/ttyUSB0"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
+#define DEVICE_NAME "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT7W95JA-if00-port0"
 
 dynamixel::PortHandler * portHandler;
 dynamixel::PacketHandler * packetHandler;

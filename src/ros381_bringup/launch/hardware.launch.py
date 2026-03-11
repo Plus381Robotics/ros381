@@ -97,12 +97,38 @@ def generate_launch_description():
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
         ],
+        remappings=[
+            ("image_raw", "image_raw_back"),
+        ],
     )
 
-    aruco_detection_node = Node(
+    usb_camera_node = Node(
+        package="v4l2_camera",
+        executable="v4l2_camera_node",
+        name="usb_camera",
+        namespace="ros381",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+        ],
+        remappings=[
+            ("image_raw", "image_raw_front"),
+        ],
+    )
+
+    aruco_detection_front = Node(
         package="ros381_vision",
         executable="aruco_detection",
-        name="aruco_detection",
+        name="aruco_detection_front",
+        namespace="ros381",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+        ],
+    )
+
+    aruco_detection_back = Node(
+        package="ros381_vision",
+        executable="aruco_detection",
+        name="aruco_detection_back",
         namespace="ros381",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
@@ -120,7 +146,9 @@ def generate_launch_description():
             ax12a_bulk,
             ax12a_hybrid,
             csi_camera_node,
-            aruco_detection_node,
+            usb_camera_node,
+            aruco_detection_front,
+            aruco_detection_back,
             # launch.actions.RegisterEventHandler(
             #     event_handler=launch.event_handlers.OnProcessExit(
             #         target_action=hardware,

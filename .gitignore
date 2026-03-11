@@ -64,3 +64,6 @@ src/DynamixelSDK/.vscode/
 src/DynamixelSDK/python/build/
 src/DynamixelSDK/python/dist/
 src/DynamixelSDK/python/src/dynamixel_sdk.egg-info/
+
+
+**/.vscode/**

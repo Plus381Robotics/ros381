@@ -21,18 +21,18 @@ class ArUcoDetection : public rclcpp::Node
         this->load_parameters();
 
         image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
-            "image_raw", 10, std::bind(&ArUcoDetection::topic_callback, this, std::placeholders::_1));
-        crate_pub_ = this->create_publisher<ros381_interfaces::msg::CrateStack>("crate_stack_back", 10);
+            "image_raw" + topic_suffix_, 10, std::bind(&ArUcoDetection::topic_callback, this, std::placeholders::_1));
+
+        crate_pub_ = this->create_publisher<ros381_interfaces::msg::CrateStack>("crate_stack" + topic_suffix_, 10);
 
         if (pub_cv_image_)
         {
-            cv_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("cv_image", 10);
-            RCLCPP_INFO(this->get_logger(), "CV image publishing is on.");
+            cv_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("cv_image" + topic_suffix_, 10);
         }
         else
             RCLCPP_INFO(this->get_logger(), "CV image publishing is off.");
 
-        RCLCPP_INFO(this->get_logger(), "ArUco detection node is running.");
+        RCLCPP_INFO(this->get_logger(), "ArUco detection node is running. Topic suffix: [%s]", topic_suffix_);
     }
 
   private:
@@ -208,6 +208,10 @@ class ArUcoDetection : public rclcpp::Node
 
     void load_parameters()
     {
+        
+        this->declare_parameter<std::string>("topic_suffix", "_default");
+        this->get_parameter("topic_suffix", topic_suffix_);
+
         this->declare_parameter<double>("target_height", 0.03);
         this->declare_parameter<double>("height_tolerance", 0.01);
         this->declare_parameter<double>("angle_tolerance", 0.1);
@@ -254,6 +258,7 @@ class ArUcoDetection : public rclcpp::Node
     double angle_tolerance_;
     bool enable_height_check_;
     bool enable_angle_check_;
+    std::string topic_suffix_;
 };
 
 int main(int argc, char *argv[])

@@ -192,7 +192,8 @@ class uCNode : public rclcpp::Node
                 idx = 1;
             return;
         }
-        rxba[idx - 1] = b;
+        if (idx - 1 < sizeof(rxba))
+            rxba[idx - 1] = b;
         idx++;
 
         if (idx == 7)

@@ -8,6 +8,7 @@ from ros381_tactics.tactic_3 import tactic_3, load_t3
 from ros381_tactics.tactic_4 import tactic_4, load_t4
 from ros381_tactics.tactic_5 import tactic_5, load_t5
 from ros381_tactics.tactic_6 import tactic_6, load_t6
+from ros381_tactics.tactic_7 import tactic_7, load_t7
 from ros381_tactics.get_set import *
 
 
@@ -51,7 +52,7 @@ def load_tactic(GT, tactic_number, tactic_side):
                 print("Blue side chosen.")
 
             # TODO: vrati na 1
-            load_state = -1
+            load_state = 4
         case 1:
             GT.update_pose(start_x, start_y, start_phi, 111)
             GT.publish_pose_offset(start_x, start_y, start_phi)
@@ -65,7 +66,7 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 4
         case 4:
             if init_ax():
-                load_state = 5
+                load_state = -1
         case 5:
             rotate_to_xy(first_x, first_y, first_dir)
             load_state = 6

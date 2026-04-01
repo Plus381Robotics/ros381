@@ -42,16 +42,16 @@ ros381/tactic_global:
     default_side: yellow
     # AX parameters
     # IDs
-    lift_front_id: 5
-    lift_back_id: 15
-    clan1_front_id: 6
-    clan2_front_id: 7
-    clan3_front_id: 8
-    clan4_front_id: 9
-    clan1_back_id: 11
-    clan2_back_id: 12
-    clan3_back_id: 13
-    clan4_back_id: 14
+    lift_front_id: 15
+    lift_back_id: 5
+    clan1_front_id: 11
+    clan2_front_id: 12
+    clan3_front_id: 13
+    clan4_front_id: 14
+    clan1_back_id: 6
+    clan2_back_id: 7
+    clan3_back_id: 8
+    clan4_back_id: 9
     cursor_id: 4
     # Positions
     lift_up_pos: 160  # 120 je skroz gore

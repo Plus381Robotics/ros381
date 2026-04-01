@@ -25,11 +25,8 @@ class uCNode : public rclcpp::Node
   public:
     uCNode() : Node("uc")
     {
-        uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
+        // uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
         uart2_rx_thread_ = std::thread(&uCNode::uart2_rx_loop, this);
-
-        motor_cmd_sub_ = this->create_subscription<ros381_interfaces::msg::Float2>(
-            "motor_cmd", 10, std::bind(&uCNode::motor_cmd_callback, this, _1));
 
         odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
         update_srv_ = this->create_service<ros381_interfaces::srv::UpdatePose>(
@@ -42,12 +39,12 @@ class uCNode : public rclcpp::Node
             "chinch_waiting", 10, std::bind(&uCNode::chinch_waiting_callback, this, _1));
         chinch_pub_ = this->create_publisher<example_interfaces::msg::Bool>("chinch_trigger", 10);
 
-        if (!init_uart())
-        {
-            RCLCPP_ERROR(this->get_logger(), "Failed to init UART1.");
-            rclcpp::shutdown();
-            return;
-        }
+        // if (!init_uart())
+        // {
+        //     RCLCPP_ERROR(this->get_logger(), "Failed to init UART1.");
+        //     rclcpp::shutdown();
+        //     return;
+        // }
         if (!init_uart2())
         {
             RCLCPP_ERROR(this->get_logger(), "Failed to init UART2.");
@@ -118,10 +115,11 @@ class uCNode : public rclcpp::Node
     {
         while (running_ && rclcpp::ok())
         {
-            uint8_t raw_data[8];
-            read_uart(raw_data, 8);
-            for (uint8_t i = 0; i < 8; i++)
-                process_rx_byte(raw_data[i]);
+            uint8_t raw_data[40];
+            // TODO: create rxba
+            // read_uart(raw_data, 40);
+            // for (uint8_t i = 0; i < 40; i++)
+            //     process_rx_byte(raw_data[i]);
 
             double x_raw = (int16_t)(rxba[1] << 8 | rxba[0]) / 10000.0;
             double y_raw = (int16_t)(rxba[3] << 8 | rxba[2]) / 10000.0;
@@ -153,33 +151,35 @@ class uCNode : public rclcpp::Node
                 RCLCPP_INFO(this->get_logger(), "New pose :\nx = %.2f m\ny = %.2f m\nphi = %.2f rad", x_base_, y_base_,
                             phi_base_);
 
-            auto current_time = now();
-            if (odom_initialized_)
-            {
-                double dt = (current_time - last_odom_time_).seconds();
-                if (dt > 0.009 && dt < 0.011)
-                {
-                    dt = 0.01;
-                    v_base_ = (x_base_ - prev_x_base_) / dt;
-                    w_base_ = (phi_base_ - prev_phi_base_) / dt;
-                }
-                else
-                {
-                    RCLCPP_WARN(this->get_logger(), "Bad dt: %.4f ms, setting velocities to 0.", dt * 1000);
-                    v_base_ = 0;
-                    w_base_ = 0;
-                }
-                publish_odometry();
-            }
-            else
-            {
-                odom_initialized_ = true;
-                RCLCPP_INFO(this->get_logger(), "Odometry initialized!");
-            }
-            last_odom_time_ = current_time;
-            prev_x_base_ = x_base_;
-            prev_y_base_ = y_base_;
-            prev_phi_base_ = phi_base_;
+            // TODO: pub odom koji stigne
+
+            // auto current_time = now();
+            // if (odom_initialized_)
+            // {
+            //     double dt = (current_time - last_odom_time_).seconds();
+            //     if (dt > 0.009 && dt < 0.011)
+            //     {
+            //         dt = 0.01;
+            //         v_base_ = (x_base_ - prev_x_base_) / dt;
+            //         w_base_ = (phi_base_ - prev_phi_base_) / dt;
+            //     }
+            //     else
+            //     {
+            //         RCLCPP_WARN(this->get_logger(), "Bad dt: %.4f ms, setting velocities to 0.", dt * 1000);
+            //         v_base_ = 0;
+            //         w_base_ = 0;
+            //     }
+            //     publish_odometry();
+            // }
+            // else
+            // {
+            //     odom_initialized_ = true;
+            //     RCLCPP_INFO(this->get_logger(), "Odometry initialized!");
+            // }
+            // last_odom_time_ = current_time;
+            // prev_x_base_ = x_base_;
+            // prev_y_base_ = y_base_;
+            // prev_phi_base_ = phi_base_;
         }
     }
 
@@ -225,38 +225,6 @@ class uCNode : public rclcpp::Node
         odom_pub_->publish(msg);
     }
 
-    void motor_cmd_callback(const ros381_interfaces::msg::Float2::SharedPtr msg)
-    {
-        uint8_t cmd_bytes[8];
-        cmd_bytes[0] = 255;
-        cmd_bytes[1] = 255;
-        // for (int i = 2; i < 8; i++)
-        //     cmd_bytes[i] = 69;
-        int32_t cmdR_3B = motor_cmd_3B(msg->float2[0]);
-        int32_t cmdL_3B = motor_cmd_3B(msg->float2[1]);
-        cmd_bytes[2] = static_cast<uint8_t>((cmdR_3B >> 24) & 0xFF);
-        cmd_bytes[3] = static_cast<uint8_t>((cmdR_3B >> 16) & 0xFF);
-        cmd_bytes[4] = static_cast<uint8_t>((cmdR_3B >> 8) & 0xFF);
-        cmd_bytes[5] = static_cast<uint8_t>((cmdL_3B >> 24) & 0xFF);
-        cmd_bytes[6] = static_cast<uint8_t>((cmdL_3B >> 16) & 0xFF);
-        cmd_bytes[7] = static_cast<uint8_t>((cmdL_3B >> 8) & 0xFF);
-        send_uart(cmd_bytes, 8);
-    }
-
-    int32_t motor_cmd_3B(double cmd)
-    {
-        cmd = std::clamp(cmd, -4.0, 3.999);
-
-        constexpr int SCALE = 1 << 21;
-        int32_t cmd4B = static_cast<int32_t>(cmd * SCALE);
-        int32_t cmd3B = cmd4B << 8;
-        // RCLCPP_INFO(this->get_logger(), "cmd = %.4f, cmd4B = %d, cmd3B = %d", cmd, cmd4B, cmd3B);
-        // RCLCPP_INFO(this->get_logger(), "cmd = %.4f, cmd4B = %s, cmd3B = %s", cmd,
-        // std::bitset<32>(cmd4B).to_string().c_str(), std::bitset<32>(cmd3B).to_string().c_str());
-        // RCLCPP_INFO(this->get_logger(), "Recovered cmd = %.4f", ((cmd3B >> 8) * pow(2, -21)));
-        return cmd3B;
-    }
-
     bool init_uart()
     {
         uart_fd_ = open("/dev/ttyAMA0", O_RDWR | O_NOCTTY);
@@ -271,8 +239,8 @@ class uCNode : public rclcpp::Node
             return false;
         }
 
-        cfsetospeed(&tty, B921600);
-        cfsetispeed(&tty, B921600);
+        cfsetospeed(&tty, B115200);
+        cfsetispeed(&tty, B115200);
 
         tty.c_cflag &= ~PARENB;
         tty.c_cflag &= ~CSTOPB;
@@ -334,8 +302,8 @@ class uCNode : public rclcpp::Node
             return false;
         }
 
-        cfsetospeed(&tty, B921600);
-        cfsetispeed(&tty, B921600);
+        cfsetospeed(&tty, B9600);
+        cfsetispeed(&tty, B9600);
 
         tty.c_cflag &= ~PARENB;
         tty.c_cflag &= ~CSTOPB;
@@ -371,10 +339,15 @@ class uCNode : public rclcpp::Node
             if (n == 1)
             {
                 uart2_rx_byte_.store(byte, std::memory_order_relaxed);
+                // RCLCPP_INFO(this->get_logger(), "uart2 rx: %ud", byte);
 
+                uint8_t chinch_prev = chinch_;
                 chinch_ = byte & 0b1;
                 auto chinch_msg = example_interfaces::msg::Bool();
-                chinch_msg.data = chinch_;
+                if (chinch_ && !chinch_prev)
+                    chinch_msg.data = 0b1;
+                else
+                    chinch_msg.data = 0b0;
                 chinch_pub_->publish(chinch_msg);
 
                 switches_ = ((byte >> 1) & 0b111) | (byte & (0b1 << 4));
@@ -385,6 +358,7 @@ class uCNode : public rclcpp::Node
                 uint8_t uart2_tx =
                     vacuum_.load(std::memory_order_relaxed) | chinch_waiting_.load(std::memory_order_relaxed);
                 send_uart2_byte(uart2_tx);
+                // RCLCPP_INFO(this->get_logger(), "uart2 tx: %ud", uart2_tx);
             }
         }
     }
@@ -398,7 +372,7 @@ class uCNode : public rclcpp::Node
 
     void vacuum_callback(const example_interfaces::msg::UInt8::SharedPtr msg)
     {
-        vacuum_.store(msg->data & 0b00011110, std::memory_order_relaxed);
+        vacuum_.store((msg->data & 0b1111) << 1, std::memory_order_relaxed);
     }
 
     void chinch_waiting_callback(const example_interfaces::msg::Empty::SharedPtr msg)

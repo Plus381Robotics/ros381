@@ -15,7 +15,7 @@ first_y = 0.5
 first_dir = 1
 
 
-def load_t6():
+def load_t7():
     global start_x, start_y, start_phi, first_x, first_y, first_dir
     print("Tactic 6 loaded.")
     return start_x, start_y, start_phi, first_x, first_y, first_dir
@@ -30,7 +30,7 @@ def load_t6():
 #   kursor gore
 
 
-def tactic_6():
+def tactic_7():
     global tactic_state, prev_state
 
     if not get_GT().consumed_front:
@@ -85,5 +85,5 @@ def tactic_6():
             if mechanism_reset(1) < 0:
                 tactic_state = -1
         case -1:
-            print("Tactic 6 finished.")
+            print("Tactic 7 finished.")
     return tactic_state

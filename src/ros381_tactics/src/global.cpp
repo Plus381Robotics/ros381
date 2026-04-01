@@ -135,7 +135,7 @@ void TacticGlobalNode::publish_pose_offset(double x, double y, double phi)
 
 void TacticGlobalNode::callback_switches(const example_interfaces::msg::UInt8::SharedPtr msg)
 {
-    reset_on_ = (bool)((msg->data >> 4) & 0b1);
+    // reset_on_ = (bool)((msg->data >> 4) & 0b1);
     tactic_side_ = ((msg->data >> 3) & 0b1) ? 1 : -1;
     tactic_num_ = msg->data & 0b111;
 }
@@ -486,7 +486,7 @@ void TacticGlobalNode::global_fsm()
         ax_hybrid_move_client_->async_cancel_all_goals();
         RCLCPP_INFO(this->get_logger(), "Match ended.");
         RCLCPP_INFO(this->get_logger(), "Time: %.3f", time_);
-        rclcpp::shutdown();
+        // rclcpp::shutdown();
         break;
     }
 }

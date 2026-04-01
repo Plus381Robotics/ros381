@@ -337,8 +337,8 @@ def init_ax():
         case 60:
             ax_bulk_move(
                 [
-                    (lift_front_id, lift_rotating_pos, 200, 100),
-                    (lift_back_id, lift_rotating_pos, 200, 100),
+                    (lift_front_id, lift_rotating_pos, 500, 100),
+                    (lift_back_id, lift_rotating_pos, 500, 100),
                 ]
             )
             init_state = 76
@@ -346,113 +346,17 @@ def init_ax():
             if get_ax_bulk_move_result() < 0:
                 init_state = 80
 
-        # case 80:
-        #     ax_move(clan1_front_id, clanL_up_pos, 1000, 100)
-        #     init_state = 90
-        # case 90:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 100
-        # case 100:
-        #     ax_move(clan2_front_id, clanL_up_pos, 1000, 100)
-        #     init_state = 110
-        # case 110:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 120
-        # case 120:
-        #     ax_move(clan3_front_id, clanR_up_pos, 1000, 100)
-        #     init_state = 130
-        # case 130:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 140
-        # case 140:
-        #     ax_move(clan4_front_id, clanR_up_pos, 1000, 100)
-        #     init_state = 150
-        # case 150:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 81
-        # case 81:
-        #     ax_move(clan1_back_id, clanL_up_pos, 1000, 100)
-        #     init_state = 91
-        # case 91:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 101
-        # case 101:
-        #     ax_move(clan2_back_id, clanL_up_pos, 1000, 100)
-        #     init_state = 111
-        # case 111:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 121
-        # case 121:
-        #     ax_move(clan3_back_id, clanR_up_pos, 1000, 100)
-        #     init_state = 131
-        # case 131:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 141
-        # case 141:
-        #     ax_move(clan4_back_id, clanR_up_pos, 1000, 100)
-        #     init_state = 151
-        # case 151:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 82
-        # case 82:
-        #     ax_move(clan1_front_id, clanL_down_pos, 1000, 100)
-        #     init_state = 92
-        # case 92:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 102
-        # case 102:
-        #     ax_move(clan2_front_id, clanL_down_pos, 1000, 100)
-        #     init_state = 112
-        # case 112:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 122
-        # case 122:
-        #     ax_move(clan3_front_id, clanR_down_pos, 1000, 100)
-        #     init_state = 132
-        # case 132:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 142
-        # case 142:
-        #     ax_move(clan4_front_id, clanR_down_pos, 1000, 100)
-        #     init_state = 152
-        # case 152:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 83
-        # case 83:
-        #     ax_move(clan1_back_id, clanL_down_pos, 1000, 100)
-        #     init_state = 93
-        # case 93:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 103
-        # case 103:
-        #     ax_move(clan2_back_id, clanL_down_pos, 1000, 100)
-        #     init_state = 113
-        # case 113:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 123
-        # case 123:
-        #     ax_move(clan3_back_id, clanR_down_pos, 1000, 100)
-        #     init_state = 133
-        # case 133:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 143
-        # case 143:
-        #     ax_move(clan4_back_id, clanR_down_pos, 1000, 100)
-        #     init_state = 153
-        # case 153:
-        #     if get_ax_move_result() < 0:
-        #         init_state = 160
         case 80:
             ax_bulk_move(
                 [
-                    (clan1_front_id, clanL_down_pos, 200, 500),
-                    (clan2_front_id, clanL_down_pos, 200, 500),
-                    (clan3_front_id, clanR_down_pos, 200, 500),
-                    (clan4_front_id, clanR_down_pos, 200, 500),
-                    (clan1_back_id, clanL_down_pos, 200, 500),
-                    (clan2_back_id, clanL_down_pos, 200, 500),
-                    (clan3_back_id, clanR_down_pos, 200, 500),
-                    (clan4_back_id, clanR_down_pos, 200, 500),
+                    (clan1_front_id, clanL_down_pos, 500, 500),
+                    (clan2_front_id, clanL_down_pos, 500, 500),
+                    (clan3_front_id, clanR_down_pos, 500, 500),
+                    (clan4_front_id, clanR_down_pos, 500, 500),
+                    (clan1_back_id, clanL_down_pos, 500, 500),
+                    (clan2_back_id, clanL_down_pos, 500, 500),
+                    (clan3_back_id, clanR_down_pos, 500, 500),
+                    (clan4_back_id, clanR_down_pos, 500, 500),
                 ]
             )
             init_state = 90
@@ -475,7 +379,7 @@ def init_ax():
                 init_state = 160
         
         case 160:
-            ax_hybrid_move(cursor_id, 1000, 0.2, -200)
+            ax_hybrid_move(cursor_id, 1000, 0.2, 200)
             init_state = 170
         case 170:
             if get_ax_hybrid_move_result() < 0:
@@ -490,8 +394,8 @@ def init_ax():
         case 200:
             ax_bulk_move(
                 [
-                    (lift_front_id, lift_rotating_pos, 200, 100),
-                    (lift_back_id, lift_rotating_pos, 200, 100),
+                    (lift_front_id, lift_rotating_pos, 500, 100),
+                    (lift_back_id, lift_rotating_pos, 500, 100),
                 ]
             )
             init_state = 205
@@ -501,14 +405,14 @@ def init_ax():
         case 210:
             ax_bulk_move(
                 [
-                    (clan1_front_id, clanL_undep_pos, 200, 100),
-                    (clan2_front_id, clanL_undep_pos, 200, 100),
-                    (clan3_front_id, clanR_undep_pos, 200, 100),
-                    (clan4_front_id, clanR_undep_pos, 200, 100),
-                    (clan1_back_id, clanL_undep_pos, 200, 100),
-                    (clan2_back_id, clanL_undep_pos, 200, 100),
-                    (clan3_back_id, clanR_undep_pos, 200, 100),
-                    (clan4_back_id, clanR_undep_pos, 200, 100),
+                    (clan1_front_id, clanL_undep_pos, 500, 100),
+                    (clan2_front_id, clanL_undep_pos, 500, 100),
+                    (clan3_front_id, clanR_undep_pos, 500, 100),
+                    (clan4_front_id, clanR_undep_pos, 500, 100),
+                    (clan1_back_id, clanL_undep_pos, 500, 100),
+                    (clan2_back_id, clanL_undep_pos, 500, 100),
+                    (clan3_back_id, clanR_undep_pos, 500, 100),
+                    (clan4_back_id, clanR_undep_pos, 500, 100),
                 ]
             )
             init_state = 99

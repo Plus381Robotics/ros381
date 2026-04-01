@@ -54,11 +54,11 @@ ros381/tactic_global:
     clan4_back_id: 9
     cursor_id: 4
     # Positions
-    lift_up_pos: 160  # 120 je skroz gore
+    lift_up_pos: 150  # 120 je skroz gore
     lift_down_pos: 700 # 1000 je skroz dole
     lift_carry_pos: 700
-    lift_rotating_pos: 200
-    lift_dropoff_pos: 540
+    lift_rotating_pos: 150
+    lift_dropoff_pos: 500
     cursor_up_pos: 40
     clanL_up_pos: 0
     clanL_down_pos: 785
@@ -95,8 +95,8 @@ ros381/aruco_detection_front:
                            0.0, 0.0, 0.0, 1.0]
    pub_cv_image: False
    target_height: 0.03
-   height_tolerance: 0.03
-   angle_tolerance: 0.1
+   height_tolerance: 0.04
+   angle_tolerance: 0.2
    enable_height_check: False
    enable_angle_check: False
 
@@ -113,7 +113,7 @@ ros381/aruco_detection_back:
                 0.0, 0.0, 0.0, 1.0]
     pub_cv_image: False
     target_height: 0.03
-    height_tolerance: 0.03
+    height_tolerance: 0.04
     angle_tolerance: 0.2    # rad (±11.44°)
     enable_height_check: False
     enable_angle_check: False

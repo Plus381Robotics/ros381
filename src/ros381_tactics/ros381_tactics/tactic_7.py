@@ -17,7 +17,7 @@ first_dir = 1
 
 def load_t7():
     global start_x, start_y, start_phi, first_x, first_y, first_dir
-    print("Tactic 6 loaded.")
+    print("Tactic 7 loaded.")
     return start_x, start_y, start_phi, first_x, first_y, first_dir
 
 
@@ -59,7 +59,7 @@ def tactic_7():
                 tactic_state = 30
         case 30:
             if mechanism(1, 47) < 0:
-                tactic_state = 31
+                tactic_state = -1
         case 31:
             state, position = lift(-1, -1)
             if state < 0:

@@ -38,7 +38,7 @@ def sided_coords(x, phi):
 
 
 _snapshot_state = 0
-cf_local = [47, 36, 36, 47]
+cf_local = [0, 0, 0, 0]
 cb_local  = [0, 0, 0, 0]
 cfl_x = cfl_y = cfl_phi = 9.9
 cbl_x = cbl_y = cbl_phi = 9.9
@@ -60,9 +60,10 @@ def snapshot_fsm(side, color, repeat):
                     cfl_x = _GT_instance.cs_front_x
                     cfl_y = _GT_instance.cs_front_y
                     cfl_phi = _GT_instance.cs_front_phi
-                    _snapshot_state = -1
+                    _snapshot_state = 10
                 else:
                     for i in range(4):
+                        print("cf[" + str(i) + "] = " + str(_GT_instance.crates_front[i]))
                         if cf_local[i] != color:
                             if _GT_instance.crates_front[i] == color:
                                 cf_local[i] = color
@@ -71,7 +72,7 @@ def snapshot_fsm(side, color, repeat):
                     cfl_phi_sum += _GT_instance.cs_front_phi
 
                     if _snapshot_repeat >= repeat:
-                        _snapshot_state = -1
+                        _snapshot_state = 10
                         cfl_x = cfl_x_sum / repeat
                         cfl_y = cfl_y_sum / repeat
                         cfl_phi = cfl_phi_sum / repeat
@@ -83,7 +84,7 @@ def snapshot_fsm(side, color, repeat):
                     cbl_x = _GT_instance.cs_back_x                    
                     cbl_y = _GT_instance.cs_back_y
                     cbl_phi = _GT_instance.cs_back_phi
-                    _snapshot_state = -1
+                    _snapshot_state = 10
                 else:
                     for i in range(4):
                         if cb_local[i] != color:
@@ -94,13 +95,13 @@ def snapshot_fsm(side, color, repeat):
                     cbl_phi_sum += _GT_instance.cs_back_phi
 
                     if _snapshot_repeat >= repeat:
-                        _snapshot_state = -1
+                        _snapshot_state = 10
                         cbl_x = cbl_x_sum / repeat
                         cbl_y = cbl_y_sum / repeat
                         cbl_phi = cbl_phi_sum / repeat
                     else:
                         _snapshot_repeat += 1
-        case -1:
+        case 10:
             if side == 1:
                 print("Snapshot front:", cf_local, cfl_x, cfl_y, cfl_phi)
             else:
@@ -113,4 +114,5 @@ def snapshot_fsm(side, color, repeat):
             cbl_phi_sum = 0.0
             _snapshot_state = 0
             _snapshot_repeat = 1
+            return -1
     return _snapshot_state

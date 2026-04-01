@@ -98,7 +98,7 @@ def generate_launch_description():
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
         ],
         remappings=[
-            ("image_raw", "image_raw_back"),
+            ("image_raw", "image_raw_front"),
         ],
     )
 
@@ -111,7 +111,7 @@ def generate_launch_description():
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
         ],
         remappings=[
-            ("image_raw", "image_raw_front"),
+            ("image_raw", "image_raw_back"),
         ],
     )
 
@@ -137,7 +137,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            control_loop_node,
+            # control_loop_node,
             # odometry_node,
             tactics_node,
             uc_node,

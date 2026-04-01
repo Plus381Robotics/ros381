@@ -111,7 +111,9 @@ class TacticGlobalNode : public rclcpp::Node
     rclcpp_action::Client<dynamixel_sdk_custom_interfaces::action::AxMove>::SharedPtr ax_move_client_;
     rclcpp_action::Client<dynamixel_sdk_custom_interfaces::action::AxBulkMove>::SharedPtr ax_bulk_move_client_;
     rclcpp_action::Client<dynamixel_sdk_custom_interfaces::action::AxHybridMove>::SharedPtr ax_hybrid_move_client_;
-    rclcpp::Subscription<ros381_interfaces::msg::CrateStack>::SharedPtr crate_stack_sub_;
+    rclcpp::Subscription<ros381_interfaces::msg::CrateStack>::SharedPtr crate_stack_front_sub_;
+    rclcpp::Subscription<ros381_interfaces::msg::CrateStack>::SharedPtr crate_stack_back_sub_;
+    
 
     py::object tactic_result_;
 
@@ -126,6 +128,7 @@ class TacticGlobalNode : public rclcpp::Node
     void update_pose_callback(rclcpp::Client<ros381_interfaces::srv::UpdatePose>::SharedFuture future);
     void callback_switches(const example_interfaces::msg::UInt8::SharedPtr msg);
     void callback_crate_stack_back(const ros381_interfaces::msg::CrateStack msg);
+    void callback_crate_stack_front(const ros381_interfaces::msg::CrateStack msg);
 
     void ax_move_goal_response_callback(const AxMoveGoalHandle::SharedPtr &goal_handle);
     void ax_move_feedback_callback(AxMoveGoalHandle::SharedPtr, const std::shared_ptr<const AxMove::Feedback> feedback);

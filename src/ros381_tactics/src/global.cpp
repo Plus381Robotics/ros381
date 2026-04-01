@@ -32,8 +32,10 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
     ax_move_client_ = rclcpp_action::create_client<AxMove>(this, "ax_move");
     ax_bulk_move_client_ = rclcpp_action::create_client<AxBulkMove>(this, "ax_bulk_move");
     ax_hybrid_move_client_ = rclcpp_action::create_client<AxHybridMove>(this, "ax_hybrid_move");
-    crate_stack_sub_ = this->create_subscription<ros381_interfaces::msg::CrateStack>(
-        "crate_stack_back", 10, std::bind(&TacticGlobalNode::callback_crate_stack_back, this, _1));
+    crate_stack_front_sub_ = this->create_subscription<ros381_interfaces::msg::CrateStack>(
+        "crate_stack_front", 10, std::bind(&TacticGlobalNode::callback_crate_stack_front, this, _1));
+       crate_stack_back_sub_ = this->create_subscription<ros381_interfaces::msg::CrateStack>(
+    "crate_stack_back", 10, std::bind(&TacticGlobalNode::callback_crate_stack_back, this, _1)); 
 
     init_python(this);
     declare_ax_params();
@@ -43,7 +45,7 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
 
 void TacticGlobalNode::callback_crate_stack_back(const ros381_interfaces::msg::CrateStack msg)
 {
-    consumed_back_ = false;
+    consumed_front_ = false;
     cs_back_full = msg.valid;
     if (msg.valid)
     {
@@ -77,6 +79,46 @@ void TacticGlobalNode::callback_crate_stack_back(const ros381_interfaces::msg::C
             cs_back_x = x_sum / valid_crates;
             cs_back_y = y_sum / valid_crates;
             cs_back_phi = phi_sum / valid_crates;
+        }
+    }
+}
+
+void TacticGlobalNode::callback_crate_stack_front(const ros381_interfaces::msg::CrateStack msg)
+{
+    consumed_back_ = false;
+    cs_front_full = msg.valid;
+    if (msg.valid)
+    {
+        cs_front_x = msg.x;
+        cs_front_y = msg.y;
+        cs_front_phi = msg.phi;
+        for (int i = 0; i < 4; i++)
+            crates_front_[i] = msg.crate_list[i].color;
+    }
+    else
+    {
+        crates_front_[0] = -1;
+        crates_front_[1] = -1;
+        crates_front_[2] = -1;
+        crates_front_[3] = -1;
+        double x_sum = 0, y_sum = 0, phi_sum = 0, valid_crates = 0;
+        for (int i = 0; i < msg.crate_list.size(); i++)
+        {
+            uint8_t idx = crate_position(msg.crate_list[i].x);
+            if (idx < 255)
+            {
+                crates_front_[idx] = msg.crate_list[i].color;
+                x_sum += msg.crate_list[i].x + (2 - (double)idx) * 0.05 - 0.025;
+                y_sum += msg.crate_list[i].y;
+                phi_sum += msg.crate_list[i].phi;
+                valid_crates += 1;
+            }
+        }
+        if (valid_crates > 0)
+        {
+            cs_front_x = x_sum / valid_crates;
+            cs_front_y = y_sum / valid_crates;
+            cs_front_phi = phi_sum / valid_crates;
         }
     }
 }

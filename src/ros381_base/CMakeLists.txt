@@ -15,6 +15,9 @@ find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 
+add_executable(miniMBP src/miniMBP.cpp src/signal.cpp)
+ament_target_dependencies(miniMBP rclcpp ros381_interfaces nav_msgs tf2 tf2_geometry_msgs example_interfaces)
+
 add_executable(control_loop src/control_loop.cpp src/signal.cpp)
 ament_target_dependencies(control_loop rclcpp ros381_interfaces nav_msgs tf2 tf2_geometry_msgs example_interfaces)
 
@@ -28,6 +31,7 @@ add_executable(obstacle src/obstacle.cpp)
 ament_target_dependencies(obstacle rclcpp ros381_interfaces nav_msgs sensor_msgs example_interfaces)
 
 install(TARGETS
+  miniMBP
   control_loop
   odometry
   gridmap

@@ -52,7 +52,7 @@ def load_tactic(GT, tactic_number, tactic_side):
                 print("Blue side chosen.")
 
             # TODO: vrati na 1
-            load_state = 4
+            load_state = 1
         case 1:
             GT.update_pose(start_x, start_y, start_phi, 111)
             GT.publish_pose_offset(start_x, start_y, start_phi)
@@ -66,7 +66,7 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 4
         case 4:
             if init_ax():
-                load_state = -1
+                load_state = 5
         case 5:
             rotate_to_xy(first_x, first_y, first_dir)
             load_state = 6

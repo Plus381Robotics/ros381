@@ -39,6 +39,8 @@ class MiniMBP : public rclcpp::Node
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "odom", 10, std::bind(&MiniMBP::callback_odometry, this, _1));
 
+        move_status_budz_sub_ = this->create_subscription<example_interfaces::msg::Int8>(
+            "move_status_budz", 10, std::bind(&MiniMBP::move_status_callback, this, _1));
         RCLCPP_INFO(this->get_logger(), "MiniMBP node is running with move "
                                         "action server and obstacle handling.");
     }
@@ -51,6 +53,7 @@ class MiniMBP : public rclcpp::Node
     rclcpp::Publisher<ros381_interfaces::msg::MiniMBP>::SharedPtr mini_mbp_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+    rclcpp::Subscription<example_interfaces::msg::Int8>::SharedPtr move_status_budz_sub_;
 
     unsigned short obstacle_ = 0;
     bool obstacle_status_changed_ = false;
@@ -93,6 +96,13 @@ class MiniMBP : public rclcpp::Node
     // Parameters
     double freq_;
     unsigned long period_;
+
+    int8_t move_status_budz_ = 0;
+
+    void move_status_callback(const example_interfaces::msg::Int8::SharedPtr msg)
+    {
+        move_status_budz_ = msg->data;
+    }
 
     void callback_obstacle(const example_interfaces::msg::UInt8::SharedPtr msg)
     {
@@ -199,6 +209,7 @@ class MiniMBP : public rclcpp::Node
 
         while (movement_state_ > -1)
         {
+            movement_state_ = move_status_budz_;
             if (goal_handle->is_canceling())
                 movement_state_ = -2;
 

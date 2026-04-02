@@ -55,6 +55,7 @@ class MiniMBP : public rclcpp::Node
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<example_interfaces::msg::Int8>::SharedPtr move_status_budz_sub_;
 
+    bool move_finished = false;
     unsigned short obstacle_ = 0;
     bool obstacle_status_changed_ = false;
     int8_t obstacle_dir_ = 0;
@@ -206,6 +207,7 @@ class MiniMBP : public rclcpp::Node
         rclcpp::Rate loop_rate(10);
         auto feedback = std::make_shared<Move::Feedback>();
         auto result = std::make_shared<Move::Result>();
+        move_finished = false;
 
         while (movement_state_ > -1)
         {
@@ -218,6 +220,7 @@ class MiniMBP : public rclcpp::Node
             goal_handle->publish_feedback(feedback);
             loop_rate.sleep();
         }
+        move_finished = true;
         result->status = movement_state_;
         reset_movement();
         if (rclcpp::ok())
@@ -276,36 +279,39 @@ class MiniMBP : public rclcpp::Node
 
     void publish_mini_mbp()
     {
-        auto msg = ros381_interfaces::msg::MiniMBP();
-        msg.type = reg_type_;
-        msg.x = x_ref_;
-        msg.y = y_ref_;
-        msg.phi = phi_ref_;
-        msg.direction = direction_;
-        msg.obstacle = obstacle_;
-        // TODO: ovo uradi kako treba
-        msg.v_max_100 = 1;
-        msg.w_max_10 = 1;
-        msg.tol_perc = 1;
-        msg.coeff = 1;
-        // RCLCPP_INFO(this->get_logger(),
-        //             "Publishing MiniMBP:\n"
-        //             "type=%d, x=%.4f, y=%.4f, phi=%.4f\n"
-        //             "direction=%d, obstacle=%d\n"
-        //             "v_max_100=%d, w_max_10=%d, tol=%d, coeff=%d, checksum=%d",
-        //             msg.type, msg.x, msg.y, msg.phi, msg.direction, msg.obstacle, msg.v_max_100, msg.w_max_10,
-        //             msg.tol_perc, msg.coeff, msg.checksum);
-        // Calculate checksum
-        uint16_t checksum = 0;
-        checksum ^= static_cast<uint16_t>(msg.type);
-        checksum ^= static_cast<uint16_t>(msg.direction);
-        checksum ^= static_cast<uint16_t>(msg.v_max_100);
-        checksum ^= static_cast<uint16_t>(msg.w_max_10);
-        checksum ^= static_cast<uint16_t>(msg.tol_perc);
-        checksum ^= static_cast<uint16_t>(msg.coeff);
-        msg.checksum = checksum;
+        if (move_finished == false)
+        {
+            auto msg = ros381_interfaces::msg::MiniMBP();
+            msg.type = reg_type_;
+            msg.x = x_ref_;
+            msg.y = y_ref_;
+            msg.phi = phi_ref_;
+            msg.direction = direction_;
+            msg.obstacle = obstacle_;
+            // TODO: ovo uradi kako treba
+            msg.v_max_100 = 150;
+            msg.w_max_10 = 95;
+            msg.tol_perc = 255;
+            msg.coeff = 255;
+            // RCLCPP_INFO(this->get_logger(),
+            //             "Publishing MiniMBP:\n"
+            //             "type=%d, x=%.4f, y=%.4f, phi=%.4f\n"
+            //             "direction=%d, obstacle=%d\n"
+            //             "v_max_100=%d, w_max_10=%d, tol=%d, coeff=%d, checksum=%d",
+            //             msg.type, msg.x, msg.y, msg.phi, msg.direction, msg.obstacle, msg.v_max_100, msg.w_max_10,
+            //             msg.tol_perc, msg.coeff, msg.checksum);
+            // Calculate checksum
+            uint16_t checksum = 0;
+            checksum ^= static_cast<uint16_t>(msg.type);
+            checksum ^= static_cast<uint16_t>(msg.direction);
+            checksum ^= static_cast<uint16_t>(msg.v_max_100);
+            checksum ^= static_cast<uint16_t>(msg.w_max_10);
+            checksum ^= static_cast<uint16_t>(msg.tol_perc);
+            checksum ^= static_cast<uint16_t>(msg.coeff);
+            msg.checksum = checksum;
 
-        mini_mbp_pub_->publish(msg);
+            mini_mbp_pub_->publish(msg);
+        }
     }
 
     void declare_parameters()

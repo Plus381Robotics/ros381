@@ -215,7 +215,7 @@ class uCNode : public rclcpp::Node
     {
         while (running_ && rclcpp::ok())
         {
-            // TODO: clear rx_buffer
+            memset(rx_buffer, 0, sizeof(rx_buffer));
             read_uart(rx_buffer, 40);
             if (!create_rxba())
                 continue;

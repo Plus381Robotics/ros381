@@ -208,7 +208,10 @@ class MiniMBP : public rclcpp::Node
         auto feedback = std::make_shared<Move::Feedback>();
         auto result = std::make_shared<Move::Result>();
         move_finished = false;
-
+        move_status_budz_ = 0;
+        movement_state_ = 0;
+        // TODO: delay of 1s here
+        // rclcpp::sleep_for(std::chrono::milliseconds(1000));
         while (movement_state_ > -1)
         {
             movement_state_ = move_status_budz_;
@@ -293,22 +296,9 @@ class MiniMBP : public rclcpp::Node
             msg.w_max_10 = 95;
             msg.tol_perc = 255;
             msg.coeff = 255;
-            // RCLCPP_INFO(this->get_logger(),
-            //             "Publishing MiniMBP:\n"
-            //             "type=%d, x=%.4f, y=%.4f, phi=%.4f\n"
-            //             "direction=%d, obstacle=%d\n"
-            //             "v_max_100=%d, w_max_10=%d, tol=%d, coeff=%d, checksum=%d",
-            //             msg.type, msg.x, msg.y, msg.phi, msg.direction, msg.obstacle, msg.v_max_100, msg.w_max_10,
-            //             msg.tol_perc, msg.coeff, msg.checksum);
-            // Calculate checksum
-            uint16_t checksum = 0;
-            checksum ^= static_cast<uint16_t>(msg.type);
-            checksum ^= static_cast<uint16_t>(msg.direction);
-            checksum ^= static_cast<uint16_t>(msg.v_max_100);
-            checksum ^= static_cast<uint16_t>(msg.w_max_10);
-            checksum ^= static_cast<uint16_t>(msg.tol_perc);
-            checksum ^= static_cast<uint16_t>(msg.coeff);
-            msg.checksum = checksum;
+
+            // uint16_t checksum = fletcher16();
+            // msg.checksum = checksum;
 
             mini_mbp_pub_->publish(msg);
         }

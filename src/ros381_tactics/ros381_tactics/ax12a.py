@@ -364,45 +364,8 @@ def init_ax():
             if get_ax_bulk_move_result() < 0:
                 init_state = 100
 
-
-        case 100:
-            ax_hybrid_move(lift_front_id, 1000, 0.2, 200)
-            init_state = 110
-        case 110:
-            if get_ax_hybrid_move_result() < 0:
-                init_state = 120
-        case 120:
-            ax_hybrid_move(lift_back_id, 1000, 0.2, 200)
-            init_state = 130
-        case 130:
-            if get_ax_hybrid_move_result() < 0:
-                init_state = 160
         
-        case 160:
-            ax_hybrid_move(cursor_id, 1000, 0.2, 200)
-            init_state = 170
-        case 170:
-            if get_ax_hybrid_move_result() < 0:
-                init_state = 180
-        case 180:
-            ax_move(cursor_id, cursor_up_pos, 1000, 50)
-            init_state = 190
-        case 190:
-            if get_ax_move_result() < 0:
-                init_state = 200
-                
-        case 200:
-            ax_bulk_move(
-                [
-                    (lift_front_id, lift_rotating_pos, 500, 100),
-                    (lift_back_id, lift_rotating_pos, 500, 100),
-                ]
-            )
-            init_state = 205
-        case 205:
-            if get_ax_bulk_move_result() < 0:
-                init_state = 210
-        case 210:
+        case 100:
             ax_bulk_move(
                 [
                     (clan1_front_id, clanL_undep_pos, 500, 100),
@@ -415,7 +378,22 @@ def init_ax():
                     (clan4_back_id, clanR_undep_pos, 500, 100),
                 ]
             )
-            init_state = 99
+            init_state = 110
+        case 110:
+            if get_ax_bulk_move_result() < 0:
+                init_state = 160
+        case 160:
+            ax_hybrid_move(cursor_id, 1000, 0.2, 200)
+            init_state = 170
+        case 170:
+            if get_ax_hybrid_move_result() < 0:
+                init_state = 180
+        case 180:
+            ax_move(cursor_id, cursor_up_pos, 1000, 100)
+            init_state = 190
+        case 190:
+            if get_ax_move_result() < 0:
+                init_state = 99
         case 99:
             if get_ax_bulk_move_result() < 0:
                 init_state = -1

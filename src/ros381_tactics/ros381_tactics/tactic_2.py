@@ -30,15 +30,21 @@ def tactic_2():
             if move_success():
                 tactic_state = 2
         case 2:
-            move_to_xy(0.0, 0.0, 1)
+            move_to_xy(0.0, 0.0, -1)
             tactic_state = 3
         case 3:
             if move_success():
                 tactic_state = 4
         case 4:
-            move_to_xy(0.0, -0.5, -1)
+            move_on_direction(dist= 0.4, dir= 1)
             tactic_state = 5
         case 5:
+            if move_success():
+                tactic_state = 6
+        case 6:
+            move_on_angle(dist= 0.2, dir= 1, phi= 0.0)
+            tactic_state = 7
+        case 7:
             if move_success():
                 tactic_state = -1
         case -1:

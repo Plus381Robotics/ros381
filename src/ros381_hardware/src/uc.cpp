@@ -120,7 +120,8 @@ class uCNode : public rclcpp::Node
         memcpy(tx + base + 1 + 8, &mbp_y, sizeof(double));
         memcpy(tx + base + 1 + 16, &mbp_phi, sizeof(double));
 
-        tx[base + 25] = ((mbp_direction & 0b11) << 6) | (mbp_obstacle & 0b111111);
+        uint8_t dir_bits = (mbp_direction == -1) ? 0b10 : 0b01;
+        tx[base + 25] = (dir_bits << 6) | (mbp_obstacle & 0b111111);
 
         tx[base + 26] = mbp_v_max_100; // 0..100
         tx[base + 27] = mbp_w_max_10;  // 0..10
@@ -132,6 +133,7 @@ class uCNode : public rclcpp::Node
             (((mbp_coeff & 0b11) << 6) | ((mbp_coeff & 0b11) << 4) | ((mbp_coeff & 0b11) << 2) | (mbp_coeff & 0b11));
         tx[base + 29] = coeff_byte;
 
+        // checksum treba od 8
         uint16_t checksum = fletcher16(tx, 30);
         tx[base + 30] = checksum & 0xFF;
         tx[base + 31] = (checksum >> 8) & 0xFF;

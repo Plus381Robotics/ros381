@@ -529,6 +529,9 @@ void TacticGlobalNode::global_fsm()
         RCLCPP_INFO(this->get_logger(), "Match ended.");
         RCLCPP_INFO(this->get_logger(), "Time: %.3f", time_);
         // rclcpp::shutdown();
+        global_state_ = GL_OVER;
+        break;
+    case GL_OVER:
         break;
     }
 }

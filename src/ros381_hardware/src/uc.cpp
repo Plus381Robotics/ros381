@@ -3,6 +3,7 @@
 #include "example_interfaces/msg/u_int8.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ros381_interfaces/msg/float2.hpp"
+#include "ros381_interfaces/msg/mini_mbp.hpp"
 #include "ros381_interfaces/srv/update_pose.hpp"
 #include <atomic>
 #include <bitset>
@@ -25,7 +26,7 @@ class uCNode : public rclcpp::Node
   public:
     uCNode() : Node("uc")
     {
-        // uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
+        uart_rx_thread_ = std::thread(&uCNode::uart_rx_interrupt_loop, this);
         uart2_rx_thread_ = std::thread(&uCNode::uart2_rx_loop, this);
 
         odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
@@ -39,12 +40,15 @@ class uCNode : public rclcpp::Node
             "chinch_waiting", 10, std::bind(&uCNode::chinch_waiting_callback, this, _1));
         chinch_pub_ = this->create_publisher<example_interfaces::msg::Bool>("chinch_trigger", 10);
 
-        // if (!init_uart())
-        // {
-        //     RCLCPP_ERROR(this->get_logger(), "Failed to init UART1.");
-        //     rclcpp::shutdown();
-        //     return;
-        // }
+        mini_mbp_sub_ = this->create_subscription<ros381_interfaces::msg::MiniMBP>(
+            "mini_mbp", 10, std::bind(&uCNode::minimbp_callback, this, _1));
+
+        if (!init_uart())
+        {
+            RCLCPP_ERROR(this->get_logger(), "Failed to init UART1.");
+            rclcpp::shutdown();
+            return;
+        }
         if (!init_uart2())
         {
             RCLCPP_ERROR(this->get_logger(), "Failed to init UART2.");
@@ -82,6 +86,62 @@ class uCNode : public rclcpp::Node
     }
 
   private:
+    void minimbp_callback(const ros381_interfaces::msg::MiniMBP::SharedPtr msg)
+    {
+        mbp_type = msg->type;
+        mbp_x = msg->x;
+        mbp_y = msg->y;
+        mbp_phi = msg->phi;
+        mbp_direction = msg->direction;
+        mbp_obstacle = msg->obstacle;
+        mbp_v_max_100 = msg->v_max_100;
+        mbp_w_max_10 = msg->w_max_10;
+        mbp_tol_perc = msg->tol_perc;
+        mbp_coeff = msg->coeff;
+
+        send_mbp_packet();
+    }
+
+    void send_mbp_packet()
+    {
+        uint8_t tx[40] = {0};
+
+        // First 8 bytes are all 0xFF
+        for (int i = 0; i < 8; i++)
+            tx[i] = 0xFF;
+
+        // MBP data starts at index 8
+        int base = 8;
+
+        tx[base + 0] = mbp_type;
+
+        auto pack_int32 = [&](int index, int32_t value) {
+            tx[base + index + 0] = (value >> 0) & 0xFF;
+            tx[base + index + 1] = (value >> 8) & 0xFF;
+            tx[base + index + 2] = (value >> 16) & 0xFF;
+            tx[base + index + 3] = (value >> 24) & 0xFF;
+        };
+
+        // scale doubles same way as RX (×10000)
+        pack_int32(1, (int32_t)(mbp_x * 10000));
+        pack_int32(5, (int32_t)(mbp_y * 10000));
+        pack_int32(9, (int32_t)(mbp_phi * 10000));
+
+        tx[base + 13] = mbp_direction;
+        tx[base + 14] = mbp_obstacle;
+        tx[base + 15] = mbp_v_max_100;
+        tx[base + 16] = mbp_w_max_10;
+        tx[base + 17] = mbp_tol_perc;
+        tx[base + 18] = mbp_coeff;
+
+        // checksum over first 30 bytes (from 0 to 29)
+        uint16_t checksum = fletcher16(tx, 30);
+        tx[base + 22] = checksum & 0xFF;
+        tx[base + 23] = (checksum >> 8) & 0xFF;
+
+        send_uart(tx, 40);
+    }
+
     void callback_update_pose(const std::shared_ptr<ros381_interfaces::srv::UpdatePose::Request> request,
                               std::shared_ptr<ros381_interfaces::srv::UpdatePose::Response> response)
     {
@@ -111,19 +171,82 @@ class uCNode : public rclcpp::Node
         response->success = update_x || update_y || update_phi;
     }
 
+    uint8_t create_rxba()
+    {
+        int start_index = -1;
+
+        for (int i = 0; i <= 40 - 8; i++)
+        {
+            if (rx_buffer[i] == 0xFF && rx_buffer[i + 1] == 0xFF && rx_buffer[i + 2] == 0xFF &&
+                rx_buffer[i + 3] == 0xFF && rx_buffer[i + 4] == 0xFF && rx_buffer[i + 5] == 0xFF &&
+                rx_buffer[i + 6] == 0xFF && rx_buffer[i + 7] == 0xFF)
+            {
+                start_index = i + 8;
+                break;
+            }
+        }
+        // RCLCPP_INFO(this->get_logger(), "Start index in create_rxba = %d", start_index);
+        if (start_index < 0)
+            return 0;
+
+        int first = 40 - start_index;
+        if (first >= 32)
+            memcpy(rxba, &rx_buffer[start_index], 32);
+        else
+        {
+            memcpy(rxba, &rx_buffer[start_index], first);
+            memcpy(rxba + first, &rx_buffer[0], 32 - first);
+        }
+        return 1;
+    }
+
+    uint16_t fletcher16(uint8_t *data, size_t len)
+    {
+        uint16_t sum1 = 0;
+        uint16_t sum2 = 0;
+
+        for (size_t i = 0; i < len; i++)
+        {
+            sum1 = (sum1 + data[i]) % 255;
+            sum2 = (sum2 + sum1) % 255;
+        }
+
+        return (sum2 << 8) | sum1;
+    }
+
     void uart_rx_interrupt_loop()
     {
         while (running_ && rclcpp::ok())
         {
-            uint8_t raw_data[40];
-            // TODO: create rxba
-            // read_uart(raw_data, 40);
-            // for (uint8_t i = 0; i < 40; i++)
-            //     process_rx_byte(raw_data[i]);
+            read_uart(rx_buffer, 40);
+            if (!create_rxba())
+                continue;
 
-            double x_raw = (int16_t)(rxba[1] << 8 | rxba[0]) / 10000.0;
-            double y_raw = (int16_t)(rxba[3] << 8 | rxba[2]) / 10000.0;
-            double phi_raw = (int16_t)(rxba[5] << 8 | rxba[4]) / phi_conversion_;
+            uint16_t received_checksum = rxba[30] | (rxba[31] << 8);
+            uint16_t calculated_checksum = fletcher16(rxba, 30);
+            if (received_checksum != calculated_checksum)
+            {
+                // checksum failed
+                continue;
+            }
+
+            // TODO: ovo mora da vrati
+            move_status_ = rxba[0];
+            double x_raw = (int32_t)((uint32_t)rxba[4] << 24 | (uint32_t)rxba[3] << 16 | (uint32_t)rxba[2] << 8 |
+                                     (uint32_t)rxba[1]) /
+                           10000.0;
+            double y_raw = (int32_t)((uint32_t)rxba[8] << 24 | (uint32_t)rxba[7] << 16 | (uint32_t)rxba[6] << 8 |
+                                     (uint32_t)rxba[5]) /
+                           10000.0;
+            double phi_raw = (int32_t)((uint32_t)rxba[12] << 24 | (uint32_t)rxba[11] << 16 | (uint32_t)rxba[10] << 8 |
+                                       (uint32_t)rxba[9]) /
+                             10000.0;
+            v_base_ = (int32_t)((uint32_t)rxba[16] << 24 | (uint32_t)rxba[15] << 16 | (uint32_t)rxba[14] << 8 |
+                                (uint32_t)rxba[13]) /
+                      10000.0;
+            w_base_ = (int32_t)((uint32_t)rxba[20] << 24 | (uint32_t)rxba[19] << 16 | (uint32_t)rxba[18] << 8 |
+                                (uint32_t)rxba[17]) /
+                      10000.0;
 
             bool log = false;
 
@@ -165,11 +288,10 @@ class uCNode : public rclcpp::Node
             //     }
             //     else
             //     {
-            //         RCLCPP_WARN(this->get_logger(), "Bad dt: %.4f ms, setting velocities to 0.", dt * 1000);
-            //         v_base_ = 0;
-            //         w_base_ = 0;
+            //         RCLCPP_WARN(this->get_logger(), "Bad dt: %.4f ms, setting
+            //         velocities to 0.", dt * 1000); v_base_ = 0; w_base_ = 0;
             //     }
-            //     publish_odometry();
+            publish_odometry();
             // }
             // else
             // {
@@ -181,23 +303,6 @@ class uCNode : public rclcpp::Node
             // prev_y_base_ = y_base_;
             // prev_phi_base_ = phi_base_;
         }
-    }
-
-    void process_rx_byte(uint8_t b)
-    {
-        sync = (sync << 8) | b;
-        if (idx == 0)
-        {
-            if (sync == 0xFFFF)
-                idx = 1;
-            return;
-        }
-        if (idx - 1 < sizeof(rxba))
-            rxba[idx - 1] = b;
-        idx++;
-
-        if (idx == 7)
-            idx = 0;
     }
 
     void publish_odometry()
@@ -253,7 +358,7 @@ class uCNode : public rclcpp::Node
         tty.c_iflag &= ~(IXON | IXOFF | IXANY);
         tty.c_oflag &= ~OPOST;
 
-        tty.c_cc[VMIN] = 8;
+        tty.c_cc[VMIN] = 40;
         tty.c_cc[VTIME] = 1;
 
         if (tcsetattr(uart_fd_, TCSANOW, &tty) != 0)
@@ -279,6 +384,9 @@ class uCNode : public rclcpp::Node
             for (int i = 0; i < n; i++)
                 RCLCPP_INFO(this->get_logger(), "%d", buffer[i]);
         }
+        // RCLCPP_INFO(this->get_logger(), "Recieved %ld bytes.", n);
+        // for (int i = 0; i < n; i++)
+        //     RCLCPP_INFO(this->get_logger(), "%d", buffer[i]);
     }
 
     void send_uart(const uint8_t *data, size_t size)
@@ -387,7 +495,7 @@ class uCNode : public rclcpp::Node
         });
     }
 
-    uint8_t rxba[6];
+    uint8_t rxba[32];
     uint8_t idx = 0;
     uint16_t sync = 0;
     double phi_conversion_ = pow(2, 14) / M_PI;
@@ -411,6 +519,21 @@ class uCNode : public rclcpp::Node
     rclcpp::Subscription<example_interfaces::msg::Empty>::SharedPtr chinch_waiting_sub_;
     rclcpp::TimerBase::SharedPtr clear_chinch_timer_;
     rclcpp::Publisher<example_interfaces::msg::Bool>::SharedPtr chinch_pub_;
+    rclcpp::Subscription<ros381_interfaces::msg::MiniMBP>::SharedPtr mini_mbp_sub_;
+
+    int8_t move_status_ = 0;
+    uint8_t rx_buffer[40];
+    int8_t mbp_type;
+    double mbp_x;
+    double mbp_y;
+    double mbp_phi;
+    int8_t mbp_direction;
+    uint8_t mbp_obstacle;
+    uint8_t mbp_v_max_100;
+    uint8_t mbp_w_max_10;
+    uint8_t mbp_tol_perc;
+    uint8_t mbp_coeff;
+    uint16_t mbp_checksum;
 
     int uart2_fd_ = -1;
     std::thread uart2_rx_thread_;

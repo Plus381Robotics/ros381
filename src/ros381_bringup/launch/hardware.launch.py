@@ -16,6 +16,17 @@ def generate_launch_description():
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
         ],
     )
+    
+    mini_mbp_node = Node(
+        package="ros381_base",
+        executable="miniMBP",
+        name="mini_mbp",
+        namespace="ros381",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+        ],
+    )
 
     odometry_node = Node(
         package="ros381_base",
@@ -139,6 +150,7 @@ def generate_launch_description():
         [
             # control_loop_node,
             # odometry_node,
+            mini_mbp_node,
             tactics_node,
             uc_node,
             ax12a_setup,

@@ -1,3 +1,4 @@
+#include "../include/signal.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
@@ -260,6 +261,11 @@ class MiniMBP : public rclcpp::Node
         v_base_ = msg->twist.twist.linear.x;
         w_base_ = msg->twist.twist.angular.z;
 
+        obstacle_dir_ = get_sign(v_base_);
+        auto dir_msg = example_interfaces::msg::Int8();
+        dir_msg.data = obstacle_dir_;
+        obstacle_dir_pub_->publish(dir_msg);
+
         // budz
         x_base_offs_ = msg->twist.twist.linear.y;
         y_base_offs_ = msg->twist.twist.linear.z;
@@ -293,8 +299,8 @@ class MiniMBP : public rclcpp::Node
 
     void publish_mini_mbp()
     {
-        if (move_finished == false)
-        {
+        // if (move_finished == false)
+        // {
             auto msg = ros381_interfaces::msg::MiniMBP();
             msg.type = reg_type_;
             float dx = x_ref_ - x_base_offs_;
@@ -322,10 +328,10 @@ class MiniMBP : public rclcpp::Node
             //             "BASE: x=%.3f y=%.3f phi=%.3f | "
             //             "DIFF: dx=%.3f dy=%.3f dphi=%.3f | "
             //             "MSG: x=%.3f y=%.3f phi=%.3f",
-            //             x_ref_, y_ref_, phi_ref_, x_base_, y_base_, phi_base_, dx, dy, phi_ref_ - phi_base_offs_, msg.x,
-            //             msg.y, msg.phi);
+            //             x_ref_, y_ref_, phi_ref_, x_base_, y_base_, phi_base_, dx, dy, phi_ref_ - phi_base_offs_,
+            //             msg.x, msg.y, msg.phi);
             mini_mbp_pub_->publish(msg);
-        }
+        // }
     }
 
     void declare_parameters()

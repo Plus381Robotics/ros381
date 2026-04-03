@@ -177,28 +177,43 @@ class uCNode : public rclcpp::Node
     {
         int start_index = -1;
 
-        for (int i = 0; i <= 40 - 8; i++)
+        // Find 8x 0xFF with wrap
+        for (int i = 0; i < 40; i++)
         {
-            if (rx_buffer[i] == 0xFF && rx_buffer[i + 1] == 0xFF && rx_buffer[i + 2] == 0xFF &&
-                rx_buffer[i + 3] == 0xFF && rx_buffer[i + 4] == 0xFF && rx_buffer[i + 5] == 0xFF &&
-                rx_buffer[i + 6] == 0xFF && rx_buffer[i + 7] == 0xFF)
+            int found = 1;
+
+            for (int k = 0; k < 8; k++)
             {
-                start_index = i + 8;
+                if (rx_buffer[(i + k) % 40] != 0xFF)
+                {
+                    found = 0;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                start_index = (i + 8) % 40;
                 break;
             }
         }
-        // RCLCPP_INFO(this->get_logger(), "Start index in create_rxba = %d", start_index);
+
         if (start_index < 0)
             return 0;
 
+        // Copy 32 bytes using memcpy (same logic as before, but correct)
         int first = 40 - start_index;
+
         if (first >= 32)
+        {
             memcpy(rxba, &rx_buffer[start_index], 32);
+        }
         else
         {
             memcpy(rxba, &rx_buffer[start_index], first);
             memcpy(rxba + first, &rx_buffer[0], 32 - first);
         }
+
         return 1;
     }
 

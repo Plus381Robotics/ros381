@@ -40,8 +40,7 @@ def tactic_3():
             tactic_state = 12
         case 12:
             if move_success():
-                tactic_state = 20
-        # TODO: ovo preskacemo
+                tactic_state = 15
         case 15:
             if snapshot_fsm(1, 47, 10) < 0:
                 tactic_state = 20

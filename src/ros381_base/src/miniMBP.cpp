@@ -264,6 +264,10 @@ class MiniMBP : public rclcpp::Node
         x_base_offs_ = msg->twist.twist.linear.y;
         y_base_offs_ = msg->twist.twist.linear.z;
         phi_base_offs_ = msg->twist.twist.angular.x;
+
+        // RCLCPP_INFO(this->get_logger(), "ODOM: x=%.3f y=%.3f phi=%.3f | OFFS_IN: x=%.3f y=%.3f phi=%.3f", x_base_,
+        //             y_base_, phi_base_, msg->twist.twist.linear.y, msg->twist.twist.linear.z,
+        //             msg->twist.twist.angular.x);
     }
 
     void reset_movement()
@@ -312,12 +316,14 @@ class MiniMBP : public rclcpp::Node
 
             // uint16_t checksum = fletcher16();
             // msg.checksum = checksum;
+
             // RCLCPP_INFO(this->get_logger(),
-            //             "x_ref=%.3f, x_off=%.3f, x=%.3f | "
-            //             "y_ref=%.3f, y_off=%.3f, y=%.3f | "
-            //             "phi_ref=%.3f, phi_off=%.3f, phi=%.3f",
-            //             x_ref_, x_base_offs_, x_ref_ - x_base_offs_, y_ref_, y_base_offs_, y_ref_ - y_base_offs_,
-            //             phi_ref_, phi_base_offs_, phi_ref_ - phi_base_offs_);
+            //             "REF: x=%.3f y=%.3f phi=%.3f | "
+            //             "BASE: x=%.3f y=%.3f phi=%.3f | "
+            //             "DIFF: dx=%.3f dy=%.3f dphi=%.3f | "
+            //             "MSG: x=%.3f y=%.3f phi=%.3f",
+            //             x_ref_, y_ref_, phi_ref_, x_base_, y_base_, phi_base_, dx, dy, phi_ref_ - phi_base_offs_, msg.x,
+            //             msg.y, msg.phi);
             mini_mbp_pub_->publish(msg);
         }
     }

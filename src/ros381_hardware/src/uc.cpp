@@ -269,8 +269,11 @@ class uCNode : public rclcpp::Node
                 log = true;
             }
 
-            x_base_ = x_raw + x_base_offs_;
-            y_base_ = y_raw + y_base_offs_;
+            double cos_phi = cos(phi_base_offs_);
+            double sin_phi = sin(phi_base_offs_);
+
+            x_base_ = x_base_offs_ + x_raw * cos_phi - y_raw * sin_phi;
+            y_base_ = y_base_offs_ + x_raw * sin_phi + y_raw * cos_phi;
             phi_base_ = phi_raw + phi_base_offs_;
 
             if (log)

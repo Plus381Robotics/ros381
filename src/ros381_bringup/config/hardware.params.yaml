@@ -55,7 +55,7 @@ ros381/tactic_global:
     cursor_id: 4
     # Positions
     lift_up_pos: 150  # 120 je skroz gore
-    lift_down_pos: 700 # 1000 je skroz dole
+    lift_down_pos: 500 # 1000 je skroz dole
     lift_carry_pos: 700
     lift_rotating_pos: 150
     lift_dropoff_pos: 500

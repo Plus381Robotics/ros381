@@ -35,7 +35,7 @@ def tactic_3():
             if move_success():
                 tactic_state = 2
         case 2:
-            move_on_angle(dist=0.3, dir=1, phi=math.pi)
+            move_on_angle(dist=0.3, dir=1, phi=0.0)
             tactic_state = 3
         case 3:
             if move_success() or move_stacked():

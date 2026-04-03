@@ -55,6 +55,8 @@ class MiniMBP : public rclcpp::Node
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<example_interfaces::msg::Int8>::SharedPtr move_status_budz_sub_;
 
+    double x_base_offs_ = 0.0, y_base_offs_ = 0.0, phi_base_offs_ = 0.0;
+
     bool move_finished = false;
     unsigned short obstacle_ = 0;
     bool obstacle_status_changed_ = false;
@@ -147,7 +149,7 @@ class MiniMBP : public rclcpp::Node
             x_ref_ = x_base_;
             y_ref_ = y_base_;
             phi_ref_ = atan2(goal->y - y_base_, goal->x - x_base_) + (goal->direction - 1) * M_PI * 0.5;
-            RCLCPP_INFO(this->get_logger(), "Rotate to XY:\nx = %.4f, y = %.4f, phi_ref = %.4f", goal->x, goal->y,
+            RCLCPP_INFO(this->get_logger(), "Rotate to XY:\nx = %.4f, y = %.4f, phi_ref = %.4f", x_ref_, y_ref_,
                         phi_ref_);
             reg_type_ = -1;
             break;
@@ -257,6 +259,11 @@ class MiniMBP : public rclcpp::Node
         phi_base_ = tf2::getYaw(msg->pose.pose.orientation);
         v_base_ = msg->twist.twist.linear.x;
         w_base_ = msg->twist.twist.angular.z;
+
+        // budz
+        x_base_offs_ = msg->twist.twist.linear.y;
+        y_base_offs_ = msg->twist.twist.linear.z;
+        phi_base_offs_ = msg->twist.twist.angular.x;
     }
 
     void reset_movement()
@@ -286,9 +293,15 @@ class MiniMBP : public rclcpp::Node
         {
             auto msg = ros381_interfaces::msg::MiniMBP();
             msg.type = reg_type_;
-            msg.x = x_ref_;
-            msg.y = y_ref_;
-            msg.phi = phi_ref_;
+            float dx = x_ref_ - x_base_offs_;
+            float dy = y_ref_ - y_base_offs_;
+
+            float c = cos(phi_base_offs_);
+            float s = sin(phi_base_offs_);
+
+            msg.x = c * dx + s * dy;
+            msg.y = -s * dx + c * dy;
+            msg.phi = phi_ref_ - phi_base_offs_;
             msg.direction = direction_;
             msg.obstacle = obstacle_;
             // TODO: ovo uradi kako treba
@@ -299,7 +312,12 @@ class MiniMBP : public rclcpp::Node
 
             // uint16_t checksum = fletcher16();
             // msg.checksum = checksum;
-
+            // RCLCPP_INFO(this->get_logger(),
+            //             "x_ref=%.3f, x_off=%.3f, x=%.3f | "
+            //             "y_ref=%.3f, y_off=%.3f, y=%.3f | "
+            //             "phi_ref=%.3f, phi_off=%.3f, phi=%.3f",
+            //             x_ref_, x_base_offs_, x_ref_ - x_base_offs_, y_ref_, y_base_offs_, y_ref_ - y_base_offs_,
+            //             phi_ref_, phi_base_offs_, phi_ref_ - phi_base_offs_);
             mini_mbp_pub_->publish(msg);
         }
     }

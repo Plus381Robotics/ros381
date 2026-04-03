@@ -59,7 +59,6 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:
-                # TODO: parametar skip_ax_init
                 load_state = 3
         case 3:
             GT.set_vacuum(False, False)

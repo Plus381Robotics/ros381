@@ -155,16 +155,19 @@ class uCNode : public rclcpp::Node
         {
             req_x.store(request->x);
             set_x.store(true);
+            RCLCPP_INFO(this->get_logger(), "Updating x to = %.3f", request->x);
         }
         if (update_y)
         {
             req_y.store(request->y);
             set_y.store(true);
+            RCLCPP_INFO(this->get_logger(), "Updating y to = %.3f", request->y);
         }
         if (update_phi)
         {
             req_phi.store(request->phi);
             set_phi.store(true);
+            RCLCPP_INFO(this->get_logger(), "Updating phi to = %.3f", request->phi);
         }
 
         response->success = update_x || update_y || update_phi;
@@ -231,7 +234,6 @@ class uCNode : public rclcpp::Node
                 // continue;
             }
 
-            // TODO: ovo mora da vrati
             move_status_ = rxba[0];
             double x_raw = (int32_t)((uint32_t)rxba[4] << 24 | (uint32_t)rxba[3] << 16 | (uint32_t)rxba[2] << 8 |
                                      (uint32_t)rxba[1]) /
@@ -301,9 +303,10 @@ class uCNode : public rclcpp::Node
         msg.pose.pose.orientation.z = q.z();
         msg.pose.pose.orientation.w = q.w();
         msg.twist.twist.linear.x = v_base_;
-        msg.twist.twist.linear.y = 0.0;
-        msg.twist.twist.linear.z = 0.0;
-        msg.twist.twist.angular.x = 0.0;
+        // ovo je bas budz
+        msg.twist.twist.linear.y = x_base_offs_;
+        msg.twist.twist.linear.z = y_base_offs_;
+        msg.twist.twist.angular.x = phi_base_offs_;
         msg.twist.twist.angular.y = 0.0;
         msg.twist.twist.angular.z = w_base_;
         odom_pub_->publish(msg);

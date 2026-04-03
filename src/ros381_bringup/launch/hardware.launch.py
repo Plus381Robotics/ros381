@@ -3,6 +3,8 @@ import launch
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import Node
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import IncludeLaunchDescription
 
 
 def generate_launch_description():
@@ -10,6 +12,17 @@ def generate_launch_description():
         package="ros381_base",
         executable="control_loop",
         name="control_loop",
+        namespace="ros381",
+        output="screen",
+        parameters=[
+            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+        ],
+    )
+    
+    obstacle_node = Node(
+        package="ros381_base",
+        executable="obstacle",
+        name="obstacle",
         namespace="ros381",
         output="screen",
         parameters=[
@@ -57,8 +70,8 @@ def generate_launch_description():
         namespace="ros381",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
-		],
-	)
+        ],
+    )
 
     ax12a_setup = Node(
         package="dynamixel_sdk_examples",
@@ -67,7 +80,7 @@ def generate_launch_description():
         namespace="ros381",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
-		],
+        ],
     )
 
     ax12a_single = Node(
@@ -77,7 +90,7 @@ def generate_launch_description():
         namespace="ros381",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
-		],
+        ],
     )
 
     ax12a_bulk = Node(
@@ -87,7 +100,7 @@ def generate_launch_description():
         namespace="ros381",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
-		],
+        ],
     )
 
     ax12a_hybrid = Node(
@@ -97,7 +110,7 @@ def generate_launch_description():
         namespace="ros381",
         parameters=[
             "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
-		],
+        ],
     )
 
     csi_camera_node = Node(
@@ -137,6 +150,7 @@ def generate_launch_description():
             ("usb_camera/image_raw", "image_raw_back"),
         ],
     ) 
+
     aruco_detection_front = Node(
         package="ros381_vision",
         executable="aruco_detection",
@@ -157,10 +171,24 @@ def generate_launch_description():
         ],
     )
 
+    rplidar_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory("rplidar_ros"),
+                "launch",
+                "rplidar_s2_launch.py"
+            )
+        ),
+        launch_arguments={
+            "serial_port": "/dev/rplidar",
+        }.items(),
+    )
+
     return LaunchDescription(
         [
             # control_loop_node,
             # odometry_node,
+            obstacle_node,
             mini_mbp_node,
             tactics_node,
             uc_node,
@@ -172,11 +200,6 @@ def generate_launch_description():
             # usb_camera_node,
             aruco_detection_front,
             aruco_detection_back,
-            # launch.actions.RegisterEventHandler(
-            #     event_handler=launch.event_handlers.OnProcessExit(
-            #         target_action=hardware,
-            #         on_exit=[launch.actions.EmitEvent(event=launch.events.Shutdown())],
-            #     )
-            # ),
+            rplidar_launch,
         ]
     )

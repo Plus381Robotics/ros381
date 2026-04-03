@@ -101,31 +101,42 @@ def generate_launch_description():
     )
 
     csi_camera_node = Node(
-        package="v4l2_camera",
-        executable="v4l2_camera_node",
+        package="camera_ros",
+        executable="camera_node",
         name="csi_camera",
         namespace="ros381",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+            {
+                "camera_name": "front_camera",
+                "video_device": "/dev/video10",
+                "image_width": 640,
+                "image_height": 480,
+                "frame_rate": 30,
+            }
         ],
         remappings=[
-            ("image_raw", "image_raw_front"),
+            ("csi_camera/image_raw", "image_raw_front"),
         ],
     )
 
     usb_camera_node = Node(
-        package="v4l2_camera",
-        executable="v4l2_camera_node",
+        package="camera_ros",
+        executable="camera_node",
         name="usb_camera",
         namespace="ros381",
         parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
+            {
+                "camera_name": "back_camera",
+                "video_device": "/dev/video0",
+                "image_width": 640,
+                "image_height": 480,
+                "frame_rate": 30,
+            }
         ],
         remappings=[
-            ("image_raw", "image_raw_back"),
+            ("usb_camera/image_raw", "image_raw_back"),
         ],
-    )
-
+    ) 
     aruco_detection_front = Node(
         package="ros381_vision",
         executable="aruco_detection",
@@ -157,8 +168,8 @@ def generate_launch_description():
             ax12a_single,
             ax12a_bulk,
             ax12a_hybrid,
-            csi_camera_node,
-            usb_camera_node,
+            # csi_camera_node,
+            # usb_camera_node,
             aruco_detection_front,
             aruco_detection_back,
             # launch.actions.RegisterEventHandler(

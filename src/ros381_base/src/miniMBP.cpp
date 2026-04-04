@@ -301,36 +301,36 @@ class MiniMBP : public rclcpp::Node
     {
         // if (move_finished == false)
         // {
-            auto msg = ros381_interfaces::msg::MiniMBP();
-            msg.type = reg_type_;
-            float dx = x_ref_ - x_base_offs_;
-            float dy = y_ref_ - y_base_offs_;
+        auto msg = ros381_interfaces::msg::MiniMBP();
+        msg.type = reg_type_;
+        float dx = x_ref_ - x_base_offs_;
+        float dy = y_ref_ - y_base_offs_;
 
-            float c = cos(phi_base_offs_);
-            float s = sin(phi_base_offs_);
+        float c = cos(phi_base_offs_);
+        float s = sin(phi_base_offs_);
 
-            msg.x = c * dx + s * dy;
-            msg.y = -s * dx + c * dy;
-            msg.phi = phi_ref_ - phi_base_offs_;
-            msg.direction = direction_;
-            msg.obstacle = obstacle_;
-            // TODO: ovo uradi kako treba
-            msg.v_max_100 = 150;
-            msg.w_max_10 = 95;
-            msg.tol_perc = 255;
-            msg.coeff = 255;
+        msg.x = c * dx + s * dy;
+        msg.y = -s * dx + c * dy;
+        msg.phi = phi_ref_ - phi_base_offs_;
+        msg.direction = direction_;
+        msg.obstacle = obstacle_;
+        // TODO: ovo uradi kako treba
+        msg.v_max_100 = (uint8_t)(v_max_temp_ * 100.0f);
+        msg.w_max_10 = (uint8_t)(w_max_temp_ * 10.0f);
+        msg.tol_perc = 255;
+        msg.coeff = 255;
 
-            // uint16_t checksum = fletcher16();
-            // msg.checksum = checksum;
+        // uint16_t checksum = fletcher16();
+        // msg.checksum = checksum;
 
-            // RCLCPP_INFO(this->get_logger(),
-            //             "REF: x=%.3f y=%.3f phi=%.3f | "
-            //             "BASE: x=%.3f y=%.3f phi=%.3f | "
-            //             "DIFF: dx=%.3f dy=%.3f dphi=%.3f | "
-            //             "MSG: x=%.3f y=%.3f phi=%.3f",
-            //             x_ref_, y_ref_, phi_ref_, x_base_, y_base_, phi_base_, dx, dy, phi_ref_ - phi_base_offs_,
-            //             msg.x, msg.y, msg.phi);
-            mini_mbp_pub_->publish(msg);
+        // RCLCPP_INFO(this->get_logger(),
+        //             "REF: x=%.3f y=%.3f phi=%.3f | "
+        //             "BASE: x=%.3f y=%.3f phi=%.3f | "
+        //             "DIFF: dx=%.3f dy=%.3f dphi=%.3f | "
+        //             "MSG: x=%.3f y=%.3f phi=%.3f",
+        //             x_ref_, y_ref_, phi_ref_, x_base_, y_base_, phi_base_, dx, dy, phi_ref_ - phi_base_offs_,
+        //             msg.x, msg.y, msg.phi);
+        mini_mbp_pub_->publish(msg);
         // }
     }
 

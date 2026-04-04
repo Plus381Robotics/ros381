@@ -20,7 +20,7 @@ class ObstacleNode : public rclcpp::Node
         obstacle_dir_sub_ = this->create_subscription<example_interfaces::msg::Int8>(
             "obstacle_direction", 10, std::bind(&ObstacleNode::callback_obstacle_dir, this, std::placeholders::_1));
 
-        num_pts_part_ = resolution_ / 6;
+        num_pts_part_ = resolution_ / 6.0;
         double angle_increment_ = 2 * M_PI / resolution_;
         for (int i = 0; i < 3200; i++)
         {
@@ -32,13 +32,14 @@ class ObstacleNode : public rclcpp::Node
   private:
     double v_base_, w_base_;
     double x_base_, y_base_, phi_base_;
-    unsigned resolution_ = 3200, threshold_ = 50;    // TODO: u parametre
+    unsigned resolution_ = 3200, threshold_ = 40;    // TODO: u parametre
     double TABLE_X_LIMIT = 1.3, TABLE_Y_LIMIT = 0.8; // TODO: u parametre
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
-    double j_max_ = 50.0;                                                           // TODO: parametar
-    double inf_x_stop_ = 0.1, robot_l_ = 0.22, inf_y_stop_ = 0.22, dis_stop_ = 0.1; // TODO: parametri
-    double inf_y_slow_ = 0.05, dis_slow_ = 0.5;                                     // TODO: parametri
-    int num_pts_part_ = 600;
+    double j_max_ = 20.0;                                         // TODO: parametar
+    double robot_y_ = 0.16, robot_y_max_ = 0.25, dis_stop_ = 0.1; // TODO: parametri
+    double robot_x = 0.18, robot_x_max = 0.25;
+    double robot_y_slow_ = 0.1, dis_slow_ = 0.5; // TODO: parametri
+    int num_pts_part_ = 533;
     // int num_offset_;
     int start_pt_ = 0, end_pt_ = 0;
     uint8_t obstacle_status_ = 0;
@@ -80,10 +81,10 @@ class ObstacleNode : public rclcpp::Node
         {
             unsigned stop_num = 0;
             unsigned slow_num = 0;
-            x_max_ = 5 / 3 * pow(fabs(v_base_ * 2.0), 5 / 3) / sqrt(j_max_) + inf_y_stop_ + inf_x_stop_ + dis_stop_;
+            x_max_ = 5.0 / 3.0 * pow(fabs(v_base_ * 2.0), 5.0 / 3.0) / sqrt(j_max_) + robot_x + robot_x_max + dis_stop_;
             x_max_slow_ = x_max_ + dis_slow_;
-            y_max_ = robot_l_ + inf_y_stop_;
-            y_max_slow_ = y_max_ + inf_y_slow_;
+            y_max_ = robot_y_ + robot_y_max_;
+            y_max_slow_ = y_max_ + robot_y_slow_;
             if (obstacle_dir_ref_ == 1)
             {
                 start_pt_ = -num_pts_part_;
@@ -91,41 +92,37 @@ class ObstacleNode : public rclcpp::Node
             }
             else if (obstacle_dir_ref_ == -1)
             {
-                start_pt_ = num_pts_part_;
-                end_pt_ = 3 * num_pts_part_;
+                start_pt_ = resolution_/2 - num_pts_part_;
+                end_pt_ = resolution_/2 + num_pts_part_;
             }
 
             for (int i = start_pt_; i <= end_pt_; i++)
             {
                 unsigned ui = (i + resolution_) % resolution_;
                 double range = msg->ranges[ui];
-                if (range <= 0.2 || range >= 1.0)
-                    continue;
-                if (range >= msg->range_min && range <= msg->range_max)
+                if (range >= robot_x && range <= 1.75)
                 {
                     double obst_x_robot = range * cos_lut_[ui];
                     double obst_y_robot = range * sin_lut_[ui];
                     double obst_x_table = x_base_ + obst_x_robot * cos(phi_base_) - obst_y_robot * sin(phi_base_);
                     double obst_y_table = y_base_ + obst_x_robot * sin(phi_base_) + obst_y_robot * cos(phi_base_);
-                    if (fabs(obst_x_table) < TABLE_X_LIMIT && fabs(obst_y_table) < TABLE_Y_LIMIT)
+
+                    if (fabs(obst_x_table) > TABLE_X_LIMIT || fabs(obst_y_table) > TABLE_Y_LIMIT)
+                        continue;
+                    if (fabs(obst_y_robot) > y_max_slow_ || fabs(obst_x_robot) > x_max_slow_)
+                        continue;
+                    if (fabs(obst_y_robot) > y_max_ || fabs(obst_x_robot) > x_max_)
                     {
-                        if (fabs(obst_y_robot) < y_max_ && fabs(obst_x_robot) < x_max_)
-                        {
-                            stop_num++;
-                            // RCLCPP_WARN(this->get_logger(), "OBSTACLE (robot frame): x=%.3f y=%.3f", obst_x_robot,
-                            //             obst_y_robot);
-                        }
-                        else if (fabs(obst_y_robot) < y_max_slow_ && fabs(obst_x_robot) < x_max_slow_)
-                            slow_num++;
+                        slow_num++;
+                        continue;
                     }
+                    stop_num++;
                 }
             }
             if (stop_num >= threshold_)
                 obstacle_status_ = 1;
             else if (slow_num + stop_num >= threshold_)
                 obstacle_status_ = 2;
-
-            // RCLCPP_WARN(this->get_logger(), "Stop num: %d", stop_num);
         }
         publish_obstacle();
     }

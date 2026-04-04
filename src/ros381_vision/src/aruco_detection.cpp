@@ -129,9 +129,7 @@ class ArUcoDetection : public rclcpp::Node
                 }
             }
             std::sort(crate_vector.begin(), crate_vector.end(), [](const auto &a, const auto &b) {
-                if (std::fabs(a.y - b.y) > 0.05)
                     return a.y > b.y;
-                return a.x < b.x;
             });
             crate_msg.crate_list = crate_vector;
             for (auto &crate : crate_msg.crate_list)

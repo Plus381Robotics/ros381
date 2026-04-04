@@ -376,7 +376,7 @@ class uCNode : public rclcpp::Node
         ssize_t n = read(uart_fd_, buffer, size);
         if (n < 0)
         {
-            RCLCPP_ERROR(this->get_logger(), "UART read failed");
+            // RCLCPP_ERROR(this->get_logger(), "UART read failed");
         }
         else if (static_cast<size_t>(n) != size)
         {

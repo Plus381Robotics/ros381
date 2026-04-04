@@ -68,7 +68,7 @@ class TacticGlobalNode : public rclcpp::Node
     std::array<int8_t, 4> crates_back_ = {-1, -1, -1, -1};
     std::array<int8_t, 4> crates_front_ = {-1, -1, -1, -1};
     // int8_t crates_front_[4] = {-1, -1, -1, -1};
-    bool consumed_front_ = true, consumed_back_ = true;
+    bool consuming_front_ = false, consuming_back_ = false;
 
     TacticGlobalNode();
 

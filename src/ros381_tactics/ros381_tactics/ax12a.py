@@ -5,6 +5,7 @@ import ros381_tactics_py  # type: ignore
 
 # pylint: enable=import-error
 import math
+import time
 
 init_state = 0
 lift_front_id = lift_back_id = 69
@@ -41,10 +42,12 @@ def mechanism(side, color):
                 mcl2_id = clan2_front_id
                 mcl3_id = clan3_front_id
                 mcl4_id = clan4_front_id
+                print("cf_local: ", cf_local)
                 mcl1_pos = clanL_up_pos if cf_local[0] == color else clanL_down_pos
                 mcl2_pos = clanL_up_pos if cf_local[1] == color else clanL_down_pos
                 mcl3_pos = clanR_up_pos if cf_local[2] == color else clanR_down_pos
                 mcl4_pos = clanR_up_pos if cf_local[3] == color else clanR_down_pos
+                clear_cf()
                 mvf = True
                 mvb = False
             else:
@@ -53,10 +56,12 @@ def mechanism(side, color):
                 mcl2_id = clan2_back_id
                 mcl3_id = clan3_back_id
                 mcl4_id = clan4_back_id
+                print("cb_local: ", cb_local)
                 mcl1_pos = clanL_up_pos if cb_local[0] == color else clanL_down_pos
                 mcl2_pos = clanL_up_pos if cb_local[1] == color else clanL_down_pos
                 mcl3_pos = clanR_up_pos if cb_local[2] == color else clanR_down_pos
                 mcl4_pos = clanR_up_pos if cb_local[3] == color else clanR_down_pos
+                clear_cb()
                 mvf = False
                 mvb = True
             mech_state = 10
@@ -91,6 +96,9 @@ def mechanism(side, color):
         case 40:
             # 4. iskljuci vakuum
             get_GT().remove_vacuum(mvf, mvb)
+            mech_state = 50
+        case 50:
+            time.sleep(1)
             mech_state = -1
         case -1:
             mech_state = 0

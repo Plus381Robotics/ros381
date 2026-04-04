@@ -37,6 +37,17 @@ def sided_coords(x, phi):
     return x, phi
 
 
+def clear_cf():
+    global cf_local
+    cf_local = [0, 0, 0, 0]
+    print("Cleared cf_local:", cf_local)
+
+def clear_cb():
+    global cb_local
+    cb_local = [0, 0, 0, 0]
+    print("Cleared cb_local:", cb_local)
+
+
 _snapshot_state = 0
 cf_local = [0, 0, 0, 0]
 cb_local  = [0, 0, 0, 0]
@@ -55,6 +66,7 @@ def snapshot_fsm(side, color, repeat):
     match _snapshot_state:
         case 0:
             if side == 1:
+                _GT_instance.consuming_front = True
                 if _GT_instance.cs_front_full:
                     cf_local = list(_GT_instance.crates_front)
                     cfl_x = _GT_instance.cs_front_x
@@ -63,7 +75,7 @@ def snapshot_fsm(side, color, repeat):
                     _snapshot_state = 10
                 else:
                     for i in range(4):
-                        print("cf[" + str(i) + "] = " + str(_GT_instance.crates_front[i]))
+                        # print("cf[" + str(i) + "] = " + str(_GT_instance.crates_front[i]))
                         if cf_local[i] != color:
                             if _GT_instance.crates_front[i] == color:
                                 cf_local[i] = color
@@ -79,6 +91,7 @@ def snapshot_fsm(side, color, repeat):
                     else:
                         _snapshot_repeat += 1
             else:
+                _GT_instance.consuming_back = True
                 if _GT_instance.cs_back_full:
                     cb_local = list(_GT_instance.crates_back)
                     cbl_x = _GT_instance.cs_back_x                    
@@ -103,9 +116,11 @@ def snapshot_fsm(side, color, repeat):
                         _snapshot_repeat += 1
         case 10:
             if side == 1:
-                print("Snapshot front:", cf_local, cfl_x, cfl_y, cfl_phi)
+                print("Snapshot front:", cf_local)
+                _GT_instance.consuming_front = False
             else:
-                print("Snapsho back:", cb_local, cbl_x, cbl_y, cbl_phi)  
+                print("Snapshot back:", cb_local)  
+                _GT_instance.consuming_back = False
             cfl_x_sum = 0.0
             cfl_y_sum = 0.0
             cfl_phi_sum = 0.0

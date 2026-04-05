@@ -50,9 +50,8 @@ def load_tactic(GT, tactic_number, tactic_side):
                 print("Yellow side chosen.")
             else:
                 print("Blue side chosen.")
-
-            # TODO: vrati na 1
-            load_state = -1
+# TODO: vrati na 1
+            load_state = 1
         case 1:
             GT.update_pose(start_x, start_y, start_phi, 111)
             GT.publish_pose_offset(start_x, start_y, start_phi)

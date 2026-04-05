@@ -88,6 +88,11 @@ def move_success():
         return True
     return False
 
+def move_failed():
+    if get_move_result() == -2:
+        return True
+    return False
+
 
 def move_stacked():
     if get_move_result() == -3:

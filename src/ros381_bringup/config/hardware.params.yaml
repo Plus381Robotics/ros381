@@ -5,7 +5,7 @@ ros381/minimbp:
     # Max base velocities: [m/s], [rad/s]
     V_MAX: 1.5
     V_MIN: 0.05
-    W_MAX: 9.42
+    W_MAX: 12.57
     W_MIN: 0.314
     # Max motor velocities: [m/s]
     MOTOR_V_MAX: 2.0
@@ -79,7 +79,7 @@ ros381/usb_camera:
     video_device: "/dev/video1"
     image_width: 640
     image_height: 480
-    pixel_format: "yuyv"
+    # pixel_format: "yuyv"
     framerate: 30.0
     camera_name: "back_camera"
 

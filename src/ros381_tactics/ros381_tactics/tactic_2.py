@@ -2,13 +2,14 @@ import math
 from ros381_tactics.movement import *
 from ros381_tactics.get_set import *
 from ros381_tactics.ax12a import *
+import time
 
 tactic_state = 0
 
 start_x = 0.0
 start_y = 0.0
 start_phi = 0.0
-first_x = 1.0
+first_x = 2.0
 first_y = 0.0
 first_dir = 1
 
@@ -29,16 +30,18 @@ def tactic_2():
 
     match tactic_state:
         case 0:
-            move_to_xy(first_x, first_y, first_dir)
+            move_to_xy(first_x, first_y, first_dir, v_max=1.5)
             tactic_state = 10
         case 10:
-            if move_success() or move_stacked() or move_interrupted():
+            if move_success() or move_failed() or move_stacked() or move_interrupted():
+                time.sleep(1)
                 tactic_state = 20
         case 20:
-            move_to_xy(0.0, 0.0, 1)
+            move_to_xy(0.0, 0.0, 1, v_max=0.2, w_max=0.78)
             tactic_state = 30
         case 30:
-            if move_success() or move_stacked() or move_interrupted():
+            if move_success() or move_failed() or move_stacked() or move_interrupted():
+                time.sleep(1)
                 tactic_state = 0
         case -1:
             print("Tactic 2 finished.")

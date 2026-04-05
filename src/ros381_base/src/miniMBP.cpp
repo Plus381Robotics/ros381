@@ -63,6 +63,7 @@ class MiniMBP : public rclcpp::Node
     bool obstacle_status_changed_ = false;
     int8_t obstacle_dir_ = 0;
     int movement_state_ = 0;
+    uint16_t checksum_;
 
     // Movement variables (minimal set needed for action server)
     double x_base_ = 0.0, y_base_ = 0.0, phi_base_ = 0.0;
@@ -136,6 +137,11 @@ class MiniMBP : public rclcpp::Node
         d_tol_perc_ = goal->distance_tolerance_percentage;
         phi_tol_perc_ = goal->angle_tolerance_percentage;
         direction_ = goal->direction;
+        
+        rclcpp::Time now = this->get_clock()->now();
+        uint32_t t = now.nanoseconds();
+
+        checksum_ = (uint16_t)(t ^ (t >> 16));
 
         switch (goal->type)
         {
@@ -321,7 +327,8 @@ class MiniMBP : public rclcpp::Node
         msg.coeff = 255;
 
         // uint16_t checksum = fletcher16();
-        // msg.checksum = checksum;
+        
+        msg.checksum = checksum_;
 
         // RCLCPP_INFO(this->get_logger(),
         //             "REF: x=%.3f y=%.3f phi=%.3f | "

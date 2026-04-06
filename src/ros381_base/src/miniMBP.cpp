@@ -219,8 +219,8 @@ class MiniMBP : public rclcpp::Node
         move_finished = false;
         move_status_budz_ = 0;
         movement_state_ = 0;
-        // TODO: delay of 1s here
-        // rclcpp::sleep_for(std::chrono::milliseconds(1000));
+        // delay of 100ms here
+        rclcpp::sleep_for(std::chrono::milliseconds(100));
         while (movement_state_ > -1)
         {
             movement_state_ = move_status_budz_;
@@ -284,6 +284,7 @@ class MiniMBP : public rclcpp::Node
 
     void reset_movement()
     {
+        reg_type_ = 0;
         movement_state_ = 0;
         stacked_cnt_ = 0;
         x_ref_ = x_base_;
@@ -300,7 +301,6 @@ class MiniMBP : public rclcpp::Node
         stopping_coeff_w_ = 1.0;
         d_tol_perc_ = 1.0;
         phi_tol_perc_ = 1.0;
-        reg_type_ = 0;
     }
 
     void publish_mini_mbp()

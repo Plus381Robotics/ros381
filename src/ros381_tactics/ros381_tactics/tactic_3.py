@@ -9,7 +9,7 @@ start_x = -1.06
 start_y = 0.75
 start_phi = -math.pi / 2
 
-first_x = -1.06
+first_x = -1.03
 first_y = 0.2
 first_dir = 1
 
@@ -36,7 +36,7 @@ def tactic_3():
             if move_success():
                 tactic_state = 11
         case 11:
-            rotate_to_phi(phi=math.pi)
+            rotate_to_phi(phi=math.pi, w_max=3.14)
             tactic_state = 12
         case 12:
             if move_success():
@@ -45,7 +45,7 @@ def tactic_3():
             if snapshot_fsm(1, 47, 10) < 0:
                 tactic_state = 20
         case 20:
-            move_on_angle(dist=0.1, dir=1, phi=math.pi)
+            move_on_angle(dist=0.5, dir=1, phi=math.pi, v_max=0.4)
             tactic_state = 30
         case 30:
             if move_success() or move_stacked():
@@ -62,7 +62,7 @@ def tactic_3():
             if lift_carry(1) < 0:
                 tactic_state = 60
         case 60:
-            move_on_angle(dist=0.2, dir=-1, phi=math.pi)
+            move_on_angle(dist=0.3, dir=-1, phi=math.pi)
             tactic_state = 65
         case 65:
             if move_success():

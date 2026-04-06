@@ -353,7 +353,7 @@ def init_ax():
         case 76:
             if get_ax_bulk_move_result() < 0:
                 # TODO: vrati na 80
-                init_state = -1
+                init_state = 80
 
         case 80:
             ax_bulk_move(

@@ -64,7 +64,7 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 4
         case 4:
             if init_ax():
-                load_state = 5
+                load_state = -1 # namerno iskljucen rotate
         case 5:
             rotate_to_xy(first_x, first_y, first_dir)
             load_state = 6

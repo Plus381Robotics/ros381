@@ -182,7 +182,7 @@ void TacticGlobalNode::publish_pose_offset(double x, double y, double phi)
 void TacticGlobalNode::callback_switches(const example_interfaces::msg::UInt8::SharedPtr msg)
 {
     // reset_on_ = (bool)((msg->data >> 4) & 0b1);
-    tactic_side_ = ((msg->data >> 3) & 0b1) ? 1 : -1;
+    tactic_side_ = ((msg->data >> 4) & 0b1) ? 1 : -1;
     tactic_num_ = msg->data & 0b111;
 }
 
@@ -597,12 +597,13 @@ void TacticGlobalNode::tactic_tick()
         pub_time();
     }
     global_fsm();
-    if (time_ > 100.0 && match_started_)
-    {
-        global_state_ = GL_END;
-        RCLCPP_INFO(this->get_logger(), "Time ran out.");
-        match_started_ = false;
-    }
+    // TODO: vrati
+    // if (time_ > 100.0 && match_started_)
+    // {
+    //     global_state_ = GL_END;
+    //     RCLCPP_INFO(this->get_logger(), "Time ran out.");
+    //     match_started_ = false;
+    // }
 }
 
 void TacticGlobalNode::update_pose(double x, double y, double phi, uint16_t type)

@@ -5,11 +5,11 @@ from ros381_tactics.ax12a import *
 
 tactic_state = 0
 
-start_x = -1.067
+start_x = -1.057
 start_y = 0.75
 start_phi = -math.pi / 2
 
-first_x = -1.06
+first_x = -1.057
 first_y = 0.35
 first_dir = 1
 
@@ -100,7 +100,7 @@ def tactic_4():
             if move_success():
                 tactic_state = 100
         case 100:
-            move_to_xy(x=-0.65, y=-0.25, dir=1)
+            move_to_xy(x=-0.6, y=-0.3, dir=1)
             tactic_state = 105
         case 105:
             if move_success():
@@ -118,7 +118,7 @@ def tactic_4():
             if mechanism_reset(1)<0:
                 tactic_state = 120
         case 120:
-            move_to_xy(x=-0.2, y=-0.8, dir=-1)
+            move_to_xy(x=-0.2, y=-0.8, dir=1)
             tactic_state = 125
         case 125:
             if move_success():
@@ -142,13 +142,13 @@ def tactic_4():
             if cursor(1) < 0:
                 tactic_state = 160
         case 160:
-            move_on_angle(dist=0.3, dir=-1, phi=-math.pi * 0.5)
+            move_on_angle(dist=0.2, dir=-1, phi=-math.pi * 0.5)
             tactic_state = 165
         case 165:
             if move_success():
                 tactic_state = 170
         case 170:
-            move_on_angle(dist=0.3, dir=-1, phi=math.pi * 0.5, v_max=0.2)
+            move_on_angle(dist=0.2, dir=-1, phi=math.pi * 0.5, v_max=0.2)
             tactic_state = 175
         case 175:
             if move_success() or move_stacked():
@@ -166,7 +166,7 @@ def tactic_4():
             if mechanism_reset(-1)<0:
                 tactic_state = 212
         case 212:
-            move_to_xy(x=-1.1, y=-0.6, dir=1)
+            move_to_xy(x=-1.0, y=-0.6, dir=1)
             tactic_state = 215
         case 215:
             if move_success():
@@ -200,7 +200,7 @@ def tactic_4():
             if move_success() or move_stacked():
                 tactic_state = 280
         case 280:
-            move_to_xy(x=-1.25, y=-0.2, dir=1)
+            move_to_xy(x=-1.2, y=-0.2, dir=1)
             tactic_state = 285
         case 285:
             if move_success() or move_stacked():
@@ -215,7 +215,7 @@ def tactic_4():
             if mechanism(1) < 0:
                 tactic_state = 292
         case 292:
-            move_on_direction(dist=0.3, dir=-1)
+            move_on_direction(dist=0.2, dir=-1)
             tactic_state = 295
         case 295:
             if move_success():
@@ -224,7 +224,7 @@ def tactic_4():
             if mechanism_reset(1)<0:
                 tactic_state = 310
         case 310:
-            move_to_xy(x=-1.1, y=0.2, dir=1)
+            move_to_xy(x=-1.2, y=0.2, dir=1)
             tactic_state = 315
         case 315:
             if move_success():
@@ -252,7 +252,7 @@ def tactic_4():
             if lift_carry(1) < 0:
                 tactic_state = 370
         case 370:
-            move_on_direction(dist=0.3, dir=-1)
+            move_on_direction(dist=0.2, dir=-1)
             tactic_state = 375
         case 375:
             if move_success() or move_stacked():

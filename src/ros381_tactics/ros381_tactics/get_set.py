@@ -42,6 +42,12 @@ def sided_color():
         return 47
     return 36
 
+def get_cf():
+    return cf_local
+
+def get_cb():
+    return cb_local
+
 
 def clear_cf():
     global cf_local

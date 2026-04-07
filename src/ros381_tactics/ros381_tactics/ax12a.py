@@ -34,6 +34,7 @@ def mechanism(side):
     global mcl1_pos, mcl2_pos, mcl3_pos, mcl4_pos
     global mvf, mvb
     color = sided_color()
+    
     match mech_state:
         case 0:
             # 0. na osnovu strane inicijalizuj: mlift_id, mcl_ids, mcl_positions, mvf, mvb
@@ -43,6 +44,7 @@ def mechanism(side):
                 mcl2_id = clan2_front_id
                 mcl3_id = clan3_front_id
                 mcl4_id = clan4_front_id
+                cf_local = get_cf()
                 print("cf_local: ", cf_local)
                 mcl1_pos = clanL_up_pos if cf_local[0] == color else clanL_down_pos
                 mcl2_pos = clanL_up_pos if cf_local[1] == color else clanL_down_pos
@@ -57,6 +59,7 @@ def mechanism(side):
                 mcl2_id = clan2_back_id
                 mcl3_id = clan3_back_id
                 mcl4_id = clan4_back_id
+                cb_local = get_cb()
                 print("cb_local: ", cb_local)
                 mcl1_pos = clanL_up_pos if cb_local[0] == color else clanL_down_pos
                 mcl2_pos = clanL_up_pos if cb_local[1] == color else clanL_down_pos
@@ -77,10 +80,10 @@ def mechanism(side):
             # 2. bulk move za clanove
             ax_bulk_move(
                 [
-                    (mcl1_id, mcl1_pos, 400, 100),
-                    (mcl2_id, mcl2_pos, 400, 100),
-                    (mcl3_id, mcl3_pos, 400, 100),
-                    (mcl4_id, mcl4_pos, 400, 100),
+                    (mcl1_id, mcl1_pos, 1000, 100),
+                    (mcl2_id, mcl2_pos, 1000, 100),
+                    (mcl3_id, mcl3_pos, 1000, 100),
+                    (mcl4_id, mcl4_pos, 1000, 100),
                 ]
             )
             mech_state = 25
@@ -99,6 +102,7 @@ def mechanism(side):
             get_GT().remove_vacuum(mvf, mvb)
             mech_state = 50
         case 50:
+            # TODO: stavi da nije 1s
             time.sleep(1)
             mech_state = -1
         case -1:
@@ -141,10 +145,10 @@ def mechanism_reset(side):
             # 6. bulk move za clanove
             ax_bulk_move(
                 [
-                    (mrcl1_id, clanL_down_pos, 400, 100),
-                    (mrcl2_id, clanL_down_pos, 400, 100),
-                    (mrcl3_id, clanR_down_pos, 400, 100),
-                    (mrcl4_id, clanR_down_pos, 400, 100),
+                    (mrcl1_id, clanL_down_pos, 1000, 100),
+                    (mrcl2_id, clanL_down_pos, 1000, 100),
+                    (mrcl3_id, clanR_down_pos, 1000, 100),
+                    (mrcl4_id, clanR_down_pos, 1000, 100),
                 ]
             )
             mech_reset_state = 20
@@ -169,7 +173,7 @@ def cursor(position):
             else:
                 cursor_state = 20
         case 10:
-            ax_move(cursor_id, cursor_up_pos, 1000, 50)
+            ax_move(cursor_id, cursor_up_pos, 1000, 150)
             cursor_state = 11
         case 11:
             if get_ax_move_result() < 0:
@@ -231,10 +235,10 @@ def lift(side, state):
         case 5:
             ax_bulk_move(
                 [
-                    (lcl1_id, clanL_down_pos, 400, 25),
-                    (lcl2_id, clanL_down_pos, 400, 25),
-                    (lcl3_id, clanR_down_pos, 400, 25),
-                    (lcl4_id, clanR_down_pos, 400, 25),
+                    (lcl1_id, clanL_down_pos, 1000, 25),
+                    (lcl2_id, clanL_down_pos, 1000, 25),
+                    (lcl3_id, clanR_down_pos, 1000, 25),
+                    (lcl4_id, clanR_down_pos, 1000, 25),
                 ]
             )
             lift_state = 8
@@ -337,9 +341,9 @@ def reset_to_undeployed(side):
     match reset_undeployed_state:
         case 0:
             if side == 1:
-                ax_move(lift_front_id, lift_rotating_pos, 500, 100)
+                ax_move(lift_front_id, lift_rotating_pos, 1000, 100)
             else:
-                ax_move(lift_back_id, lift_rotating_pos, 500, 100)
+                ax_move(lift_back_id, lift_rotating_pos, 1000, 100)
             reset_undeployed_state = 10
         case 10:
             if get_ax_move_result() < 0:
@@ -348,19 +352,19 @@ def reset_to_undeployed(side):
             if side == 1:
                 ax_bulk_move(
                     [
-                        (clan1_front_id, clanL_down_pos, 500, 500),
-                        (clan2_front_id, clanL_down_pos, 500, 500),
-                        (clan3_front_id, clanR_down_pos, 500, 500),
-                        (clan4_front_id, clanR_down_pos, 500, 500),
+                        (clan1_front_id, clanL_down_pos, 1000, 500),
+                        (clan2_front_id, clanL_down_pos, 1000, 500),
+                        (clan3_front_id, clanR_down_pos, 1000, 500),
+                        (clan4_front_id, clanR_down_pos, 1000, 500),
                     ]
                 )
             else:
                 ax_bulk_move(
                     [
-                        (clan1_back_id, clanL_down_pos, 500, 500),
-                        (clan2_back_id, clanL_down_pos, 500, 500),
-                        (clan3_back_id, clanR_down_pos, 500, 500),
-                        (clan4_back_id, clanR_down_pos, 500, 500),
+                        (clan1_back_id, clanL_down_pos, 1000, 500),
+                        (clan2_back_id, clanL_down_pos, 1000, 500),
+                        (clan3_back_id, clanR_down_pos, 1000, 500),
+                        (clan4_back_id, clanR_down_pos, 1000, 500),
                     ]
                 )
             reset_undeployed_state = 30
@@ -391,8 +395,8 @@ def init_ax():
         case 60:
             ax_bulk_move(
                 [
-                    (lift_front_id, lift_rotating_pos, 500, 100),
-                    (lift_back_id, lift_rotating_pos, 500, 100),
+                    (lift_front_id, lift_rotating_pos, 1000, 100),
+                    (lift_back_id, lift_rotating_pos, 1000, 100),
                 ]
             )
             init_state = 76
@@ -403,14 +407,14 @@ def init_ax():
         case 80:
             ax_bulk_move(
                 [
-                    (clan1_front_id, clanL_down_pos, 500, 500),
-                    (clan2_front_id, clanL_down_pos, 500, 500),
-                    (clan3_front_id, clanR_down_pos, 500, 500),
-                    (clan4_front_id, clanR_down_pos, 500, 500),
-                    (clan1_back_id, clanL_down_pos, 500, 500),
-                    (clan2_back_id, clanL_down_pos, 500, 500),
-                    (clan3_back_id, clanR_down_pos, 500, 500),
-                    (clan4_back_id, clanR_down_pos, 500, 500),
+                    (clan1_front_id, clanL_down_pos, 1000, 500),
+                    (clan2_front_id, clanL_down_pos, 1000, 500),
+                    (clan3_front_id, clanR_down_pos, 1000, 500),
+                    (clan4_front_id, clanR_down_pos, 1000, 500),
+                    (clan1_back_id, clanL_down_pos, 1000, 500),
+                    (clan2_back_id, clanL_down_pos, 1000, 500),
+                    (clan3_back_id, clanR_down_pos, 1000, 500),
+                    (clan4_back_id, clanR_down_pos, 1000, 500),
                 ]
             )
             init_state = 90
@@ -422,14 +426,14 @@ def init_ax():
         case 100:
             ax_bulk_move(
                 [
-                    (clan1_front_id, clanL_undep_pos, 500, 100),
-                    (clan2_front_id, clanL_undep_pos, 500, 100),
-                    (clan3_front_id, clanR_undep_pos, 500, 100),
-                    (clan4_front_id, clanR_undep_pos, 500, 100),
-                    (clan1_back_id, clanL_undep_pos, 500, 100),
-                    (clan2_back_id, clanL_undep_pos, 500, 100),
-                    (clan3_back_id, clanR_undep_pos, 500, 100),
-                    (clan4_back_id, clanR_undep_pos, 500, 100),
+                    (clan1_front_id, clanL_undep_pos, 1000, 100),
+                    (clan2_front_id, clanL_undep_pos, 1000, 100),
+                    (clan3_front_id, clanR_undep_pos, 1000, 100),
+                    (clan4_front_id, clanR_undep_pos, 1000, 100),
+                    (clan1_back_id, clanL_undep_pos, 1000, 100),
+                    (clan2_back_id, clanL_undep_pos, 1000, 100),
+                    (clan3_back_id, clanR_undep_pos, 1000, 100),
+                    (clan4_back_id, clanR_undep_pos, 1000, 100),
                 ]
             )
             init_state = 110

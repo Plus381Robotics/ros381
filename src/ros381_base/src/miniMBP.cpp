@@ -219,8 +219,7 @@ class MiniMBP : public rclcpp::Node
         move_finished = false;
         move_status_budz_ = 0;
         movement_state_ = 0;
-        // delay of 100ms here
-        rclcpp::sleep_for(std::chrono::milliseconds(100));
+        int8_t prev_status = 0;
         while (movement_state_ > -1)
         {
             movement_state_ = move_status_budz_;
@@ -230,6 +229,9 @@ class MiniMBP : public rclcpp::Node
             feedback->angle_remaining = phi_error_;
             feedback->distance_remaininig = distance_proj_;
             goal_handle->publish_feedback(feedback);
+            if (prev_status > 0 && move_status_budz_ == 0)
+                movement_state_ = -1;
+            prev_status = move_status_budz_;
             loop_rate.sleep();
         }
         move_finished = true;
@@ -256,7 +258,9 @@ class MiniMBP : public rclcpp::Node
             goal_handle->succeed(result);
         }
         else
-            result->status = -100;
+            result->status = -100;        
+            // delay of 50ms here
+        rclcpp::sleep_for(std::chrono::milliseconds(50));
     }
 
     void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)

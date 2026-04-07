@@ -597,13 +597,12 @@ void TacticGlobalNode::tactic_tick()
         pub_time();
     }
     global_fsm();
-    // TODO: vrati
-    // if (time_ > 100.0 && match_started_)
-    // {
-    //     global_state_ = GL_END;
-    //     RCLCPP_INFO(this->get_logger(), "Time ran out.");
-    //     match_started_ = false;
-    // }
+    if (time_ > 100.0 && match_started_)
+    {
+        global_state_ = GL_END;
+        RCLCPP_INFO(this->get_logger(), "Time ran out.");
+        match_started_ = false;
+    }
 }
 
 void TacticGlobalNode::update_pose(double x, double y, double phi, uint16_t type)

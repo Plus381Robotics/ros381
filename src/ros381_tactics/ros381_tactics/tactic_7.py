@@ -32,7 +32,7 @@ def tactic_7():
 
     match tactic_state:
         case 0:
-            if snapshot_fsm(1, 47, 10) < 0:
+            if snapshot_fsm(1, 10) < 0:
                 tactic_state = 10
         case 10:
             clear_cf()
@@ -41,7 +41,7 @@ def tactic_7():
             tactic_state = 20
             
         case 20:
-            if snapshot_fsm(-1, 36, 10) < 0:
+            if snapshot_fsm(-1, 10) < 0:
                 tactic_state = 30
         case 30:
             clear_cb()

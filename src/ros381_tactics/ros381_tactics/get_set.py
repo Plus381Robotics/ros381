@@ -36,6 +36,12 @@ def sided_coords(x, phi):
         return -x, get_side() * math.pi - phi
     return x, phi
 
+# Vraca boju koja treba da se okrene
+def sided_color():
+    if get_side() == 1:
+        return 47
+    return 36
+
 
 def clear_cf():
     global cf_local
@@ -57,12 +63,13 @@ _snapshot_repeat = 1
 cfl_x_sum = cfl_y_sum = cfl_phi_sum = 0.0
 cbl_x_sum = cbl_y_sum = cbl_phi_sum = 0.0
 
-def snapshot_fsm(side, color, repeat):
+def snapshot_fsm(side, repeat):
     global _snapshot_state, cf_local, cb_local, _snapshot_repeat
     global cfl_x, cfl_y, cfl_phi
     global cbl_x, cbl_y, cbl_phi
     global cfl_x_sum, cfl_y_sum, cfl_phi_sum
     global cbl_x_sum, cbl_y_sum, cbl_phi_sum
+    color = sided_color()
     match _snapshot_state:
         case 0:
             if side == 1:

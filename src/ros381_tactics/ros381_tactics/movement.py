@@ -88,6 +88,7 @@ def move_success():
         return True
     return False
 
+
 def move_failed():
     if get_move_result() == -2:
         return True
@@ -234,6 +235,117 @@ def move_on_angle(
         4,
         y=dist,
         dir=dir,
+        phi=phi,
+        v_max=v_max,
+        w_max=w_max,
+        d_tol_perc=d_tol_perc,
+        ang_tol_perc=ang_tol_perc,
+        start_coeff_v=start_coeff_v,
+        start_coeff_w=start_coeff_w,
+        stop_coeff_v=stop_coeff_v,
+        stop_coeff_w=stop_coeff_w,
+    )
+
+
+def _send_goal_unsided(
+    GT,
+    type_,
+    x=0.0,
+    y=0.0,
+    phi=0.0,
+    dir=0,
+    v_max=99.0,
+    w_max=99.0,
+    d_tol_perc=1.0,
+    ang_tol_perc=1.0,
+    start_coeff_v=1.0,
+    start_coeff_w=1.0,
+    stop_coeff_v=1.0,
+    stop_coeff_w=1.0,
+):
+    GT.send_goal(
+        type_,
+        x,
+        y,
+        phi,
+        dir,
+        v_max,
+        w_max,
+        d_tol_perc,
+        ang_tol_perc,
+        start_coeff_v,
+        start_coeff_w,
+        stop_coeff_v,
+        stop_coeff_w,
+    )
+
+
+def rotate_to_phi_unsided(
+    phi, w_max=99.0, ang_tol_perc=1.0, start_coeff_w=1.0, stop_coeff_w=1.0
+):
+    _send_goal_unsided(
+        get_GT(),
+        -1,
+        phi=phi,
+        w_max=w_max,
+        ang_tol_perc=ang_tol_perc,
+        start_coeff_w=start_coeff_w,
+        stop_coeff_w=stop_coeff_w,
+    )
+
+
+def move_on_angle_unsided(
+    dist,
+    dir,
+    phi,
+    v_max=99.0,
+    w_max=99.0,
+    d_tol_perc=1.0,
+    ang_tol_perc=1.0,
+    start_coeff_v=1.0,
+    start_coeff_w=1.0,
+    stop_coeff_v=1.0,
+    stop_coeff_w=1.0,
+):
+    _send_goal_unsided(
+        get_GT(),
+        4,
+        y=dist,
+        dir=dir,
+        phi=phi,
+        v_max=v_max,
+        w_max=w_max,
+        d_tol_perc=d_tol_perc,
+        ang_tol_perc=ang_tol_perc,
+        start_coeff_v=start_coeff_v,
+        start_coeff_w=start_coeff_w,
+        stop_coeff_v=stop_coeff_v,
+        stop_coeff_w=stop_coeff_w,
+    )
+
+
+def move_cursor(
+    dist,
+    phi,
+    v_max=99.0,
+    w_max=99.0,
+    d_tol_perc=1.0,
+    ang_tol_perc=1.0,
+    start_coeff_v=1.0,
+    start_coeff_w=1.0,
+    stop_coeff_v=1.0,
+    stop_coeff_w=1.0,
+):
+ direction = 0
+ if get_side() == 1:
+     direction = 1
+ else:
+     direction = -1
+ _send_goal_unsided(
+        get_GT(),
+        4,
+        y=dist,
+        dir=direction,
         phi=phi,
         v_max=v_max,
         w_max=w_max,

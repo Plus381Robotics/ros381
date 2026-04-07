@@ -28,11 +28,12 @@ mcl1_pos = mcl2_pos = mcl3_pos = mcl4_pos = 0
 mvf = mvb = False
 
 
-def mechanism(side, color):
+def mechanism(side):
     global mech_state, mlift_id
     global mcl1_id, mcl2_id, mcl3_id, mcl4_id
     global mcl1_pos, mcl2_pos, mcl3_pos, mcl4_pos
     global mvf, mvb
+    color = sided_color()
     match mech_state:
         case 0:
             # 0. na osnovu strane inicijalizuj: mlift_id, mcl_ids, mcl_positions, mvf, mvb
@@ -327,6 +328,51 @@ def ax_hybrid_move(id, velocity, zero_time, delta_pos):
     get_GT().ax_hybrid_move_goal(id, velocity, zero_time, delta_pos)
 
 
+reset_undeployed_state = 0
+
+
+def reset_to_undeployed(side):
+    global reset_undeployed_state
+
+    match reset_undeployed_state:
+        case 0:
+            if side == 1:
+                ax_move(lift_front_id, lift_rotating_pos, 500, 100)
+            else:
+                ax_move(lift_back_id, lift_rotating_pos, 500, 100)
+            reset_undeployed_state = 10
+        case 10:
+            if get_ax_move_result() < 0:
+                reset_undeployed_state = 20
+        case 20:
+            if side == 1:
+                ax_bulk_move(
+                    [
+                        (clan1_front_id, clanL_down_pos, 500, 500),
+                        (clan2_front_id, clanL_down_pos, 500, 500),
+                        (clan3_front_id, clanR_down_pos, 500, 500),
+                        (clan4_front_id, clanR_down_pos, 500, 500),
+                    ]
+                )
+            else:
+                ax_bulk_move(
+                    [
+                        (clan1_back_id, clanL_down_pos, 500, 500),
+                        (clan2_back_id, clanL_down_pos, 500, 500),
+                        (clan3_back_id, clanR_down_pos, 500, 500),
+                        (clan4_back_id, clanR_down_pos, 500, 500),
+                    ]
+                )
+            reset_undeployed_state = 30
+        case 30:
+            if get_ax_bulk_move_result() < 0:
+                reset_undeployed_state = -1
+        case -1:
+            reset_undeployed_state = 0
+
+    return reset_undeployed_state
+
+
 def init_ax():
     global init_state
     match init_state:
@@ -352,7 +398,6 @@ def init_ax():
             init_state = 76
         case 76:
             if get_ax_bulk_move_result() < 0:
-                # TODO: vrati na 80
                 init_state = 80
 
         case 80:

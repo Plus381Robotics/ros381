@@ -44,7 +44,7 @@ def tactic_6():
 
     match tactic_state:
         case 0:
-            if snapshot_fsm(1, 47, 10) < 0:
+            if snapshot_fsm(1, 10) < 0:
                 tactic_state = 10
         case 10:
             state, position = lift(1, -1)
@@ -58,7 +58,7 @@ def tactic_6():
             if lift_carry(1) < 0:
                 tactic_state = 30
         case 30:
-            if mechanism(1, 47) < 0:
+            if mechanism(1) < 0:
                 tactic_state = 31
         case 31:
             state, position = lift(-1, -1)
@@ -72,7 +72,7 @@ def tactic_6():
             if lift_carry(-1) < 0:
                 tactic_state = 33
         case 33:
-            if mechanism(-1, 47) < 0:
+            if mechanism(-1) < 0:
                 tactic_state = 40
         case 40:
             if cursor(0) < 0:

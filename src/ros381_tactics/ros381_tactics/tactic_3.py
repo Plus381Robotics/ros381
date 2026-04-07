@@ -42,7 +42,7 @@ def tactic_3():
             if move_success():
                 tactic_state = 15
         case 15:
-            if snapshot_fsm(1, 47, 10) < 0:
+            if snapshot_fsm(1, 10) < 0:
                 tactic_state = 20
         case 20:
             move_on_angle(dist=0.5, dir=1, phi=math.pi, v_max=0.4)
@@ -74,7 +74,7 @@ def tactic_3():
             if move_success():
                 tactic_state = 80
         case 80:
-            if mechanism(1, 47) < 0:
+            if mechanism(1) < 0:
                 tactic_state = 90
         case 90:
             move_on_direction(dist=0.2, dir=-1)

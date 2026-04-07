@@ -270,19 +270,25 @@ class uCNode : public rclcpp::Node
 
             if (set_x.exchange(false))
             {
-                x_base_offs_ = req_x.load() - x_base_;
+                x_base_offs_ = req_x.load() - x_raw;
                 log = true;
+                RCLCPP_INFO(this->get_logger(), "Update x from %.2f", x_base_);
             }
             if (set_y.exchange(false))
             {
-                y_base_offs_ = req_y.load() - y_base_;
+                y_base_offs_ = req_y.load() - y_raw;
                 log = true;
+                RCLCPP_INFO(this->get_logger(), "Update y from %.2f", y_base_);
             }
             if (set_phi.exchange(false))
             {
-                phi_base_offs_ = req_phi.load() - phi_base_;
+                phi_base_offs_ = req_phi.load() - phi_raw;
                 log = true;
+                RCLCPP_INFO(this->get_logger(), "Update phi from %.2f", phi_base_);
             }
+            if (log)
+                RCLCPP_INFO(this->get_logger(), "Old pose :\nx = %.2f m\ny = %.2f m\nphi = %.2f rad", x_base_, y_base_,
+                            phi_base_);
 
             double cos_phi = cos(phi_base_offs_);
             double sin_phi = sin(phi_base_offs_);
@@ -290,6 +296,7 @@ class uCNode : public rclcpp::Node
             x_base_ = x_base_offs_ + x_raw * cos_phi - y_raw * sin_phi;
             y_base_ = y_base_offs_ + x_raw * sin_phi + y_raw * cos_phi;
             phi_base_ = phi_raw + phi_base_offs_;
+            phi_base_ = wrap(phi_base_, -M_PI, M_PI);
 
             if (log)
                 RCLCPP_INFO(this->get_logger(), "New pose :\nx = %.2f m\ny = %.2f m\nphi = %.2f rad", x_base_, y_base_,
@@ -302,6 +309,22 @@ class uCNode : public rclcpp::Node
             // TODO: pub odom koji stigne
             publish_odometry();
         }
+    }
+
+    double wrap(double signal, double min, double max)
+    {
+        double temp = signal;
+        wrap_ptr(&temp, min, max);
+        return temp;
+    }
+
+    void wrap_ptr(double *signal, double min, double max)
+    {
+        double diff = max - min;
+        while (*signal > max)
+            *signal -= diff;
+        while (*signal < min)
+            *signal += diff;
     }
 
     void publish_odometry()

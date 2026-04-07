@@ -20,6 +20,10 @@ temp_phi = 0.0
 
 cursor_phi = 0.0
 
+offset_x = start_x
+offset_y = start_y
+offset_phi = start_phi
+
 
 def load_t4():
     global start_x, start_y, start_phi, first_x, first_y, first_dir
@@ -28,7 +32,7 @@ def load_t4():
 
 
 def tactic_4():
-    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir
+    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir, offset_x, offset_y, offset_phi
 
     match tactic_state:
         case 0:
@@ -84,7 +88,15 @@ def tactic_4():
             move_on_angle(dist=0.3, dir=-1, phi=math.pi * 0.5, v_max=0.2)
             tactic_state = 85
         case 85:
-            if move_success() or move_stacked():
+            if move_stacked():
+                offset_phi = math.pi * 0.5
+                get_GT().update_pose(0.0, 0.0, offset_phi, 1)
+                # get_GT().publish_pose_offset(start_x, start_y, offset_phi)
+                tactic_state = 86
+            elif move_success():
+                tactic_state = 90
+        case 86:
+            if get_update_pose_result() == -1:
                 tactic_state = 90
         case 90:
             state, position = lift(-1, -1)
@@ -94,13 +106,13 @@ def tactic_4():
             if lift_carry(-1) < 0:
                 tactic_state = 95
         case 95:
-            move_on_direction(dist=0.2, dir=1)
+            move_on_direction(dist=0.15, dir=1)
             tactic_state = 98
         case 98:
             if move_success():
                 tactic_state = 100
         case 100:
-            move_to_xy(x=-0.6, y=-0.3, dir=1)
+            move_to_xy(x=-0.56, y=-0.32, dir=1)
             tactic_state = 105
         case 105:
             if move_success():
@@ -109,7 +121,7 @@ def tactic_4():
             if mechanism(1) < 0:
                 tactic_state = 112
         case 112:
-            move_on_direction(dist=0.2, dir=-1)
+            move_on_direction(dist=0.15, dir=-1)
             tactic_state = 115
         case 115:
             if move_success():
@@ -118,13 +130,13 @@ def tactic_4():
             if mechanism_reset(1)<0:
                 tactic_state = 120
         case 120:
-            move_to_xy(x=-0.2, y=-0.8, dir=1)
+            move_to_xy(x=-0.2, y=-0.78, dir=1)
             tactic_state = 125
         case 125:
             if move_success():
                 tactic_state = 130
         case 130:
-            rotate_to_phi_unsided(phi=cursor_phi)
+            rotate_to_phi_unsided(phi=cursor_phi, w_max=3.14)
             tactic_state = 135
         case 135:
             if move_success():
@@ -142,6 +154,7 @@ def tactic_4():
             if cursor(1) < 0:
                 tactic_state = 160
         case 160:
+            # TODO: ovo na move to xy mozda
             move_on_angle(dist=0.2, dir=-1, phi=-math.pi * 0.5)
             tactic_state = 165
         case 165:
@@ -184,7 +197,15 @@ def tactic_4():
             move_on_angle(dist=0.3, dir=1, phi=math.pi, v_max=0.2)
             tactic_state = 245
         case 245:
-            if move_success() or move_stacked():
+            if move_stacked():
+                offset_phi = math.pi
+                get_GT().update_pose(0.0, 0.0, offset_phi, 1)
+                # get_GT().publish_pose_offset(start_x, start_y, offset_phi)
+                tactic_state = 246
+            elif move_success():
+                tactic_state = 250
+        case 246:
+            if get_update_pose_result() == -1:
                 tactic_state = 250
         case 250:
             state, position = lift(1, -1)
@@ -242,7 +263,15 @@ def tactic_4():
             move_on_angle(dist=0.3, dir=1, phi=math.pi, v_max=0.2)
             tactic_state = 345
         case 345:
-            if move_success() or move_stacked():
+            if move_stacked():
+                offset_phi = math.pi
+                get_GT().update_pose(0.0, 0.0, offset_phi, 1)
+                # get_GT().publish_pose_offset(start_x, start_y, offset_phi)
+                tactic_state = 346
+            elif move_success():
+                tactic_state = 350
+        case 346:
+            if get_update_pose_result() == -1:
                 tactic_state = 350
         case 350:
             state, position = lift(1, -1)
@@ -256,22 +285,24 @@ def tactic_4():
             tactic_state = 375
         case 375:
             if move_success() or move_stacked():
-                tactic_state = 380
-        case 380:
-            move_to_xy(x=-0.6, y=0.325, dir=-1)
-            tactic_state = 385
-        case 385:
-            if move_success():
-                tactic_state = 390
-        case 390:
-            move_on_angle(dist=0.55, phi=0.0, dir=1)
-            tactic_state = 400
-        case 400:
-            if move_success() or move_stacked() or move_failed():
                 tactic_state = 1000
-            elif move_interrupted():
-                # TODO: retry do nekog trenutka
-                tactic_state = 390
+        # OVO je kada robot izgura stack koji sima izbaci
+        # case 380:
+        #     move_to_xy(x=-0.6, y=0.325, dir=-1)
+        #     tactic_state = 385
+        # case 385:
+        #     if move_success():
+        #         tactic_state = 390
+        # case 390:
+        #     move_on_angle(dist=0.55, phi=0.0, dir=1)
+        #     tactic_state = 400
+        # case 400:
+        #     if move_success() or move_stacked() or move_failed():
+        #         tactic_state = 1000
+        #     elif move_interrupted():
+        #         # TODO: retry do nekog trenutka
+        #         tactic_state = 390
+        
 
         case 1000:
             move_to_xy(first_x, first_y, -1)

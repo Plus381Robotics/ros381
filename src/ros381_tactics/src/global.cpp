@@ -526,6 +526,7 @@ void TacticGlobalNode::global_fsm()
         }
         break;
     case GL_END:
+        remove_vacuum(true, true);
         cancel_goal();
         ax_move_client_->async_cancel_all_goals();
         ax_bulk_move_client_->async_cancel_all_goals();

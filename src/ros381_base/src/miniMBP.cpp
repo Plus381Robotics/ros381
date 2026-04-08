@@ -260,7 +260,7 @@ class MiniMBP : public rclcpp::Node
         else
             result->status = -100;        
             // delay of 50ms here
-        rclcpp::sleep_for(std::chrono::milliseconds(50));
+        // rclcpp::sleep_for(std::chrono::milliseconds(50));
     }
 
     void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)

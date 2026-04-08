@@ -37,8 +37,8 @@ ros381/odometry:
 ros381/tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
-    tick_freq: 30.0
-    default_tactic: 7
+    tick_freq: 100.0
+    default_tactic: 4
     default_side: yellow
     # AX parameters
     # IDs

@@ -36,12 +36,25 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
         "crate_stack_front", 10, std::bind(&TacticGlobalNode::callback_crate_stack_front, this, _1));
     crate_stack_back_sub_ = this->create_subscription<ros381_interfaces::msg::CrateStack>(
         "crate_stack_back", 10, std::bind(&TacticGlobalNode::callback_crate_stack_back, this, _1));
+    
+    odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "odom", 10, std::bind(&TacticGlobalNode::callback_odometry, this, _1));
 
     init_python(this);
     declare_ax_params();
 
     RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
 }
+
+void TacticGlobalNode::callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)
+    {
+        x_base_ = msg->pose.pose.position.x;
+        y_base_ = msg->pose.pose.position.y;
+        phi_base_ = tf2::getYaw(msg->pose.pose.orientation);
+        v_base_ = msg->twist.twist.linear.x;
+        w_base_ = msg->twist.twist.angular.z;
+    }
+
 
 void TacticGlobalNode::callback_crate_stack_back(const ros381_interfaces::msg::CrateStack msg)
 {

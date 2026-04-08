@@ -4,6 +4,14 @@ _GT_instance = None
 _tactic_side = 0
 
 
+def sign(var):
+    if var > 0:
+        return 1
+    elif var < 0:
+        return -1
+    return 0
+
+
 def set_GT(gt):
     global _GT_instance
     _GT_instance = gt

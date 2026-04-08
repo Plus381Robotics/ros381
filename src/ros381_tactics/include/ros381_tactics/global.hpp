@@ -21,6 +21,9 @@
 #include <array>
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
+#include "tf2/utils.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 
 namespace py = pybind11;
 using namespace std::placeholders;
@@ -69,6 +72,7 @@ class TacticGlobalNode : public rclcpp::Node
     std::array<int8_t, 4> crates_front_ = {-1, -1, -1, -1};
     // int8_t crates_front_[4] = {-1, -1, -1, -1};
     bool consuming_front_ = false, consuming_back_ = false;
+    double x_base_ = 0.0, y_base_ = 0.0, phi_base_ = 0.0, v_base_ = 0.0, w_base_ = 0.0;
 
     TacticGlobalNode();
 
@@ -113,7 +117,8 @@ class TacticGlobalNode : public rclcpp::Node
     rclcpp_action::Client<dynamixel_sdk_custom_interfaces::action::AxHybridMove>::SharedPtr ax_hybrid_move_client_;
     rclcpp::Subscription<ros381_interfaces::msg::CrateStack>::SharedPtr crate_stack_front_sub_;
     rclcpp::Subscription<ros381_interfaces::msg::CrateStack>::SharedPtr crate_stack_back_sub_;
-    
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+
 
     py::object tactic_result_;
 
@@ -143,6 +148,7 @@ class TacticGlobalNode : public rclcpp::Node
     void ax_hybrid_move_result_callback(const AxHybridMoveGoalHandle::WrappedResult &result);
     void declare_ax_params();
     uint8_t crate_position(double x);
+    void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg);
 };
 
 void init_python(TacticGlobalNode *node);

@@ -27,6 +27,8 @@ first_x = 0.0
 first_y = 0.0
 first_dir = 0
 
+start_x_offset = 0.02  # vuce robot na desno, onda sto na levo
+
 
 def execute_tactic():
     global chosen_tactic
@@ -50,11 +52,14 @@ def load_tactic(GT, tactic_number, tactic_side):
                 print("Yellow side chosen.")
             else:
                 print("Blue side chosen.")
-# TODO: vrati na 1
+            # TODO: vrati na 1
             load_state = 1
         case 1:
-            GT.update_pose(start_x, start_y, start_phi, 111)
-            GT.publish_pose_offset(start_x, start_y, start_phi)
+            if tactic_side == 1: # plava strana
+                GT.update_pose(start_x + start_x_offset, start_y, start_phi, 111)
+            else:
+                GT.update_pose(start_x - start_x_offset, start_y, start_phi, 111)
+            # GT.publish_pose_offset(start_x, start_y, start_phi)
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:
@@ -64,7 +69,7 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 4
         case 4:
             if init_ax():
-                load_state = -1 # namerno iskljucen rotate
+                load_state = -1  # namerno iskljucen rotate
         case 5:
             rotate_to_xy(first_x, first_y, first_dir)
             load_state = 6

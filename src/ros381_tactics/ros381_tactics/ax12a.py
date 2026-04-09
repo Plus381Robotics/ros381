@@ -92,7 +92,7 @@ def mechanism(side):
                 mech_state = 30
         case 30:
             # 3. lift na dropoff
-            ax_move(mlift_id, lift_dropoff_pos, 1000, 200)
+            ax_move(mlift_id, lift_dropoff_pos, 1000, 400)
             mech_state = 35
         case 35:
             if get_ax_move_result() < 0:
@@ -102,9 +102,12 @@ def mechanism(side):
             get_GT().remove_vacuum(mvf, mvb)
             mech_state = 50
         case 50:
-            # TODO: stavi da nije 1s
-            time.sleep(1)
-            mech_state = -1
+            # 3. lift na dropoff
+            ax_move(mlift_id, lift_dropoff_pos+100, 50, 50)
+            mech_state = 55
+        case 55:
+            if get_ax_move_result() < 0:
+                mech_state = -1
         case -1:
             mech_state = 0
 
@@ -151,7 +154,8 @@ def mechanism_reset(side):
                     (mrcl4_id, clanR_down_pos, 1000, 500),
                 ]
             )
-            mech_reset_state = 20
+            # mech_reset_state = 20
+            mech_reset_state = -1
         case 20:
             if get_ax_bulk_move_result() < 0:
                 mech_reset_state = -1

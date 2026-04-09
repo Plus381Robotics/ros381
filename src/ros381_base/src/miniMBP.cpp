@@ -153,10 +153,13 @@ class MiniMBP : public rclcpp::Node
             reg_type_ = -1;
             break;
         case -2:
-            x_ref_ = x_base_;
-            y_ref_ = y_base_;
-            phi_ref_ = atan2(goal->y - y_base_, goal->x - x_base_) + (goal->direction - 1) * M_PI * 0.5;
-            RCLCPP_INFO(this->get_logger(), "Rotate to XY:\nx = %.4f, y = %.4f, phi_ref = %.4f", x_ref_, y_ref_,
+            x_ref_ = goal->x;
+            y_ref_ = goal->y;
+            phi_ref_ = wrap(atan2(goal->y - y_base_, goal->x - x_base_) + (goal->direction - 1) * M_PI * 0.5, -M_PI, M_PI);
+            
+            RCLCPP_INFO(this->get_logger(), "Rotate from XY:\nx = %.4f, y = %.4f, phi = %.4f", x_base_, y_base_,
+                        phi_base_);
+            RCLCPP_INFO(this->get_logger(), "Rotate to XY:\nx = %.4f, y = %.4f, phi = %.4f", goal->x, goal->y,
                         phi_ref_);
             reg_type_ = -1;
             break;
@@ -267,7 +270,7 @@ class MiniMBP : public rclcpp::Node
     {
         x_base_ = msg->pose.pose.position.x;
         y_base_ = msg->pose.pose.position.y;
-        phi_base_ = tf2::getYaw(msg->pose.pose.orientation);
+        phi_base_ = wrap(tf2::getYaw(msg->pose.pose.orientation), -M_PI, M_PI);
         v_base_ = msg->twist.twist.linear.x;
         w_base_ = msg->twist.twist.angular.z;
 
@@ -307,6 +310,23 @@ class MiniMBP : public rclcpp::Node
         phi_tol_perc_ = 1.0;
     }
 
+
+    double wrap(double signal, double min, double max)
+    {
+        double temp = signal;
+        wrap_ptr(&temp, min, max);
+        return temp;
+    }
+
+    void wrap_ptr(double *signal, double min, double max)
+    {
+        double diff = max - min;
+        while (*signal > max)
+            *signal -= diff;
+        while (*signal < min)
+            *signal += diff;
+    }
+
     void publish_mini_mbp()
     {
         // if (move_finished == false)
@@ -321,12 +341,12 @@ class MiniMBP : public rclcpp::Node
 
         msg.x = c * dx + s * dy;
         msg.y = -s * dx + c * dy;
-        msg.phi = phi_ref_ - phi_base_offs_;
+        msg.phi = wrap(phi_ref_ - phi_base_offs_, -M_PI, M_PI);
         msg.direction = direction_;
         msg.obstacle = obstacle_;
-        // TODO: ovo uradi kako treba
         msg.v_max_100 = (uint8_t)(v_max_temp_ * 100.0f);
         msg.w_max_10 = (uint8_t)(w_max_temp_ * 10.0f);
+        // TODO: ovo uradi kako treba
         msg.tol_perc = 255;
         msg.coeff = 255;
 

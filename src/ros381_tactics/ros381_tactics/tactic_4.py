@@ -4,6 +4,7 @@ from ros381_tactics.get_set import *
 from ros381_tactics.ax12a import *
 
 tactic_state = 0
+prev_state = -1
 
 start_x = -1.057
 start_y = 0.75
@@ -34,8 +35,11 @@ def load_t4():
 
 
 def tactic_4():
-    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir, offset_x, offset_y, offset_phi
+    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir, offset_x, offset_y, offset_phi, prev_state
 
+    if prev_state != tactic_state:
+        prev_state = tactic_state
+        print("Tactic state = " + str(tactic_state))
     match tactic_state:
         case 0:
             move_to_xy(first_x, first_y, first_dir)
@@ -56,10 +60,10 @@ def tactic_4():
             if move_success():
                 tactic_state = 15
         case 15:
-            if snapshot_fsm(1, 10) < 0:
+            if snapshot_fsm(1, 5) < 0:
                 tactic_state = 20
         case 20:
-            move_on_angle(dist=0.30, dir=1, phi=-math.pi * 0.5, v_max=0.2)
+            move_on_angle(dist=0.25, dir=1, phi=-math.pi * 0.5, v_max=0.3)
             tactic_state = 30
         case 30:
             if move_success():
@@ -84,10 +88,10 @@ def tactic_4():
             if move_success():
                 tactic_state = 77
         case 77:
-            if snapshot_fsm(-1, 10) < 0:
+            if snapshot_fsm(-1, 5) < 0:
                 tactic_state = 80
         case 80:
-            move_on_angle(dist=0.3, dir=-1, phi=math.pi * 0.5, v_max=0.2)
+            move_on_angle(dist=0.35, dir=-1, phi=math.pi * 0.5, v_max=0.3)
             tactic_state = 85
         case 85:
             if move_stacked():
@@ -131,13 +135,13 @@ def tactic_4():
             if move_success():
                 tactic_state = 100
         case 100:
-            move_to_xy(x=-0.7, y=-0.42, dir=1)
+            move_to_xy(x=-0.75, y=-0.42, dir=1)
             tactic_state = 101
         case 101:
             if move_success():
                 tactic_state = 102
         case 102:
-            rotate_to_xy(x=-0.8, y=-0.72, dir=-1)
+            rotate_to_phi(phi= 1.44)
             tactic_state = 105
         case 105:
             if move_success():
@@ -203,10 +207,10 @@ def tactic_4():
             if move_success():
                 tactic_state = 230
         case 230:
-            if snapshot_fsm(1, 10) < 0:
+            if snapshot_fsm(1, 5) < 0:
                 tactic_state = 240
         case 240:
-            move_on_angle(dist=0.3, dir=1, phi=math.pi, v_max=0.2)
+            move_on_angle(dist=0.3, dir=1, phi=math.pi, v_max=0.3)
             tactic_state = 245
         case 245:
             if move_stacked():
@@ -256,10 +260,16 @@ def tactic_4():
                 tactic_state = 170
 
         case 170:
-            move_to_xy(x=-0.94, y=-0.75, dir=-1)
-            tactic_state = 175
-        case 175:
+            move_to_xy(x=-0.97, y=-0.73, dir=-1)
+            tactic_state = 172
+        case 172:
             if move_success() or move_stacked():
+                tactic_state = 175
+        case 175:
+            rotate_to_phi(phi=3/4*math.pi)
+            tactic_state = 178
+        case 178:
+            if move_success():
                 tactic_state = 180
         case 180:
             if mechanism(-1) < 0:
@@ -311,10 +321,10 @@ def tactic_4():
             if move_success():
                 tactic_state = 330
         case 330:
-            if snapshot_fsm(1, 10) < 0:
+            if snapshot_fsm(1, 5) < 0:
                 tactic_state = 340
         case 340:
-            move_on_angle(dist=0.3, dir=1, phi=math.pi, v_max=0.2)
+            move_on_angle(dist=0.3, dir=1, phi=math.pi, v_max=0.3)
             tactic_state = 345
         case 345:
             if move_stacked():
@@ -369,7 +379,7 @@ def tactic_4():
             if move_success():
                 tactic_state = 390
         case 390:
-            move_to_xy(-1.25, -0.7, 1)
+            move_to_xy(-1.23, -0.7, 1)
             tactic_state = 395
         case 395:
             if move_success():
@@ -386,7 +396,7 @@ def tactic_4():
             if move_success():
                 tactic_state = 1020
         case 1020:
-            move_to_xy(-1.15, 0.775, -1)
+            move_to_xy(-1.15, 0.76, -1)
             tactic_state = 1030
         case 1030:
             if move_success():

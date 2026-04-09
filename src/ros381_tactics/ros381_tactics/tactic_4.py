@@ -24,7 +24,7 @@ offset_x = start_x
 offset_y = start_y
 offset_phi = start_phi
 offset_phi_tol = 0.07  # oko 4 stepena
-offset_d_tol = 0.075
+offset_d_tol = 0.05
 
 
 def load_t4():
@@ -131,34 +131,28 @@ def tactic_4():
             if move_success():
                 tactic_state = 100
         case 100:
-            move_to_xy(x=-0.4, y=-0.34, dir=1)
+            move_to_xy(x=-0.7, y=-0.42, dir=1)
             tactic_state = 101
         case 101:
             if move_success():
                 tactic_state = 102
         case 102:
-            rotate_to_xy(x=-0.1, y=-0.65, dir=-1)
+            rotate_to_xy(x=-0.8, y=-0.72, dir=-1)
             tactic_state = 105
         case 105:
             if move_success():
                 tactic_state = 110
         case 110:
             if mechanism(1) < 0:
-                tactic_state = 112
-        case 112:
-            rotate_to_xy(x=-0.1, y=-0.65, dir=-1)
-            tactic_state = 115
-        case 115:
-            if move_success():
                 tactic_state = 118
         case 118:
-            if mechanism_reset(1) < 0:
+            move_to_xy(x=-0.82, y=-0.72, dir=-1)
+            tactic_state = 120
+        case 120:
+            if move_success():
                 tactic_state = 122
         case 122:
-            rotate_to_phi_unsided(phi=cursor_phi, w_max=3.14)
-            tactic_state = 123
-        case 123:
-            if move_success():
+            if mechanism_reset(1) < 0:
                 tactic_state = 124
         case 124:
             direction = 0
@@ -255,14 +249,14 @@ def tactic_4():
             if lift_carry(1) < 0:
                 tactic_state = 270
         case 270:
-            move_on_direction(dist=0.3, dir=-1)
+            move_on_direction(dist=0.2, dir=-1)
             tactic_state = 275
         case 275:
             if move_success() or move_stacked():
                 tactic_state = 170
 
         case 170:
-            move_to_xy(x=-0.92, y=-0.7, dir=-1)
+            move_to_xy(x=-0.94, y=-0.75, dir=-1)
             tactic_state = 175
         case 175:
             if move_success() or move_stacked():
@@ -375,7 +369,7 @@ def tactic_4():
             if move_success():
                 tactic_state = 390
         case 390:
-            move_to_xy(-1.2, -0.7, -1)
+            move_to_xy(-1.25, -0.7, 1)
             tactic_state = 395
         case 395:
             if move_success():
@@ -386,19 +380,19 @@ def tactic_4():
                 tactic_state = 1000
 
         case 1000:
-            move_to_xy(-1.0, -0.5, 1)
+            move_to_xy(-1.0, -0.5, -1)
             tactic_state = 1010
         case 1010:
             if move_success():
-                tactic_state = 1015
-        case 1015:
-            if reset_to_undeployed(-1) < 0:
                 tactic_state = 1020
         case 1020:
-            move_to_xy(-1.2, 0.75, -1)
+            move_to_xy(-1.15, 0.775, -1)
             tactic_state = 1030
         case 1030:
             if move_success():
+                tactic_state = 1035
+        case 1035:
+            if reset_to_undeployed(-1) < 0:
                 tactic_state = -1
 
         case -1:

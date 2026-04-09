@@ -547,6 +547,12 @@ void TacticGlobalNode::global_fsm()
         RCLCPP_INFO(this->get_logger(), "Match ended.");
         RCLCPP_INFO(this->get_logger(), "Time: %.3f", time_);
         // rclcpp::shutdown();
+
+        // // TODO: treba da posalje tip kretnje 10
+        // send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,
+        //                          double distance_tolerance_percentage, double angle_tolerance_percentage,
+        //                          double start_coeff_v, double start_coeff_w, double stop_coeff_v, double stop_coeff_w)
+        send_goal(10, x_base_, y_base_, phi_base_, 0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
         global_state_ = GL_OVER;
         break;
     case GL_OVER:

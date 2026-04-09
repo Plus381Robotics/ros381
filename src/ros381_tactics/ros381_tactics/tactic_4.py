@@ -379,8 +379,11 @@ def tactic_4():
             tactic_state = 395
         case 395:
             if move_success():
+                tactic_state = 400
+                print("Current time: " + str(get_GT().time))
+        case 400:
+            if get_GT().time > 95.0:
                 tactic_state = 1000
-                # Ovde treba da saceka vreme pa ode kuci
 
         case 1000:
             move_to_xy(-1.0, -0.5, 1)

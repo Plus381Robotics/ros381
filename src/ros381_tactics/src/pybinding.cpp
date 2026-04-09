@@ -59,6 +59,7 @@ PYBIND11_EMBEDDED_MODULE(ros381_tactics_py, m)
         .def_readonly("phi_base", &TacticGlobalNode::phi_base_)
         .def_readonly("v_base", &TacticGlobalNode::v_base_)
         .def_readonly("w_base", &TacticGlobalNode::w_base_)
+        .def_readonly("time", &TacticGlobalNode::time_)
         .def_readwrite("consuming_front", &TacticGlobalNode::consuming_front_)
         .def_readwrite("consuming_back", &TacticGlobalNode::consuming_back_);
 

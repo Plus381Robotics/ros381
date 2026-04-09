@@ -47,6 +47,7 @@ struct AxMoveGoal
 class TacticGlobalNode : public rclcpp::Node
 {
   public:
+    double time_ = 0.0;
     int8_t move_result_ = 0, update_pose_result_ = 0;
     int8_t ax_move_result_ = 0, ax_hybrid_move_result_ = 0, ax_bulk_move_result_ = 0;
     uint16_t ax_hybrid_end_position_ = 0;
@@ -93,7 +94,6 @@ class TacticGlobalNode : public rclcpp::Node
   private:
     std::unique_ptr<py::scoped_interpreter> guard_;
     unsigned long tick_period_;
-    double time_;
     rclcpp::Time start_time_;
     bool match_started_;
     bool chinch_trigger_, chinch_waiting_;

@@ -9,6 +9,7 @@ prev_state = -1
 start_x = -1.1
 start_y = 0.723
 start_phi = -math.pi / 2
+start_x_offset = 0.02
 
 first_x = 0.0
 first_y = 0.5

@@ -27,7 +27,7 @@ first_x = 0.0
 first_y = 0.0
 first_dir = 0
 
-start_x_offset = 0.02  # vuce robot na desno, onda sto na levo
+start_x_offset = 0.0
 
 
 def execute_tactic():
@@ -36,7 +36,7 @@ def execute_tactic():
 
 
 def load_tactic(GT, tactic_number, tactic_side):
-    global load_state, chosen_tactic, start_x, start_y, start_phi, first_x, first_y, first_dir
+    global load_state, chosen_tactic, start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
     match load_state:
         case 0:
             set_GT(GT)
@@ -44,7 +44,7 @@ def load_tactic(GT, tactic_number, tactic_side):
 
             chosen_tactic = tactic_number
             set_side(tactic_side)
-            start_x, start_y, start_phi, first_x, first_y, first_dir = globals()[
+            start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset = globals()[
                 f"load_t{tactic_number}"
             ]()
             start_x, start_phi = sided_coords(start_x, start_phi)

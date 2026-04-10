@@ -61,11 +61,11 @@ ros381/tactic_global:
     lift_dropoff_pos: 500
     cursor_up_pos: 40
     clanL_up_pos: 0
-    clanL_down_pos: 785
-    clanL_undep_pos: 265
+    clanL_down_pos: 805
+    clanL_undep_pos: 285
     clanR_up_pos: 1023
-    clanR_down_pos: 225
-    clanR_undep_pos: 740
+    clanR_down_pos: 205
+    clanR_undep_pos: 720
 
 ros381/csi_camera:
   ros__parameters:

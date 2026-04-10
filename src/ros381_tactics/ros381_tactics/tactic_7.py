@@ -11,6 +11,7 @@ prev_state = -1
 start_x = -1.1
 start_y = 0.723
 start_phi = -math.pi / 2
+start_x_offset = 0.02
 
 first_x = 0.0
 first_y = 0.5
@@ -18,9 +19,9 @@ first_dir = 1
 
 
 def load_t7():
-    global start_x, start_y, start_phi, first_x, first_y, first_dir
+    global start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
     print("Tactic 7 loaded.")
-    return start_x, start_y, start_phi, first_x, first_y, first_dir
+    return start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
 
 
 def tactic_7():

@@ -9,6 +9,8 @@ tactic_state = 0
 start_x = 0.0
 start_y = 0.0
 start_phi = 0.0
+start_x_offset = 0.02
+
 first_x = 1.0
 first_y = 0.0
 first_dir = 1
@@ -20,9 +22,9 @@ temp_phi = 0.0
 
 
 def load_t2():
-    global start_x, start_y, start_phi, first_x, first_y, first_dir
+    global start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
     print("Tactic 2 loaded.")
-    return start_x, start_y, start_phi, first_x, first_y, first_dir
+    return start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
 
 
 def tactic_2():

@@ -9,6 +9,7 @@ prev_state = -1
 start_x = -1.057
 start_y = 0.75
 start_phi = -math.pi / 2
+start_x_offset = 0.0
 
 first_x = -1.057
 first_y = 0.35
@@ -29,9 +30,9 @@ offset_d_tol = 0.05
 
 
 def load_t4():
-    global start_x, start_y, start_phi, first_x, first_y, first_dir
+    global start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
     print("Tactic 4 loaded.")
-    return start_x, start_y, start_phi, first_x, first_y, first_dir
+    return start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
 
 
 def tactic_4():
@@ -141,7 +142,7 @@ def tactic_4():
             if move_success():
                 tactic_state = 102
         case 102:
-            rotate_to_phi(phi= 1.44)
+            rotate_to_phi(phi=1.44)
             tactic_state = 105
         case 105:
             if move_success():
@@ -266,7 +267,7 @@ def tactic_4():
             if move_success() or move_stacked():
                 tactic_state = 175
         case 175:
-            rotate_to_phi(phi=3/4*math.pi)
+            rotate_to_phi(phi=3 / 4 * math.pi)
             tactic_state = 178
         case 178:
             if move_success():
@@ -402,7 +403,7 @@ def tactic_4():
             if move_success():
                 tactic_state = 1035
         case 1035:
-            if reset_to_undeployed(-1) < 0:
+            if reset_to_deployed(-1) < 0:
                 tactic_state = -1
 
         case -1:

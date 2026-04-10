@@ -12,9 +12,7 @@ lift_front_id = lift_back_id = 69
 clan1_front_id = clan2_front_id = clan3_front_id = clan4_front_id = 69
 clan1_back_id = clan2_back_id = clan3_back_id = clan4_back_id = 69
 cursor_id = 69
-lift_up_pos = lift_down_pos = lift_carry_pos = lift_rotating_pos = lift_dropoff_pos = (
-    69
-)
+lift_up_pos = lift_down_pos = lift_carry_pos = lift_rotating_pos = lift_dropoff_pos = 69
 cursor_up_pos = 69
 clanL_up_pos = clanL_down_pos = clanR_up_pos = clanR_down_pos = clanL_undep_pos = (
     clanR_undep_pos
@@ -34,7 +32,7 @@ def mechanism(side):
     global mcl1_pos, mcl2_pos, mcl3_pos, mcl4_pos
     global mvf, mvb
     color = sided_color()
-    
+
     match mech_state:
         case 0:
             # 0. na osnovu strane inicijalizuj: mlift_id, mcl_ids, mcl_positions, mvf, mvb
@@ -103,7 +101,7 @@ def mechanism(side):
             mech_state = 50
         case 50:
             # 3. lift na dropoff
-            ax_move(mlift_id, lift_dropoff_pos+100, 50, 50)
+            ax_move(mlift_id, lift_dropoff_pos + 72, 70, 56)
             mech_state = 55
         case 55:
             if get_ax_move_result() < 0:
@@ -195,6 +193,50 @@ def cursor(position):
         case -1:
             cursor_state = 0
     return cursor_state
+
+
+def deploy_ff(side):
+    print("Deploying: " +str(side))
+    if side == 1:
+        ax_bulk_move(
+            [
+                (clan1_front_id, clanL_down_pos, 1000, 200),
+                (clan2_front_id, clanL_down_pos, 1000, 200),
+                (clan3_front_id, clanR_down_pos, 1000, 200),
+                (clan4_front_id, clanR_down_pos, 1000, 200),
+            ]
+        )
+    else:
+        ax_bulk_move(
+            [
+                (clan1_back_id, clanL_down_pos, 1000, 200),
+                (clan2_back_id, clanL_down_pos, 1000, 200),
+                (clan3_back_id, clanR_down_pos, 1000, 200),
+                (clan4_back_id, clanR_down_pos, 1000, 200),
+            ]
+        )
+
+
+def undeploy_ff(side):
+    print("Undeploying: " +str(side))
+    if side == 1:
+        ax_bulk_move(
+            [
+                (clan1_front_id, clanL_undep_pos, 1000, 200),
+                (clan2_front_id, clanL_undep_pos, 1000, 200),
+                (clan3_front_id, clanR_undep_pos, 1000, 200),
+                (clan4_front_id, clanR_undep_pos, 1000, 200),
+            ]
+        )
+    else:
+        ax_bulk_move(
+            [
+                (clan1_back_id, clanL_undep_pos, 1000, 200),
+                (clan2_back_id, clanL_undep_pos, 1000, 200),
+                (clan3_back_id, clanR_undep_pos, 1000, 200),
+                (clan4_back_id, clanR_undep_pos, 1000, 200),
+            ]
+        )
 
 
 lift_state = 0
@@ -339,7 +381,7 @@ def ax_hybrid_move(id, velocity, zero_time, delta_pos):
 reset_undeployed_state = 0
 
 
-def reset_to_undeployed(side):
+def reset_to_deployed(side):
     global reset_undeployed_state
 
     match reset_undeployed_state:
@@ -426,7 +468,6 @@ def init_ax():
             if get_ax_bulk_move_result() < 0:
                 init_state = 100
 
-        
         case 100:
             ax_bulk_move(
                 [

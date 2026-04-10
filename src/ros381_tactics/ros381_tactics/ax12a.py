@@ -6,6 +6,7 @@ import ros381_tactics_py  # type: ignore
 # pylint: enable=import-error
 import math
 import time
+import threading
 
 init_state = 0
 lift_front_id = lift_back_id = 69
@@ -26,7 +27,35 @@ mcl1_pos = mcl2_pos = mcl3_pos = mcl4_pos = 0
 mvf = mvb = False
 
 
-def mechanism(side):
+mechanism_thread_obj = None
+
+
+def is_mech_running():
+    return mechanism_thread_obj is not None and mechanism_thread_obj.is_alive()
+
+
+def mechanism_thread(side):
+    global mechanism_thread_obj, mech_state
+
+    def worker():
+        global mech_state
+
+        mech_state = 0
+
+        while True:
+            state = mechanism_prep(side)
+
+            if state < 0:
+                break
+
+            time.sleep(0.1)
+
+    mechanism_thread_obj = threading.Thread(target=worker, daemon=True)
+    mechanism_thread_obj.start()
+
+
+# TODO: fire and forget u thread
+def mechanism_prep(side):
     global mech_state, mlift_id
     global mcl1_id, mcl2_id, mcl3_id, mcl4_id
     global mcl1_pos, mcl2_pos, mcl3_pos, mcl4_pos
@@ -87,29 +116,65 @@ def mechanism(side):
             mech_state = 25
         case 25:
             if get_ax_bulk_move_result() < 0:
-                mech_state = 30
-        case 30:
-            # 3. lift na dropoff
-            ax_move(mlift_id, lift_dropoff_pos, 1000, 400)
-            mech_state = 35
-        case 35:
-            if get_ax_move_result() < 0:
-                mech_state = 40
-        case 40:
-            # 4. iskljuci vakuum
-            get_GT().remove_vacuum(mvf, mvb)
-            mech_state = 50
-        case 50:
-            # 3. lift na dropoff
-            ax_move(mlift_id, lift_dropoff_pos + 72, 70, 56)
-            mech_state = 55
-        case 55:
-            if get_ax_move_result() < 0:
                 mech_state = -1
-        case -1:
-            mech_state = 0
 
     return mech_state
+
+
+mechd_state = 0
+mdlift_id = lift_front_id
+mdcl1_id = mdcl2_id = mdcl3_id = mdcl4_id = 0
+mdcl1_pos = mdcl2_pos = mdcl3_pos = mdcl4_pos = 0
+mdvf = mdvb = False
+
+
+def mechanism_drop(side):
+    global mechd_state, mdlift_id
+    global mdcl1_id, mdcl2_id, mdcl3_id, mdcl4_id
+    global mdcl1_pos, mdcl2_pos, mdcl3_pos, mdcl4_pos
+    global mdvf, mdvb
+
+    match mechd_state:
+        case 0:
+            if side == 1:
+                mdlift_id = lift_front_id
+                mdcl1_id = clan1_front_id
+                mdcl2_id = clan2_front_id
+                mdcl3_id = clan3_front_id
+                mdcl4_id = clan4_front_id
+                mdvf = True
+                mdvb = False
+            else:
+                mdlift_id = lift_back_id
+                mdcl1_id = clan1_back_id
+                mdcl2_id = clan2_back_id
+                mdcl3_id = clan3_back_id
+                mdcl4_id = clan4_back_id
+                mdvf = False
+                mdvb = True
+            mechd_state = 30
+        case 30:
+            # 3. lift na dropoff
+            ax_move(mdlift_id, lift_dropoff_pos, 1000, 400)
+            mechd_state = 35
+        case 35:
+            if get_ax_move_result() < 0:
+                mechd_state = 40
+        case 40:
+            # 4. iskljuci vakuum
+            get_GT().remove_vacuum(mdvf, mdvb)
+            mechd_state = 50
+        case 50:
+            # 3. lift na dropoff
+            ax_move(mdlift_id, lift_dropoff_pos + 72, 70, 56)
+            mechd_state = 55
+        case 55:
+            if get_ax_move_result() < 0:
+                mechd_state = -1
+        case -1:
+            mechd_state = 0
+
+    return mechd_state
 
 
 mech_reset_state = 0
@@ -196,7 +261,7 @@ def cursor(position):
 
 
 def deploy_ff(side):
-    print("Deploying: " +str(side))
+    print("Deploying: " + str(side))
     if side == 1:
         ax_bulk_move(
             [
@@ -218,7 +283,7 @@ def deploy_ff(side):
 
 
 def undeploy_ff(side):
-    print("Undeploying: " +str(side))
+    print("Undeploying: " + str(side))
     if side == 1:
         ax_bulk_move(
             [

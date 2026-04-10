@@ -81,7 +81,7 @@ class Ax12aBulkNode : public rclcpp::Node
 
     void ax_move(const std::shared_ptr<GoalHandleAxBulkMove> goal_handle)
     {
-        rclcpp::Rate loop_rate(2);
+        rclcpp::Rate loop_rate(10);
         const auto goal = goal_handle->get_goal();
         auto feedback = std::make_shared<AxBulkMove::Feedback>();
         auto result = std::make_shared<AxBulkMove::Result>();

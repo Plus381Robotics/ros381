@@ -66,7 +66,7 @@ def tactic_4():
                 deploy_ff(1)
                 tactic_state = 20
         case 20:
-            move_on_angle(dist=0.19, dir=1, phi=-math.pi * 0.5)
+            move_on_angle(dist=0.195, dir=1, phi=-math.pi * 0.5)
             tactic_state = 30
         case 30:
             if move_success():
@@ -115,7 +115,7 @@ def tactic_4():
             if lift_carry(-1) < 0:
                 tactic_state = 80
         case 80:
-            move_on_angle(dist=0.16, dir=-1, phi=math.pi * 0.5, v_max=0.25)
+            move_on_angle(dist=0.15, dir=-1, phi=math.pi * 0.5, v_max=0.2)
             tactic_state = 85
         case 85:
             if move_stacked():
@@ -185,7 +185,7 @@ def tactic_4():
                 direction = -1
             else:
                 direction = 1
-            move_to_xy(x=-0.2, y=-0.78, dir=direction)
+            move_to_xy(x=-0.2, y=-0.79, dir=direction)
             tactic_state = 125
         case 125:
             if move_success():
@@ -219,7 +219,7 @@ def tactic_4():
                 tactic_state = 212
 
         case 212:
-            move_to_xy(x=-1.0, y=-0.6, dir=-1)
+            move_to_xy(x=-1.0, y=-0.595, dir=-1)
             tactic_state = 215
         case 215:
             if move_success():
@@ -235,7 +235,7 @@ def tactic_4():
                 deploy_ff(1)          
                 tactic_state = 240
         case 240:
-            move_on_angle(dist=0.1675, dir=1, phi=math.pi)
+            move_on_angle(dist=0.1525, dir=1, phi=math.pi)
             tactic_state = 241
         case 241:
             if move_success() or move_stacked():
@@ -248,7 +248,7 @@ def tactic_4():
             if lift_carry(1) < 0:
                 tactic_state = 244
         case 244:
-            move_on_angle(dist=0.16, dir=1, phi=math.pi, v_max=0.25)
+            move_on_angle(dist=0.15, dir=1, phi=math.pi, v_max=0.2)
             tactic_state = 246
         case 246:
             if move_stacked():
@@ -326,7 +326,7 @@ def tactic_4():
                 tactic_state = 280
 
         case 280:
-            move_to_xy(x=-1.2, y=-0.2, dir=1)
+            move_to_xy(x=-1.18, y=-0.2, dir=1)
             tactic_state = 285
         case 285:
             if move_success() or move_stacked():
@@ -353,7 +353,7 @@ def tactic_4():
             if get_side() == 1:
                 move_to_xy(x=-1.0, y=0.2, dir=1)
             else:
-                move_to_xy(x=-1.0, y=0.19, dir=1)
+                move_to_xy(x=-1.0, y=0.2, dir=1)
             tactic_state = 315
         case 315:
             if move_success():
@@ -369,7 +369,7 @@ def tactic_4():
                 deploy_ff(1)          
                 tactic_state = 340
         case 340:
-            move_on_angle(dist=0.1675, dir=1, phi=math.pi)
+            move_on_angle(dist=0.1525, dir=1, phi=math.pi)
             tactic_state = 341
         case 341:
             if move_success() or move_stacked():
@@ -453,8 +453,7 @@ def tactic_4():
             tactic_state = 435
         case 435:
             if move_success() or move_stacked():
-                tactic_state = -1
-                # TODO: treba na 440
+                tactic_state = 440
         case 440:
             move_on_direction(dist=0.3, dir=-1)
             tactic_state = 450
@@ -462,8 +461,8 @@ def tactic_4():
             if move_success():
                 tactic_state = 460
         case 460:
-            if mechanism_reset(-1) < 0:
-                tactic_state = 470
+            if mechanism_reset(1) < 0:
+                tactic_state = 980 # TODO: ovde da ne prekine taktiku
         case 470:
             move_to_xy(x=1.0, y=0.2, dir=-1)
             tactic_state = 475
@@ -534,12 +533,23 @@ def tactic_4():
             tactic_state = 545
         case 545:
             if move_success():
-                tactic_state = 550
-        case 550:
-            move_to_xy(-1.23, -0.7, 1)
+                tactic_state = 980
+
+
+
+
+        case 980:
+            move_to_xy(0.0, -0.42, 1)
+            tactic_state = 982
+        case 982:
+            if move_success() or move_stacked() or move_interrupted() or move_failed():
+                undeploy_ff(1)
+                tactic_state = 985
+        case 985:
+            rotate_to_phi(0.2)
             tactic_state = 990
         case 990:
-            if move_success():
+            if move_success() or move_failed():
                 undeploy_ff(-1)
                 tactic_state = 995
                 print("Current time: " + str(get_GT().time))
@@ -548,13 +558,13 @@ def tactic_4():
                 tactic_state = 1000
 
         case 1000:
-            move_to_xy(-1.0, -0.5, -1)
+            move_to_xy(-1.07, -0.63, -1)
             tactic_state = 1010
         case 1010:
             if move_success():
                 tactic_state = 1020
         case 1020:
-            move_to_xy(-1.15, 0.76, -1)
+            move_to_xy(-1.1, 0.76, -1)
             tactic_state = 1030
         case 1030:
             if move_success():

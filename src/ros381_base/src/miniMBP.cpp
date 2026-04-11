@@ -231,6 +231,8 @@ class MiniMBP : public rclcpp::Node
         move_status_budz_ = 0;
         movement_state_ = 0;
         int8_t prev_status = 0;
+        // delay of 20ms here
+        rclcpp::sleep_for(std::chrono::milliseconds(20));
         while (movement_state_ > -1)
         {
             movement_state_ = move_status_budz_;
@@ -270,8 +272,6 @@ class MiniMBP : public rclcpp::Node
         }
         else
             result->status = -100;        
-            // delay of 50ms here
-        rclcpp::sleep_for(std::chrono::milliseconds(50));
     }
 
     void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)

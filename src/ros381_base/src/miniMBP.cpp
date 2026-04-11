@@ -122,7 +122,7 @@ class MiniMBP : public rclcpp::Node
     rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const Move::Goal> goal)
     {
         (void)uuid;
-        if (current_goal_handle_ && current_goal_handle_->is_active())
+        if (current_goal_handle_ && current_goal_handle_->is_active() && (goal->type != 0 && goal->type != 10))
         {
             RCLCPP_INFO(get_logger(), "A goal is already active—rejecting new one.");
             return rclcpp_action::GoalResponse::REJECT;
@@ -145,6 +145,14 @@ class MiniMBP : public rclcpp::Node
 
         switch (goal->type)
         {
+        case 0:
+            RCLCPP_INFO(this->get_logger(), "Stop.");
+            reg_type_ = 0;
+            break;
+        case 10:
+             RCLCPP_INFO(this->get_logger(), "Disassemble.");
+            reg_type_ = 10;
+            break;
         case -1:
             RCLCPP_INFO(this->get_logger(), "Rotate to PHI:\nphi = %.4f", goal->phi);
             x_ref_ = x_base_;
@@ -263,7 +271,7 @@ class MiniMBP : public rclcpp::Node
         else
             result->status = -100;        
             // delay of 50ms here
-        // rclcpp::sleep_for(std::chrono::milliseconds(50));
+        rclcpp::sleep_for(std::chrono::milliseconds(50));
     }
 
     void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)

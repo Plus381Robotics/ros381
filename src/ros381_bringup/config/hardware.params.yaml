@@ -37,7 +37,7 @@ ros381/odometry:
 ros381/tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
-    tick_freq: 100.0
+    tick_freq: 30.0
     default_tactic: 4
     default_side: yellow
     # AX parameters
@@ -54,12 +54,12 @@ ros381/tactic_global:
     clan4_back_id: 9
     cursor_id: 4
     # Positions
-    lift_up_pos: 150  # 120 je skroz gore
+    lift_up_pos: 140  # 120 je skroz gore
     lift_down_pos: 500 # 1000 je skroz dole
     lift_carry_pos: 500
-    lift_rotating_pos: 150
+    lift_rotating_pos: 140
     lift_dropoff_pos: 500
-    cursor_up_pos: 40
+    cursor_up_pos: 60
     clanL_up_pos: 0
     clanL_down_pos: 805
     clanL_undep_pos: 285

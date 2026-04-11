@@ -540,16 +540,9 @@ def tactic_4():
 
         case 980:
             move_to_xy(0.0, -0.42, 1)
-            tactic_state = 982
-        case 982:
-            if move_success() or move_stacked() or move_interrupted() or move_failed():
-                undeploy_ff(1)
-                tactic_state = 985
-        case 985:
-            rotate_to_phi(0.2)
             tactic_state = 990
         case 990:
-            if move_success() or move_failed():
+            if move_success() or move_failed()or move_stacked() or move_interrupted() :
                 undeploy_ff(-1)
                 tactic_state = 995
                 print("Current time: " + str(get_GT().time))
@@ -558,13 +551,13 @@ def tactic_4():
                 tactic_state = 1000
 
         case 1000:
-            move_to_xy(-1.07, -0.63, -1)
+            move_to_xy(-1.05, -0.62, -1)
             tactic_state = 1010
         case 1010:
             if move_success():
                 tactic_state = 1020
         case 1020:
-            move_to_xy(-1.1, 0.76, -1)
+            move_to_xy(-1.1, 0.78, -1)
             tactic_state = 1030
         case 1030:
             if move_success():

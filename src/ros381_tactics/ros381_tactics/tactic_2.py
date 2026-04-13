@@ -6,12 +6,12 @@ import time
 
 tactic_state = 0
 
-start_x = 0.0
-start_y = 0.0
-start_phi = 0.0
-start_x_offset = 0.02
+start_x = -1.057
+start_y = 0.75
+start_phi = -math.pi / 2
+start_x_offset = 0.0
 
-first_x = 1.0
+first_x = -1.057
 first_y = 0.0
 first_dir = 1
 
@@ -32,26 +32,25 @@ def tactic_2():
 
     match tactic_state:
         case 0:
-            move_to_xy(first_x, first_y, first_dir, v_max=1.5)
+            move_to_xy(first_x, first_y, first_dir, v_max=0.5)
             tactic_state = 10
         case 10:
-            if move_success() or move_failed() or move_stacked() or move_interrupted():
+            if move_success() or move_failed() or move_stacked():
                 time.sleep(1)
                 tactic_state = 12
+            elif move_interrupted():
+                time.sleep(0.2)
+                tactic_state = 0
         case 12:
-            move_to_xy(first_x, 0.4, -1, v_max=1.0)
+            move_to_xy(x=start_x, y=start_y, dir=-1, v_max=0.5)
             tactic_state = 15
         case 15:
-            if move_success() or move_failed() or move_stacked() or move_interrupted():
-                time.sleep(1)
-                tactic_state = 20
-        case 20:
-            move_to_xy(0.0, 0.0, 1, v_max=0.2, w_max=1.57)
-            tactic_state = 30
-        case 30:
-            if move_success() or move_failed() or move_stacked() or move_interrupted():
+            if move_success() or move_failed() or move_stacked():
                 time.sleep(1)
                 tactic_state = 0
+            elif move_interrupted():
+                time.sleep(0.2)
+                tactic_state = 12
         case -1:
             print("Tactic 2 finished.")
     return tactic_state

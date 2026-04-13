@@ -176,6 +176,8 @@ def generate_launch_description():
         ),
         launch_arguments={
             "serial_port": "/dev/rplidar",
+            "scan_mode": "Standard",
+            "angle_compensate": "false",
         }.items(),
     )
 
@@ -183,7 +185,6 @@ def generate_launch_description():
         [
             # control_loop_node,
             # odometry_node,
-            obstacle_node,
             mini_mbp_node,
             tactics_node,
             uc_node,
@@ -191,10 +192,11 @@ def generate_launch_description():
             ax12a_single,
             ax12a_bulk,
             ax12a_hybrid,
+            rplidar_launch,
+            obstacle_node,
             csi_camera_node,
             usb_camera_node,
             aruco_detection_front,
             aruco_detection_back,
-            rplidar_launch,
         ]
     )

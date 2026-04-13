@@ -30,7 +30,7 @@ class MiniMBP : public rclcpp::Node
         obstacle_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
             "obstacle_status", 10, std::bind(&MiniMBP::callback_obstacle, this, _1));
 
-        obstacle_dir_pub_ = this->create_publisher<example_interfaces::msg::Int8>("obstacle_direction", 10);
+        // obstacle_dir_pub_ = this->create_publisher<example_interfaces::msg::Int8>("obstacle_direction", 10);
 
         mini_mbp_pub_ = this->create_publisher<ros381_interfaces::msg::MiniMBP>("mini_mbp", 10);
 
@@ -282,10 +282,10 @@ class MiniMBP : public rclcpp::Node
         v_base_ = msg->twist.twist.linear.x;
         w_base_ = msg->twist.twist.angular.z;
 
-        obstacle_dir_ = get_sign(v_base_);
-        auto dir_msg = example_interfaces::msg::Int8();
-        dir_msg.data = obstacle_dir_;
-        obstacle_dir_pub_->publish(dir_msg);
+        // obstacle_dir_ = get_sign(v_base_);
+        // auto dir_msg = example_interfaces::msg::Int8();
+        // dir_msg.data = obstacle_dir_;
+        // obstacle_dir_pub_->publish(dir_msg);
 
         // budz
         x_base_offs_ = msg->twist.twist.linear.y;

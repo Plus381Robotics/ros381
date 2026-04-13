@@ -357,6 +357,37 @@ def move_cursor(
         stop_coeff_w=stop_coeff_w,
     )
 
+
+def move_to_xy_unsided(
+    x,
+    y,
+    dir,
+    v_max=99.0,
+    w_max=99.0,
+    d_tol_perc=1.0,
+    ang_tol_perc=1.0,
+    start_coeff_v=1.0,
+    start_coeff_w=1.0,
+    stop_coeff_v=1.0,
+    stop_coeff_w=1.0,
+):
+    _send_goal_unsided(
+        get_GT(),
+        1,
+        x=x,
+        y=y,
+        dir=dir,
+        v_max=v_max,
+        w_max=w_max,
+        d_tol_perc=d_tol_perc,
+        ang_tol_perc=ang_tol_perc,
+        start_coeff_v=start_coeff_v,
+        start_coeff_w=start_coeff_w,
+        stop_coeff_v=stop_coeff_v,
+        stop_coeff_w=stop_coeff_w,
+    )
+
+
 def move_cursor_reverse(
     dist,
     phi,

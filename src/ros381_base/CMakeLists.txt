@@ -27,7 +27,7 @@ ament_target_dependencies(odometry rclcpp ros381_interfaces nav_msgs tf2)
 add_executable(gridmap src/gridmap.cpp)
 ament_target_dependencies(gridmap rclcpp ros381_interfaces nav_msgs sensor_msgs)
 
-add_executable(obstacle src/obstacle.cpp)
+add_executable(obstacle src/obstacle.cpp src/signal.cpp)
 ament_target_dependencies(obstacle rclcpp ros381_interfaces nav_msgs sensor_msgs example_interfaces)
 
 install(TARGETS

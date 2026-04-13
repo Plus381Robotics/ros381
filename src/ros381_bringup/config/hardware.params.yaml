@@ -11,8 +11,8 @@ ros381/minimbp:
     MOTOR_V_MAX: 2.0
     # Distance between drive wheels: [m]
     L: 0.1545
-    L_MAX: 0.1935
-    L_MIN: 0.1155
+    L_MAX: 0.1545
+    L_MIN: 0.1545
     eta: 0.01
     # P value for rotation during translation
     P_w: 15.0
@@ -38,7 +38,7 @@ ros381/tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
     tick_freq: 30.0
-    default_tactic: 4
+    default_tactic: 0
     default_side: yellow
     # AX parameters
     # IDs
@@ -72,6 +72,7 @@ ros381/csi_camera:
     format: "YUYV"
     height: 480
     width: 640
+    framerate: 10.0
     camera: "/base/soc/i2c0mux/i2c@1/ov5647@36"
 
 ros381/usb_camera:
@@ -80,7 +81,7 @@ ros381/usb_camera:
     image_width: 640
     image_height: 480
     # pixel_format: "yuyv"
-    framerate: 30.0
+    framerate: 10.0
     camera_name: "back_camera"
 
 ros381/aruco_detection_front:

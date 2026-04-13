@@ -1,3 +1,4 @@
+#include "../include/signal.hpp"
 #include <example_interfaces/msg/int8.hpp>
 #include <example_interfaces/msg/u_int8.hpp>
 #include <nav_msgs/msg/odometry.hpp>
@@ -17,26 +18,27 @@ class ObstacleNode : public rclcpp::Node
 
         obstacle_pub_ = this->create_publisher<example_interfaces::msg::UInt8>("obstacle_status", 10);
 
-        obstacle_dir_sub_ = this->create_subscription<example_interfaces::msg::Int8>(
-            "obstacle_direction", 10, std::bind(&ObstacleNode::callback_obstacle_dir, this, std::placeholders::_1));
+        // obstacle_dir_sub_ = this->create_subscription<example_interfaces::msg::Int8>(
+            // "obstacle_direction", 10, std::bind(&ObstacleNode::callback_obstacle_dir, this, std::placeholders::_1));
 
-        num_pts_part_ = resolution_ / 6.0;
-        double angle_increment_ = 2 * M_PI / resolution_;
-        for (int i = 0; i < 3200; i++)
-        {
-            sin_lut_[i] = sin(i * angle_increment_);
-            cos_lut_[i] = cos(i * angle_increment_);
-        }
+        // num_pts_part_ = resolution_ / 6.0;
+        // double angle_increment_ = 2 * M_PI / resolution_;
+        // for (int i = 0; i < 3200; i++)
+        // {
+        //     sin_lut_[i] = sin(i * angle_increment_);
+        //     cos_lut_[i] = cos(i * angle_increment_);
+        // }
     }
 
   private:
+    bool lut_initialized_ = false;
     double v_base_, w_base_;
     double x_base_, y_base_, phi_base_;
-    unsigned resolution_ = 3200, threshold_ = 40;    // TODO: u parametre
+    unsigned resolution_ = 3200, threshold_ = 20;    // TODO: u parametre
     double TABLE_X_LIMIT = 1.3, TABLE_Y_LIMIT = 0.8; // TODO: u parametre
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
-    double j_max_ = 20.0;                                         // TODO: parametar
-    double robot_y_ = 0.16, robot_y_max_ = 0.25, dis_stop_ = 0.1; // TODO: parametri
+    double j_max_ = 40.0;                                         // TODO: parametar
+    double robot_y_ = 0.16, robot_y_max_ = 0.25, dis_stop_ = 0.2; // TODO: parametri
     double robot_x = 0.18, robot_x_max = 0.25;
     double robot_y_slow_ = 0.1, dis_slow_ = 0.5; // TODO: parametri
     int num_pts_part_ = 533;
@@ -54,7 +56,7 @@ class ObstacleNode : public rclcpp::Node
 
     void callback_obstacle_dir(const example_interfaces::msg::Int8::SharedPtr msg)
     {
-        obstacle_dir_ref_ = msg->data;
+        // obstacle_dir_ref_ = msg->data;
     }
 
     void set_odom(const nav_msgs::msg::Odometry::SharedPtr msg)
@@ -76,15 +78,40 @@ class ObstacleNode : public rclcpp::Node
 
     void check_scan(const sensor_msgs::msg::LaserScan::SharedPtr msg)
     {
+        if (!lut_initialized_)
+        {
+            resolution_ = msg->ranges.size();
+
+            num_pts_part_ = resolution_ / 6;
+
+            for (int i = 0; i < resolution_; i++)
+            {
+                double angle = msg->angle_min + i * msg->angle_increment;
+                sin_lut_[i] = sin(angle);
+                cos_lut_[i] = cos(angle);
+            }
+
+            lut_initialized_ = true;
+
+            RCLCPP_INFO(this->get_logger(),
+                "LUT initialized: res=%d angle_min=%.3f inc=%.6f",
+                resolution_,
+                msg->angle_min,
+                msg->angle_increment
+            );
+        }
+        obstacle_dir_ref_ = get_sign(v_base_);
+        v_base_ = 0.0;
         obstacle_status_ = 0;
+        unsigned stop_num = 0;
+        unsigned slow_num = 0;
         if (obstacle_dir_ref_ != 0)
         {
-            unsigned stop_num = 0;
-            unsigned slow_num = 0;
             x_max_ = 5.0 / 3.0 * pow(fabs(v_base_ * 2.0), 5.0 / 3.0) / sqrt(j_max_) + robot_x + robot_x_max + dis_stop_;
             x_max_slow_ = x_max_ + dis_slow_;
             y_max_ = robot_y_ + robot_y_max_;
             y_max_slow_ = y_max_ + robot_y_slow_;
+            
             if (obstacle_dir_ref_ == 1)
             {
                 start_pt_ = -num_pts_part_;
@@ -125,6 +152,7 @@ class ObstacleNode : public rclcpp::Node
                 obstacle_status_ = 2;
         }
         publish_obstacle();
+        RCLCPP_INFO(this->get_logger(), "Obstacle: direction = %d, status = %d, stop_num = %d", obstacle_dir_ref_, obstacle_status_, stop_num);
     }
 
     void publish_obstacle()

@@ -137,7 +137,7 @@ class MiniMBP : public rclcpp::Node
         d_tol_perc_ = goal->distance_tolerance_percentage;
         phi_tol_perc_ = goal->angle_tolerance_percentage;
         direction_ = goal->direction;
-        
+
         rclcpp::Time now = this->get_clock()->now();
         uint32_t t = now.nanoseconds();
 
@@ -150,7 +150,7 @@ class MiniMBP : public rclcpp::Node
             reg_type_ = 0;
             break;
         case 10:
-             RCLCPP_INFO(this->get_logger(), "Disassemble.");
+            RCLCPP_INFO(this->get_logger(), "Disassemble.");
             reg_type_ = 10;
             break;
         case -1:
@@ -163,8 +163,9 @@ class MiniMBP : public rclcpp::Node
         case -2:
             x_ref_ = goal->x;
             y_ref_ = goal->y;
-            phi_ref_ = wrap(atan2(goal->y - y_base_, goal->x - x_base_) + (goal->direction - 1) * M_PI * 0.5, -M_PI, M_PI);
-            
+            phi_ref_ =
+                wrap(atan2(goal->y - y_base_, goal->x - x_base_) + (goal->direction - 1) * M_PI * 0.5, -M_PI, M_PI);
+
             RCLCPP_INFO(this->get_logger(), "Rotate from XY:\nx = %.4f, y = %.4f, phi = %.4f", x_base_, y_base_,
                         phi_base_);
             RCLCPP_INFO(this->get_logger(), "Rotate to XY:\nx = %.4f, y = %.4f, phi = %.4f", goal->x, goal->y,
@@ -235,9 +236,16 @@ class MiniMBP : public rclcpp::Node
         rclcpp::sleep_for(std::chrono::milliseconds(20));
         while (movement_state_ > -1)
         {
-            movement_state_ = move_status_budz_;
             if (goal_handle->is_canceling())
-                movement_state_ = -2;
+            {
+                result->status = -2;
+                reset_movement();
+                goal_handle->canceled(result);
+                RCLCPP_INFO(this->get_logger(), "Move canceled...");
+                current_goal_handle_.reset();
+                return;
+            }
+            movement_state_ = move_status_budz_;
 
             feedback->angle_remaining = phi_error_;
             feedback->distance_remaininig = distance_proj_;
@@ -258,7 +266,7 @@ class MiniMBP : public rclcpp::Node
                 RCLCPP_INFO(this->get_logger(), "Move succeeded...");
                 break;
             case -2:
-                goal_handle->canceled(result);
+                // goal_handle->canceled(result);
                 RCLCPP_INFO(this->get_logger(), "Move canceled...");
                 return;
             case -3:
@@ -269,9 +277,10 @@ class MiniMBP : public rclcpp::Node
                 break;
             }
             goal_handle->succeed(result);
+            current_goal_handle_.reset();
         }
         else
-            result->status = -100;        
+            result->status = -100;
     }
 
     void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)
@@ -318,7 +327,6 @@ class MiniMBP : public rclcpp::Node
         phi_tol_perc_ = 1.0;
     }
 
-
     double wrap(double signal, double min, double max)
     {
         double temp = signal;
@@ -359,7 +367,7 @@ class MiniMBP : public rclcpp::Node
         msg.coeff = 255;
 
         // uint16_t checksum = fletcher16();
-        
+
         msg.checksum = checksum_;
 
         // RCLCPP_INFO(this->get_logger(),

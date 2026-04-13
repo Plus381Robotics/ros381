@@ -31,10 +31,10 @@ class ObstacleNode : public rclcpp::Node
     }
 
   private:
-    bool lut_initialized_ = false;
+    // bool lut_initialized_ = false;
     double v_base_, w_base_, v_eps_ = 0.05;
     double x_base_, y_base_, phi_base_;
-    unsigned resolution_ = 3200, threshold_ = 40;    // TODO: u parametre
+    unsigned resolution_ = 3200, threshold_ = 30;    // TODO: u parametre
     double TABLE_X_LIMIT = 1.35, TABLE_Y_LIMIT = 0.85; // TODO: u parametre
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
     double j_max_ = 40.0;                                         // TODO: parametar
@@ -48,7 +48,7 @@ class ObstacleNode : public rclcpp::Node
     int8_t obstacle_dir_ref_ = 0;
     uint8_t obstacle_dir_vel_ = 0;
     bool check_forw_ = false, check_back_ = false;
-    double sin_lut_[3200], cos_lut_[3200];
+    // double sin_lut_[3200], cos_lut_[3200];
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Publisher<example_interfaces::msg::UInt8>::SharedPtr obstacle_pub_;
@@ -78,24 +78,9 @@ class ObstacleNode : public rclcpp::Node
 
     void check_scan(const sensor_msgs::msg::LaserScan::SharedPtr msg)
     {
-        if (!lut_initialized_)
-        {
-            resolution_ = msg->ranges.size();
+        resolution_ = msg->ranges.size();
+        num_pts_part_ = resolution_ / 6;
 
-            num_pts_part_ = resolution_ / 6;
-
-            for (int i = 0; i < resolution_; i++)
-            {
-                double angle = msg->angle_min + i * msg->angle_increment;
-                sin_lut_[i] = sin(angle);
-                cos_lut_[i] = cos(angle);
-            }
-
-            lut_initialized_ = true;
-
-            RCLCPP_INFO(this->get_logger(), "LUT initialized: res=%d angle_min=%.3f inc=%.6f", resolution_,
-                        msg->angle_min, msg->angle_increment);
-        }
         if (fabs(v_base_) < v_eps_)
             obstacle_dir_ref_ = 0;
         else
@@ -130,8 +115,9 @@ class ObstacleNode : public rclcpp::Node
                     continue;
                 if (range >= robot_x && range <= 1.75)
                 {
-                    double obst_x_robot = range * cos_lut_[ui];
-                    double obst_y_robot = range * sin_lut_[ui];
+                    double angle = msg->angle_min + ui * msg->angle_increment;
+                    double obst_x_robot = range * cos(angle);
+                    double obst_y_robot = range * sin(angle);
 
                     double c = cos(phi_base_);
                     double s = sin(phi_base_);
@@ -168,8 +154,9 @@ class ObstacleNode : public rclcpp::Node
                     continue;
                 if (range >= robot_x && range <= 1.75)
                 {
-                    double obst_x_robot = range * cos_lut_[ui];
-                    double obst_y_robot = range * sin_lut_[ui];
+                    double angle = msg->angle_min + ui * msg->angle_increment;
+                    double obst_x_robot = range * cos(angle);
+                    double obst_y_robot = range * sin(angle);
                     
                     double c = cos(phi_base_);
                     double s = sin(phi_base_);

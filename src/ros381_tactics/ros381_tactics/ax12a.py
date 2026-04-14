@@ -116,8 +116,12 @@ def mechanism_prep(side):
             mech_state = 25
         case 25:
             if get_ax_bulk_move_result() < 0:
-                mech_state = -1
-
+                mech_state = 30
+        case 30:
+            # 3. lift na dropoff
+            ax_move(mlift_id, lift_dropoff_pos, 1000, 1000)
+            mech_state = -1
+            
     return mech_state
 
 
@@ -152,14 +156,14 @@ def mechanism_drop(side):
                 mdcl4_id = clan4_back_id
                 mdvf = False
                 mdvb = True
-            mechd_state = 30
-        case 30:
-            # 3. lift na dropoff
-            ax_move(mdlift_id, lift_dropoff_pos, 1000, 400)
-            mechd_state = 35
-        case 35:
-            if get_ax_move_result() < 0:
-                mechd_state = 40
+            mechd_state = 40
+        # case 30:
+        #     # 3. lift na dropoff
+        #     ax_move(mdlift_id, lift_dropoff_pos, 1000, 400)
+        #     mechd_state = 35
+        # case 35:
+        #     if get_ax_move_result() < 0:
+        #         mechd_state = 40
         case 40:
             # 4. iskljuci vakuum
             get_GT().remove_vacuum(mdvf, mdvb)

@@ -269,19 +269,21 @@ def deploy_ff(side):
     if side == 1:
         ax_bulk_move(
             [
-                (clan1_front_id, clanL_down_pos, 1000, 200),
-                (clan2_front_id, clanL_down_pos, 1000, 200),
-                (clan3_front_id, clanR_down_pos, 1000, 200),
-                (clan4_front_id, clanR_down_pos, 1000, 200),
+                (lift_front_id, lift_rotating_pos, 1000, 500),
+                (clan1_front_id, clanL_down_pos, 1000, 500),
+                (clan2_front_id, clanL_down_pos, 1000, 500),
+                (clan3_front_id, clanR_down_pos, 1000, 500),
+                (clan4_front_id, clanR_down_pos, 1000, 500),
             ]
         )
     else:
         ax_bulk_move(
             [
-                (clan1_back_id, clanL_down_pos, 1000, 200),
-                (clan2_back_id, clanL_down_pos, 1000, 200),
-                (clan3_back_id, clanR_down_pos, 1000, 200),
-                (clan4_back_id, clanR_down_pos, 1000, 200),
+                (lift_back_id, lift_rotating_pos, 1000, 500),
+                (clan1_back_id, clanL_down_pos, 1000, 500),
+                (clan2_back_id, clanL_down_pos, 1000, 500),
+                (clan3_back_id, clanR_down_pos, 1000, 500),
+                (clan4_back_id, clanR_down_pos, 1000, 500),
             ]
         )
 
@@ -291,19 +293,19 @@ def undeploy_ff(side):
     if side == 1:
         ax_bulk_move(
             [
-                (clan1_front_id, clanL_undep_pos, 1000, 200),
-                (clan2_front_id, clanL_undep_pos, 1000, 200),
-                (clan3_front_id, clanR_undep_pos, 1000, 200),
-                (clan4_front_id, clanR_undep_pos, 1000, 200),
+                (clan1_front_id, clanL_undep_pos, 1000, 500),
+                (clan2_front_id, clanL_undep_pos, 1000, 500),
+                (clan3_front_id, clanR_undep_pos, 1000, 500),
+                (clan4_front_id, clanR_undep_pos, 1000, 500),
             ]
         )
     else:
         ax_bulk_move(
             [
-                (clan1_back_id, clanL_undep_pos, 1000, 200),
-                (clan2_back_id, clanL_undep_pos, 1000, 200),
-                (clan3_back_id, clanR_undep_pos, 1000, 200),
-                (clan4_back_id, clanR_undep_pos, 1000, 200),
+                (clan1_back_id, clanL_undep_pos, 1000, 500),
+                (clan2_back_id, clanL_undep_pos, 1000, 500),
+                (clan3_back_id, clanR_undep_pos, 1000, 500),
+                (clan4_back_id, clanR_undep_pos, 1000, 500),
             ]
         )
 

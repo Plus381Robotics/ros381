@@ -3,7 +3,7 @@ ros381/minimbp:
     # Control loop frequency [Hz]
     FREQ: 10.0
     # Max base velocities: [m/s], [rad/s]
-    V_MAX: 1.5
+    V_MAX: 1.75
     V_MIN: 0.05
     W_MAX: 12.57
     W_MIN: 0.314

@@ -380,23 +380,40 @@ def lift(side, state):
 
 
 def lift_carry(side):
-    global lift_id, lift_state
+    global lift_id, lift_state#, lift_dpos
     match lift_state:
         case 0:
+            # lift_dpos = 200
             if side == 1:
                 lift_id = lift_front_id
             else:
                 lift_id = lift_back_id
-            lift_state = 1
-        case 1:
+            lift_state = 10
+        # case 2:
+        #     ax_hybrid_move(lift_id, 1000, 0.2, lift_dpos)
+        #     lift_state = 5
+        # case 5:
+        #     if get_ax_hybrid_move_result() < 0:
+        #         lift_state = 10
+        case 10:
             ax_move(lift_id, lift_carry_pos, 1000, 100)
-            lift_state = 2
-        case 2:
+            lift_state = 20
+        case 20:
             if get_ax_move_result() < 0:
                 lift_state = -1
         case -1:
             lift_state = 0
     return lift_state
+
+
+def lift_to_rotating_ff(side):
+    global llift_rotating_pos
+    if side == 1:
+        lift_id = lift_front_id
+        ax_move(lift_front_id, lift_rotating_pos, 1000, 100)
+    else:
+        lift_id = lift_back_id
+        ax_move(lift_id, lift_back_id, 1000, 100)
 
 
 def get_ax_move_result():

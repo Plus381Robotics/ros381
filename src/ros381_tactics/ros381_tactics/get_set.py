@@ -57,6 +57,21 @@ def get_cb():
     return cb_local
 
 
+def cb_empty():
+    global cb_local
+    print (cb_local)
+    if all(x < 35 for x in cb_local):
+        return True
+    return False
+
+def cf_empty():
+    global cf_local
+    print (cf_local)
+    if all(x < 35 for x in cf_local):
+        return True
+    return False
+
+
 def clear_cf():
     global cf_local
     cf_local = [0, 0, 0, 0]

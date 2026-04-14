@@ -544,17 +544,18 @@ void TacticGlobalNode::global_fsm()
         ax_move_client_->async_cancel_all_goals();
         ax_bulk_move_client_->async_cancel_all_goals();
         ax_hybrid_move_client_->async_cancel_all_goals();
+        remove_vacuum(true, true);
         RCLCPP_INFO(this->get_logger(), "Match ended.");
         RCLCPP_INFO(this->get_logger(), "Time: %.3f", time_);
         // rclcpp::shutdown();
         global_state_ = GL_END_1;
         break;
     case GL_END_1:
-        send_goal(0, x_base_, y_base_, phi_base_, 0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);      
+        send_goal(0, x_base_, y_base_, phi_base_, 0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
         global_state_ = GL_END_2;
         break;
     case GL_END_2:
-        send_goal(10, x_base_, y_base_, phi_base_, 0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);      
+        send_goal(10, x_base_, y_base_, phi_base_, 0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
         global_state_ = GL_OVER;
         break;
     case GL_OVER:

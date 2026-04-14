@@ -89,8 +89,14 @@ def move_success():
     return False
 
 
-def move_failed():
+def move_cancelled():
     if get_move_result() == -2:
+        return True
+    return False
+
+
+def move_failed():
+    if get_move_result() == -5:
         return True
     return False
 

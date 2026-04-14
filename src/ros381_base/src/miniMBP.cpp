@@ -275,6 +275,9 @@ class MiniMBP : public rclcpp::Node
             case -4:
                 RCLCPP_INFO(this->get_logger(), "Move interrupted by obstacle...");
                 break;
+            case -5:
+                RCLCPP_INFO(this->get_logger(), "Move failed...");
+                break;
             }
             goal_handle->succeed(result);
             current_goal_handle_.reset();

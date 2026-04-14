@@ -43,9 +43,9 @@ def tactic_0():
 
     if prev_state != tactic_state:
         prev_state = tactic_state
+        print("---------------------------------")
         print("Tactic state = " + str(tactic_state))
         print("Current time = " + str(get_GT().time))
-        print("---------------------------------")
 
     match tactic_state:
         case 0:
@@ -195,7 +195,7 @@ def tactic_0():
                     time.sleep(0.1)
                     tactic_state = 96
         case 100:
-            move_to_xy(x=-0.71, y=-0.41, dir=1)
+            move_to_xy(x=-0.75, y=-0.36, dir=1)
             tactic_state = 101
         case 101:
             if move_success() or move_stacked() or move_failed():
@@ -204,7 +204,7 @@ def tactic_0():
                 time.sleep(0.1)
                 tactic_state = 100
         case 102:
-            rotate_to_phi(phi=1.4)
+            rotate_to_phi(phi=0.785)
             tactic_state = 105
         case 105:
             if move_success() or move_stacked() or move_failed() or move_interrupted():
@@ -213,7 +213,8 @@ def tactic_0():
             if mechanism_drop(1) < 0:
                 tactic_state = 118
         case 118:
-            move_on_direction(dist=0.3, dir=-1)
+            # move_on_direction(dist=0.3, dir=-1)
+            move_to_xy(x=-1.0, y=-0.6, dir= -1, w_max= 3.14)
             tactic_state = 120
         case 120:
             if move_success() or move_stacked() or move_failed():

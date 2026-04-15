@@ -37,7 +37,7 @@ class ObstacleNode : public rclcpp::Node
     unsigned resolution_ = 3200, threshold_ = 30;    // TODO: u parametre
     double TABLE_X_LIMIT = 1.4, TABLE_Y_LIMIT = 0.9; // TODO: u parametre
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
-    double j_max_ = 50.0;                                        // TODO: parametar
+    double j_max_ = 35.0;                                        // TODO: parametar
     double robot_y_ = 0.16, robot_y_max_ = 0.2, dis_stop_ = 0.2; // TODO: parametri
     double robot_x = 0.18, robot_x_max = 0.2;
     double robot_y_slow_ = 0.1, dis_slow_ = 0.5; // TODO: parametri

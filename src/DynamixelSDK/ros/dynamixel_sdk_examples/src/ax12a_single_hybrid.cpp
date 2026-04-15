@@ -20,7 +20,7 @@
 #define BAUDRATE 9600
 #define DEVICE_NAME "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT7W95JA-if00-port0"
 
-#define EPS_VELOCITY 6
+#define EPS_VELOCITY 3
 
 using namespace std::placeholders;
 

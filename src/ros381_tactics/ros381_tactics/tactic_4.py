@@ -231,6 +231,7 @@ def tactic_4():
             if mechanism_reset(1) < 0:
                 tactic_state = 124
         case 124:
+            # Prilazna za cursor
             direction = 0
             if get_side() == 1:
                 direction = -1
@@ -257,7 +258,7 @@ def tactic_4():
             if get_side() == 1:
                 move_cursor(dist=0.6, phi=cursor_phi)
             else:
-                move_cursor(dist=0.58, phi=cursor_phi)
+                move_cursor(dist=0.565, phi=cursor_phi)
             tactic_state = 145
         case 145:
             if move_success() or move_failed() or move_interrupted() or move_stacked():

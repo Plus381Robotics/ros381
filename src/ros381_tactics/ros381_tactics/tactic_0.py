@@ -60,7 +60,6 @@ def tactic_0():
                 tactic_state = 0
         # Prilazna za 3
         case 11:
-            # T4 # move_to_xy(x=-0.35, y=0.15, dir=1)
             if get_side() == 1: # plava
                 move_to_xy(x=-0.375, y=0.15, dir=1)
             else: #zuta
@@ -106,11 +105,6 @@ def tactic_0():
                 tactic_state = 60
         # Prilazna za 4
         case 60:
-            # T4
-            # if get_side() == 1:
-            #     move_to_xy(x=-0.40, y=-0.45, dir=-1)
-            # else:
-            #     move_to_xy(x=-0.37, y=-0.45, dir=-1)
             if get_side() == 1: # plava
                 move_to_xy(x=-0.43, y=-0.45, dir=-1)
             else: # zuta
@@ -224,7 +218,6 @@ def tactic_0():
             if mechanism_drop(1) < 0:
                 tactic_state = 118
         case 118:
-            # move_on_direction(dist=0.3, dir=-1)
             move_to_xy(x=-0.98, y=-0.62, dir= -1)
             tactic_state = 120
         case 120:
@@ -237,6 +230,7 @@ def tactic_0():
             if mechanism_reset(1) < 0:
                 tactic_state = 124
         case 124:
+            # Prilazna za cursor
             direction = 0
             if get_side() == 1:
                 direction = -1
@@ -288,8 +282,6 @@ def tactic_0():
                 tactic_state = 170
         # Prilazna za 2
         case 170:
-            # T4
-            # move_to_xy(x=-1.0, y=-0.595, dir=-1)
             if get_side() == 1:
                 move_to_xy(x=-1.05, y=-0.615, dir=-1)
             else:
@@ -463,11 +455,6 @@ def tactic_0():
                 move_to_xy(x=-1.05, y=0.2, dir=1)
             else:
                 move_to_xy(x=-1.0, y=0.18, dir=1)
-            # T4
-            # if get_side() == 1:
-            #     move_to_xy(x=-1.0, y=0.2, dir=1)
-            # else:
-            #     move_to_xy(x=-1.0, y=0.2, dir=1)
             tactic_state = 315
         case 315:
             if move_success() or move_stacked() or move_failed():
@@ -669,28 +656,35 @@ def tactic_0():
             tactic_state = 515
         case 515:
             if move_success() or move_stacked() or move_failed() or move_interrupted():
-                tactic_state = 520
-        case 520:
-            move_on_direction(dist=0.15, dir=1)
-            tactic_state = 525
-        case 525:
-            if move_success() or move_stacked() or move_failed() or move_interrupted():
                 tactic_state = 530
         case 530:
             if mechanism_drop(1) < 0:
                 tactic_state = 540
         case 540:
             move_on_direction(dist=0.2, dir=-1)
-            tactic_state = 550
+            tactic_state = 545
+        case 545:
+            if move_success() or move_stacked() or move_failed() or move_interrupted():
+                tactic_state = 548
+        case 548:
+            if mechanism_reset(1) < 0:
+                tactic_state = 550
         case 550:
+            move_on_direction(dist=0.30, dir=1)
+            tactic_state = 555
+        case 555:
             if move_success() or move_stacked() or move_failed() or move_interrupted():
                 tactic_state = 560
         case 560:
-            if mechanism_reset(1) < 0:
+            move_on_direction(dist=0.45, dir=-1)
+            tactic_state = 565
+        case 565:
+            if move_success() or move_stacked() or move_failed() or move_interrupted():
                 if flag_back_skipped:
                     tactic_state = 570
                 else:
                     tactic_state = 9800
+
 
 
         case 570:
@@ -892,7 +886,7 @@ def tactic_0():
                 time.sleep(0.1)
                 tactic_state = 10000
         case 10200:
-            move_to_xy(-1.175, 0.76, 1)
+            move_to_xy(-1.175, 0.74, 1)
             tactic_state = 10300
         case 10300:
             if move_success()or move_failed()or move_stacked():

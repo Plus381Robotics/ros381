@@ -90,7 +90,7 @@ class Ax12aBulkNode : public rclcpp::Node
         uint8_t dxl_error = 0;
         uint32_t position_velocity_ref = 0;
         std::vector<uint8_t> finished_ids;
-        
+
         uint8_t num_servos = goal->id.size();
         feedback->current_position.resize(num_servos);
         feedback->position_error.resize(num_servos);
@@ -133,9 +133,23 @@ class Ax12aBulkNode : public rclcpp::Node
                 if (!(std::find(finished_ids.begin(), finished_ids.end(), id) != finished_ids.end()))
                 {
                     uint32_t present_pos_vel;
+                    // dxl_comm_result = packetHandler_->read4ByteTxRx(portHandler_, id, ADDR_PRESENT_POSITION,
+                    //                                                 (&present_pos_vel), &dxl_error);
                     dxl_comm_result = packetHandler_->read4ByteTxRx(portHandler_, id, ADDR_PRESENT_POSITION,
                                                                     (&present_pos_vel), &dxl_error);
 
+                    if (dxl_comm_result != COMM_SUCCESS)
+                    {
+                        RCLCPP_ERROR(this->get_logger(), "%s", packetHandler_->getTxRxResult(dxl_comm_result));
+                        finished_ids.push_back(id);
+                        continue;
+                    }
+                    else if (dxl_error != 0)
+                    {
+                        RCLCPP_WARN(this->get_logger(), "%s", packetHandler_->getRxPacketError(dxl_error));
+                        finished_ids.push_back(id);
+                        continue;
+                    }
                     uint16_t present_position = (uint16_t)present_pos_vel;
                     uint16_t present_velocity = (uint16_t)(present_pos_vel >> 16) & 0b0000001111111111;
                     uint16_t position_error = present_position > goal->position[cnt]
@@ -166,7 +180,7 @@ class Ax12aBulkNode : public rclcpp::Node
             if (finished_ids.size() >= goal->id.size())
                 status = -1;
 
-            goal->position, loop_rate.sleep();
+            loop_rate.sleep();
         }
 
         result->status = status;

@@ -20,7 +20,7 @@
 #define BAUDRATE 9600
 #define DEVICE_NAME "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT7W95JA-if00-port0"
 
-#define EPS_VELOCITY 12
+#define EPS_VELOCITY 6
 
 using namespace std::placeholders;
 
@@ -124,6 +124,18 @@ class Ax12aSingleHybridNode : public rclcpp::Node
 
             dxl_comm_result = packetHandler_->read2ByteTxRx(portHandler_, (uint8_t)goal->id, ADDR_PRESENT_POSITION,
                                                             &present_position, &dxl_error);
+            if (dxl_comm_result != COMM_SUCCESS)
+            {
+                RCLCPP_ERROR(this->get_logger(), "%s", packetHandler_->getTxRxResult(dxl_comm_result));
+                status = -5;
+                break;
+            }
+            else if (dxl_error != 0)
+            {
+                RCLCPP_WARN(this->get_logger(), "%s", packetHandler_->getRxPacketError(dxl_error));
+                status = -6;
+                break;
+            }
 
             position_ref = (int16_t)present_position + goal->delta_pos;
             position_ref = position_ref > 1023 ? 1023 : position_ref;
@@ -144,6 +156,18 @@ class Ax12aSingleHybridNode : public rclcpp::Node
 
             dxl_comm_result = packetHandler_->read2ByteTxRx(portHandler_, (uint8_t)goal->id, ADDR_PRESENT_VELOCITY,
                                                             &present_velocity, &dxl_error);
+            if (dxl_comm_result != COMM_SUCCESS)
+            {
+                RCLCPP_ERROR(this->get_logger(), "%s", packetHandler_->getTxRxResult(dxl_comm_result));
+                status = -5;
+                break;
+            }
+            else if (dxl_error != 0)
+            {
+                RCLCPP_WARN(this->get_logger(), "%s", packetHandler_->getRxPacketError(dxl_error));
+                status = -6;
+                break;
+            }
             present_velocity &= 0b0000001111111111;
             if (present_velocity < EPS_VELOCITY)
                 zero_vel_cnt++;
@@ -161,6 +185,16 @@ class Ax12aSingleHybridNode : public rclcpp::Node
 
         dxl_comm_result = packetHandler_->read2ByteTxRx(portHandler_, (uint8_t)goal->id, ADDR_PRESENT_POSITION,
                                                         &present_position, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+            RCLCPP_ERROR(this->get_logger(), "%s", packetHandler_->getTxRxResult(dxl_comm_result));
+            status = -5;
+        }
+        else if (dxl_error != 0)
+        {
+            RCLCPP_WARN(this->get_logger(), "%s", packetHandler_->getRxPacketError(dxl_error));
+            status = -6;
+        }
 
         dxl_comm_result = packetHandler_->write2ByteTxRx(portHandler_, (uint8_t)goal->id, ADDR_GOAL_POSITION,
                                                          present_position, &dxl_error);

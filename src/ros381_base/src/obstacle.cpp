@@ -35,7 +35,7 @@ class ObstacleNode : public rclcpp::Node
     double v_base_, w_base_, v_eps_ = 0.05;
     double x_base_, y_base_, phi_base_;
     unsigned resolution_ = 3200, threshold_ = 30;    // TODO: u parametre
-    double TABLE_X_LIMIT = 1.35, TABLE_Y_LIMIT = 0.85; // TODO: u parametre
+    double TABLE_X_LIMIT = 1.3, TABLE_Y_LIMIT = 0.8; // TODO: u parametre
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
     double j_max_ = 50.0;                                         // TODO: parametar
     double robot_y_ = 0.16, robot_y_max_ = 0.22, dis_stop_ = 0.2; // TODO: parametri
@@ -122,8 +122,8 @@ class ObstacleNode : public rclcpp::Node
                     double c = cos(phi_base_);
                     double s = sin(phi_base_);
 
-                    double obst_x_table = x_base_ + obst_x_robot * cos(phi_base_) + obst_y_robot * sin(phi_base_);
-                    double obst_y_table = y_base_ - obst_x_robot * sin(phi_base_) + obst_y_robot * cos(phi_base_);
+                    double obst_x_table = x_base_ + obst_x_robot * c + obst_y_robot * s;
+                    double obst_y_table = y_base_ - obst_x_robot * s + obst_y_robot * c;
 
                     // RCLCPP_INFO(this->get_logger(), "Point table: [ %.2f, %.2f]", obst_x_table, obst_y_table);
 

@@ -119,7 +119,7 @@ def mechanism_prep(side):
                 mech_state = 30
         case 30:
             # 3. lift na dropoff
-            ax_move(mlift_id, lift_dropoff_pos, 1000, 1000)
+            ax_move(mlift_id, lift_dropoff_pos, 256, 1000)
             mech_state = -1
             
     return mech_state

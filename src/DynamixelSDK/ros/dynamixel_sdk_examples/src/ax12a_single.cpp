@@ -116,13 +116,13 @@ class Ax12aSingleNode : public rclcpp::Node
         {
             RCLCPP_INFO(this->get_logger(), "%s", packetHandler_->getTxRxResult(dxl_comm_result));
             status = -3;
-            return;
+            // return;
         }
         else if (dxl_error != 0)
         {
             RCLCPP_WARN(this->get_logger(), "%s", packetHandler_->getRxPacketError(dxl_error));
             status = -4;
-            return;
+            // return;
         }
 
         while (status >= 0)
@@ -132,6 +132,19 @@ class Ax12aSingleNode : public rclcpp::Node
 
             dxl_comm_result = packetHandler_->read4ByteTxRx(portHandler_, (uint8_t)goal->id, ADDR_PRESENT_POSITION,
                                                             reinterpret_cast<uint32_t *>(&present_pos_vel), &dxl_error);
+
+            if (dxl_comm_result != COMM_SUCCESS)
+            {
+                RCLCPP_ERROR(this->get_logger(), "%s", packetHandler_->getTxRxResult(dxl_comm_result));
+                status = -5;
+                break;
+            }
+            else if (dxl_error != 0)
+            {
+                RCLCPP_ERROR(this->get_logger(), "%s", packetHandler_->getRxPacketError(dxl_error));
+                status = -6;
+                break;
+            }
             present_position = (uint16_t)present_pos_vel;
             present_velocity = (uint16_t)(present_pos_vel >> 16) & 0b0000001111111111;
             position_error = present_position > goal->position ? present_position - goal->position
@@ -149,7 +162,7 @@ class Ax12aSingleNode : public rclcpp::Node
                 status = -3;
             }
 
-            goal->position, loop_rate.sleep();
+            loop_rate.sleep();
         }
 
         result->status = status;

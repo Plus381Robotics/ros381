@@ -61,7 +61,10 @@ def tactic_0():
         # Prilazna za 3
         case 11:
             # T4 # move_to_xy(x=-0.35, y=0.15, dir=1)
-            move_to_xy(x=-0.36, y=0.15, dir=1)
+            if get_side() == 1: # plava
+                move_to_xy(x=-0.375, y=0.15, dir=1)
+            else: #zuta
+                move_to_xy(x=-0.36, y=0.15, dir=1)
             tactic_state = 12
         case 12:
             if move_success() or move_stacked() or move_failed():
@@ -287,7 +290,10 @@ def tactic_0():
         case 170:
             # T4
             # move_to_xy(x=-1.0, y=-0.595, dir=-1)
-            move_to_xy(x=-1.0, y=-0.615, dir=-1)
+            if get_side() == 1:
+                move_to_xy(x=-1.05, y=-0.615, dir=-1)
+            else:
+                move_to_xy(x=-1.0, y=-0.615, dir=-1)
             tactic_state = 175
         case 175:
             if move_success() or move_stacked() or move_failed():
@@ -454,7 +460,7 @@ def tactic_0():
         # Prilazna za 1
         case 310:
             if get_side() == 1:
-                move_to_xy(x=-1.0, y=0.2, dir=1)
+                move_to_xy(x=-1.05, y=0.2, dir=1)
             else:
                 move_to_xy(x=-1.0, y=0.18, dir=1)
             # T4
@@ -808,7 +814,7 @@ def tactic_0():
             tactic_state = 855
         case 855:
             if move_success() or move_stacked() or move_failed():
-                tactic_state = 1000
+                tactic_state = 900
             elif move_interrupted():
                 time.sleep(0.1)
                 tactic_state = 850
@@ -837,7 +843,7 @@ def tactic_0():
                 time.sleep(0.1)
                 tactic_state = 1000
         case 1015:
-            rotate_to_phi(phi=0.75*math.pi)
+            rotate_to_phi(phi=0.25*math.pi)
             tactic_state = 1020
         case 1020:
             if move_success() or move_stacked() or move_failed() or move_interrupted():

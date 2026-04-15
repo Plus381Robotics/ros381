@@ -209,7 +209,7 @@ def tactic_4():
                 time.sleep(0.1)
                 tactic_state = 100
         case 102:
-            rotate_to_phi(phi=0.85)
+            rotate_to_phi(phi=0.9)
             tactic_state = 105
         case 105:
             if move_success() or move_stacked() or move_failed() or move_interrupted():
@@ -219,7 +219,7 @@ def tactic_4():
                 tactic_state = 118
         case 118:
             # move_on_direction(dist=0.3, dir=-1)
-            move_to_xy(x=-0.98, y=-0.62, dir= -1)
+            move_to_xy(x=-0.95, y=-0.62, dir= -1)
             tactic_state = 120
         case 120:
             if move_success() or move_stacked() or move_failed():
@@ -551,7 +551,7 @@ def tactic_4():
                 tactic_state = 380
         # Prilazna za 8
         case 390:
-            move_to_xy(x=0.9, y=-0.565, dir=1)
+            move_to_xy(x=0.9, y=-0.545, dir=1)
             tactic_state = 395
         case 395:
             if move_success()or move_stacked() or move_failed() :
@@ -670,13 +670,13 @@ def tactic_4():
             if mechanism_reset(1) < 0:
                 tactic_state = 550
         case 550:
-            move_on_direction(dist=0.15, dir=1)
+            move_on_direction(dist=0.30, dir=1)
             tactic_state = 555
         case 555:
             if move_success() or move_stacked() or move_failed() or move_interrupted():
                 tactic_state = 560
         case 560:
-            move_on_direction(dist=0.2, dir=-1)
+            move_on_direction(dist=0.45, dir=-1)
             tactic_state = 565
         case 565:
             if move_success() or move_stacked() or move_failed() or move_interrupted():

@@ -35,11 +35,11 @@ class ObstacleNode : public rclcpp::Node
     double v_base_, w_base_, v_eps_ = 0.05;
     double x_base_, y_base_, phi_base_;
     unsigned resolution_ = 3200, threshold_ = 30;    // TODO: u parametre
-    double TABLE_X_LIMIT = 1.3, TABLE_Y_LIMIT = 0.8; // TODO: u parametre
+    double TABLE_X_LIMIT = 1.4, TABLE_Y_LIMIT = 0.9; // TODO: u parametre
     double y_max_, y_max_slow_, x_max_, x_max_slow_;
-    double j_max_ = 50.0;                                         // TODO: parametar
-    double robot_y_ = 0.16, robot_y_max_ = 0.22, dis_stop_ = 0.2; // TODO: parametri
-    double robot_x = 0.18, robot_x_max = 0.22;
+    double j_max_ = 50.0;                                        // TODO: parametar
+    double robot_y_ = 0.16, robot_y_max_ = 0.2, dis_stop_ = 0.2; // TODO: parametri
+    double robot_x = 0.18, robot_x_max = 0.2;
     double robot_y_slow_ = 0.1, dis_slow_ = 0.5; // TODO: parametri
     int num_pts_part_ = 533;
     // int num_offset_;
@@ -78,6 +78,7 @@ class ObstacleNode : public rclcpp::Node
 
     void check_scan(const sensor_msgs::msg::LaserScan::SharedPtr msg)
     {
+        uint8_t log = 0;
         resolution_ = msg->ranges.size();
         num_pts_part_ = resolution_ / 6;
 
@@ -87,65 +88,79 @@ class ObstacleNode : public rclcpp::Node
             obstacle_dir_ref_ = get_sign(v_base_);
         obstacle_status_ = 0;
         unsigned stop_num = 0;
+        unsigned stop_num_back = 0;
         unsigned slow_num = 0;
 
         x_max_ = 5.0 / 3.0 * pow(fabs(v_base_ * 2.0), 5.0 / 3.0) / sqrt(j_max_) + robot_x + robot_x_max + dis_stop_;
         x_max_slow_ = x_max_ + dis_slow_;
         y_max_ = robot_y_ + robot_y_max_;
         y_max_slow_ = y_max_ + robot_y_slow_;
-        if (obstacle_dir_ref_ != 0)
-        {
+        // if (obstacle_dir_ref_ != 0)
+        // {
 
-            if (obstacle_dir_ref_ == 1)
-            {
-                start_pt_ = -num_pts_part_;
-                end_pt_ = num_pts_part_;
-            }
-            else
-            {
-                start_pt_ = resolution_ / 2 - num_pts_part_;
-                end_pt_ = resolution_ / 2 + num_pts_part_;
-            }
+        //     if (obstacle_dir_ref_ == 1)
+        //     {
+        //         start_pt_ = -num_pts_part_;
+        //         end_pt_ = num_pts_part_;
+        //     }
+        //     else
+        //     {
+        //         start_pt_ = resolution_ / 2 - num_pts_part_;
+        //         end_pt_ = resolution_ / 2 + num_pts_part_;
+        //     }
 
-            for (int i = start_pt_; i <= end_pt_; i++)
-            {
-                unsigned ui = (i + resolution_) % resolution_;
-                double range = msg->ranges[ui];
-                if (!std::isfinite(range))
-                    continue;
-                if (range >= robot_x && range <= 1.75)
-                {
-                    double angle = msg->angle_min + ui * msg->angle_increment;
-                    double obst_x_robot = range * cos(angle);
-                    double obst_y_robot = range * sin(angle);
+        //     for (int i = start_pt_; i <= end_pt_; i++)
+        //     {
+        //         unsigned ui = (i + resolution_) % resolution_;
+        //         double range = msg->ranges[ui];
+        //         if (!std::isfinite(range))
+        //             continue;
+        //         if (range >= robot_x && range <= 1.25)
+        //         {
+        //             double angle = msg->angle_min + ui * msg->angle_increment;
+        //             double obst_x_robot = range * cos(angle);
+        //             double obst_y_robot = range * sin(angle);
 
-                    double c = cos(phi_base_);
-                    double s = sin(phi_base_);
+        //             double c = cos(phi_base_);
+        //             double s = sin(phi_base_);
 
-                    double obst_x_table = x_base_ + obst_x_robot * c + obst_y_robot * s;
-                    double obst_y_table = y_base_ - obst_x_robot * s + obst_y_robot * c;
+        //             double obst_x_table = x_base_ + obst_x_robot * c + obst_y_robot * s;
+        //             double obst_y_table = y_base_ - obst_x_robot * s + obst_y_robot * c;
 
-                    // RCLCPP_INFO(this->get_logger(), "Point table: [ %.2f, %.2f]", obst_x_table, obst_y_table);
+        //             // RCLCPP_INFO(this->get_logger(), "Point table: [ %.2f, %.2f]", obst_x_table, obst_y_table);
 
-                    if (fabs(obst_x_table) > TABLE_X_LIMIT || fabs(obst_y_table) > TABLE_Y_LIMIT || obst_y_table > 0.6)
-                        continue;
-                    if (fabs(obst_y_robot) > y_max_slow_ || fabs(obst_x_robot) > x_max_slow_ + dis_slow_)
-                        continue;
-                    if (fabs(obst_y_robot) > y_max_ || fabs(obst_x_robot) > x_max_ + dis_stop_)
-                    {
-                        slow_num++;
-                        continue;
-                    }
-                    stop_num++;
-                }
-            }
-            if (stop_num >= threshold_)
-                obstacle_status_ = 1;
-            else if (slow_num + stop_num >= threshold_)
-                obstacle_status_ = 2;
-        }
-        else
-        {
+        //             if (fabs(obst_x_table) > TABLE_X_LIMIT || obst_y_table < -TABLE_Y_LIMIT || obst_y_table > 0.6)
+        //             {
+        //                 log++;
+        //                 if (log < 10)
+        //                     RCLCPP_INFO(this->get_logger(), "Out of table: Point: [ %.2f, %.2f]", obst_x_table,
+        //                                 obst_y_table);
+        //                 continue;
+        //             }
+        //             if (fabs(obst_y_robot) > y_max_slow_ || fabs(obst_x_robot) > x_max_slow_ + dis_slow_)
+        //             {
+        //                 log++;
+        //                 if (log < 10)
+        //                     RCLCPP_INFO(this->get_logger(), "In table: Point: [ %.2f, %.2f]", obst_x_table,
+        //                                 obst_y_table);
+        //                 continue;
+        //             }
+        //             if (fabs(obst_y_robot) > y_max_ || fabs(obst_x_robot) > x_max_ + dis_stop_)
+        //             {
+        //                 slow_num++;
+        //                 continue;
+        //             }
+        //             stop_num++;
+        //         }
+        //     }
+
+        //     if (stop_num >= threshold_)
+        //     {
+        //         obstacle_status_ = 3;
+        //     }
+        // }
+        // else
+        // {
             for (int i = 0; i < resolution_; i++)
             {
                 unsigned ui = i;
@@ -154,23 +169,36 @@ class ObstacleNode : public rclcpp::Node
                     continue;
                 if (range >= robot_x && range <= 1.75)
                 {
-                    double angle = msg->angle_min + ui * msg->angle_increment;
+                    double angle = msg->angle_min + ui * msg->angle_increment + M_PI;
                     double obst_x_robot = range * cos(angle);
                     double obst_y_robot = range * sin(angle);
-                    
+
                     double c = cos(phi_base_);
                     double s = sin(phi_base_);
 
-                    double obst_x_table = x_base_ + obst_x_robot * cos(phi_base_) + obst_y_robot * sin(phi_base_);
-                    double obst_y_table = y_base_ - obst_x_robot * sin(phi_base_) + obst_y_robot * cos(phi_base_);
+                    double obst_x_table = x_base_ + obst_x_robot * c - obst_y_robot * s;
+                    double obst_y_table = y_base_ + obst_x_robot * s + obst_y_robot * c;
 
-                    // RCLCPP_INFO(this->get_logger(), "Point table: [ %.2f, %.2f], robot [ %.2f, %.2f]", obst_x_table, obst_y_table, obst_x_robot, obst_y_robot);
+                    // RCLCPP_INFO(this->get_logger(), "Point table: [ %.2f, %.2f], robot [ %.2f, %.2f]", obst_x_table,
+                    //             obst_y_table, obst_x_robot, obst_y_robot);
 
-                    if (fabs(obst_x_table) > TABLE_X_LIMIT || fabs(obst_y_table) > TABLE_Y_LIMIT)
+                    if (fabs(obst_x_table) > TABLE_X_LIMIT || obst_y_table < -TABLE_Y_LIMIT || obst_y_table > 0.6)
+                    {
+                        // log++;
+                        // if (log < 10)
+                        //     RCLCPP_INFO(this->get_logger(), "Out of table: Point: [ %.2f, %.2f]", obst_x_table,
+                        //                 obst_y_table);
                         continue;
+                    }
 
                     if (fabs(obst_y_robot) > y_max_slow_ || fabs(obst_x_robot) > x_max_slow_ + dis_slow_)
+                    {
+                        // log++;
+                        // if (log < 10)
+                        //     RCLCPP_INFO(this->get_logger(), "In table: Point: [ %.2f, %.2f]", obst_x_table,
+                        //                 obst_y_table);
                         continue;
+                    }
 
                     if (fabs(obst_y_robot) > y_max_ || fabs(obst_x_robot) > x_max_ + dis_stop_)
                     {
@@ -178,16 +206,21 @@ class ObstacleNode : public rclcpp::Node
                         continue;
                     }
 
-                    stop_num++;
+                    if (obst_x_robot > 0)
+                        stop_num++;
+                    else
+                        stop_num_back++;
                 }
             }
 
-            if (stop_num >= threshold_ * 2)
+            if (stop_num >= threshold_)
                 obstacle_status_ = 1;
-        }
+            if (stop_num_back >= threshold_)
+                obstacle_status_ += 2;
+        // }
         publish_obstacle();
         // RCLCPP_INFO(this->get_logger(), "Obstacle: direction = %d, status = %d, stop_num = %d", obstacle_dir_ref_,
-                    // obstacle_status_, stop_num);
+        // obstacle_status_, stop_num);
     }
 
     void publish_obstacle()

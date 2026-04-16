@@ -481,7 +481,8 @@ def tactic_0():
                 tactic_state = 320
             elif move_interrupted():
                 time.sleep(0.1)
-                tactic_state = 310
+                tactic_state = 380
+                flag_skip_front_2 = True
         case 320:
             rotate_to_phi(phi=math.pi)
             tactic_state = 325
@@ -907,7 +908,7 @@ def tactic_0():
         # Prilazna za 7
         case 3000:
             if get_side() == 1:
-                move_to_xy(x=1.055, y=0.185, dir=1)
+                move_to_xy(x=1.0, y=0.15, dir=1)
             else:
                 move_to_xy(x=1.0, y=0.23, dir=1)
             tactic_state = 3015

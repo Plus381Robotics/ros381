@@ -27,7 +27,7 @@ cursor_phi = 0.0
 offset_x = start_x
 offset_y = start_y
 offset_phi = start_phi
-offset_phi_tol = 0.05  # oko 3 stepena
+offset_phi_tol = 0.034  # oko 2 stepena
 offset_d_tol = 0.02
 
 flag_skip_back = False
@@ -174,8 +174,8 @@ def tactic_0():
                     get_GT().phi_base < offset_phi + offset_phi_tol
                     and get_GT().phi_base > offset_phi - offset_phi_tol
                 ):
-                    if get_GT().y_base < -0.9375 + offset_d_tol:
-                        offset_y = -0.9375
+                    if get_GT().y_base < -0.7875 + offset_d_tol:
+                        offset_y = -0.7875
                     else:
                         offset_y = get_GT().y_base
                     get_GT().update_pose(0.0, offset_y, offset_phi, 11)

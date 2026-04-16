@@ -20,7 +20,7 @@
 #define BAUDRATE 9600
 #define DEVICE_NAME "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT7W95JA-if00-port0"
 
-#define EPS_VELOCITY 4
+#define EPS_VELOCITY 7
 
 using namespace std::placeholders;
 
@@ -84,7 +84,7 @@ class Ax12aSingleHybridNode : public rclcpp::Node
 
     void ax_hybrid_move(const std::shared_ptr<GoalHandleAxHybridMove> goal_handle)
     {
-        uint freq = 10;
+        uint freq = 5;
         rclcpp::Rate loop_rate(freq);
         const auto goal = goal_handle->get_goal();
         auto feedback = std::make_shared<AxHybridMove::Feedback>();
@@ -212,6 +212,12 @@ class Ax12aSingleHybridNode : public rclcpp::Node
                 goal_handle->canceled(result);
                 RCLCPP_INFO(this->get_logger(), "Move canceled...");
                 return;
+                break;
+            case -3:
+            case -4:
+            case -5:
+            case -6:
+                rclcpp::sleep_for(std::chrono::milliseconds(500));
                 break;
             }
             goal_handle->succeed(result);

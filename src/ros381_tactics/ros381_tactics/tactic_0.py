@@ -31,6 +31,8 @@ offset_phi_tol = 0.05  # oko 3 stepena
 offset_d_tol = 0.02
 
 flag_skip_back = False
+flag_skip_front_1 = False
+flag_skip_front_2 = False
 flag_back_skipped = False
 
 def load_t0():
@@ -40,7 +42,7 @@ def load_t0():
 
 
 def tactic_0():
-    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir, offset_x, offset_y, offset_phi, prev_state, flag_skip_back, flag_back_skipped
+    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir, offset_x, offset_y, offset_phi, prev_state, flag_skip_back, flag_back_skipped, flag_skip_front_1, flag_skip_front_2
 
     if prev_state != tactic_state:
         prev_state = tactic_state
@@ -305,8 +307,13 @@ def tactic_0():
                 tactic_state = 195
         case 195:
             if snapshot_fsm(1, 10) < 0:
-                deploy_ff(1)          
-                tactic_state = 200
+                if cf_empty():
+                    tactic_state = 250
+                    flag_skip_front_1 = True
+                else:
+                    deploy_ff(1)          
+                    tactic_state = 200
+                
         # Hvata 2
         case 200:
             if get_side() == 1:
@@ -427,7 +434,10 @@ def tactic_0():
                 tactic_state = 272
         case 278:
             if mechanism_reset(-1) < 0:
-                tactic_state = 280
+                if flag_skip_front_1 == True:
+                    tactic_state = 310
+                else:
+                    tactic_state = 280
         # Ostavlja u 1
         case 280:
             move_to_xy(x=-1.18, y=-0.22, dir=1)
@@ -477,8 +487,12 @@ def tactic_0():
                 tactic_state = 330
         case 330:
             if snapshot_fsm(1, 10) < 0:
-                deploy_ff(1)          
-                tactic_state = 340
+                if cf_empty():
+                    tactic_state = 380
+                    flag_skip_front_2 = True
+                else:
+                    deploy_ff(1)          
+                    tactic_state = 340
         # Hvata 1
         case 340:
             # move_on_angle(dist=0.1525, dir=1, phi=math.pi)
@@ -549,7 +563,8 @@ def tactic_0():
                 tactic_state = 380
         case 380:
             if get_side() == 1:
-                move_to_xy(-1.0, -0.41, -1)
+                # move_to_xy(-1.0, -0.41, -1)
+                move_to_xy(-1.0, -0.51, -1)
             else:
                 move_to_xy(-1.0, -0.55, -1)
             tactic_state = 385
@@ -564,7 +579,7 @@ def tactic_0():
             if get_side() == 1:
                 move_to_xy(x=0.9, y=-0.66, dir=1)
             else:
-                move_to_xy(x=0.9, y=-0.54, dir=1)
+                move_to_xy(x=0.905, y=-0.54, dir=1)
             tactic_state = 395
         case 395:
             if move_success()or move_stacked() or move_failed() :
@@ -637,12 +652,12 @@ def tactic_0():
                     )
                     tactic_state = 446
                 else:
-                    tactic_state = 447
+                    tactic_state = 450
             elif move_success() or move_failed() or move_interrupted():
-                tactic_state = 447
+                tactic_state = 450
         case 446:
             if get_update_pose_result() == -1:
-                tactic_state = 447
+                tactic_state = 450
         case 447:
             state, position = lift(-1, -1)
             if state < 0:
@@ -655,7 +670,10 @@ def tactic_0():
             tactic_state = 460
         case 460:
             if move_success() or move_stacked() or move_failed() or move_interrupted():
-                tactic_state = 500
+                if flag_skip_front_2 == True:
+                    tactic_state = 3000
+                else:
+                    tactic_state = 500
                 lift_to_rotating_ff(-1)
         # Ostavlja u 6
         case 500:
@@ -696,10 +714,10 @@ def tactic_0():
             tactic_state = 565
         case 565:
             if move_success() or move_stacked() or move_failed() or move_interrupted():
-                if flag_back_skipped:
-                    tactic_state = 570
-                else:
-                    tactic_state = 9800
+                # if flag_back_skipped:
+                tactic_state = 570
+                # else:
+                #     tactic_state = 9800
 
 
         # Prilazna za 6
@@ -857,7 +875,7 @@ def tactic_0():
                 time.sleep(0.1)
                 tactic_state = 1000
         case 1015:
-            rotate_to_phi(phi=0.25*math.pi)
+            rotate_to_phi(phi=0.33*math.pi)
             tactic_state = 1020
         case 1020:
             if move_success() or move_stacked() or move_failed() or move_interrupted():
@@ -878,6 +896,114 @@ def tactic_0():
                 tactic_state = 1030
                 if get_GT().time >= 94.0:
                     tactic_state = 10000
+        
+        # Prilazna za 7
+        case 3000:
+            if get_side() == 1:
+                move_to_xy(x=1.055, y=0.185, dir=1)
+            else:
+                move_to_xy(x=1.0, y=0.23, dir=1)
+            tactic_state = 3015
+        case 3015:
+            if move_success() or move_stacked() or move_failed():
+                tactic_state = 3020
+            elif move_interrupted():
+                time.sleep(0.1)
+                tactic_state = 3010
+        case 3020:
+            rotate_to_phi(phi=0.0)
+            tactic_state = 3025
+        case 3025:
+            if move_success() or move_stacked() or move_failed() or move_interrupted():
+                tactic_state = 3030
+        case 3030:
+            if snapshot_fsm(1, 10) < 0:
+                if cf_empty():
+                    tactic_state = 3072
+                    flag_skip_front_2 = True
+                else:
+                    deploy_ff(1)          
+                    tactic_state = 3040
+                    flag_skip_front_2 = False
+        # Hvata 7
+        case 3040:
+            if get_side() == 1:
+                move_to_xy(x=1.1975, y=get_GT().y_base, dir=1)
+            else:
+                move_to_xy(x=1.1775, y=get_GT().y_base, dir=1)
+            tactic_state = 3041
+        case 3041:
+            if move_success() or move_stacked() or move_failed():
+                tactic_state = 3042
+            elif move_interrupted():
+                time.sleep(0.1)
+                tactic_state = 3040
+        case 3042:
+            state, position = lift(1, -1)
+            if state < 0:
+                tactic_state = 3043
+        case 3043:
+            if lift_carry(1) < 0:
+                tactic_state = 3044
+        # Stackuje se u zid
+        case 3044:
+            move_on_angle(dist=0.16, dir=1, phi=0.0, v_max=0.25)
+            tactic_state = 3046
+        case 3046:
+            if move_stacked():
+                if get_side() == 1:
+                    offset_phi = math.pi
+                else:
+                    offset_phi = 0.0
+                print(
+                    "Coordinates are (x, y, phi): "
+                    + str(get_GT().x_base)
+                    + ", "
+                    + str(get_GT().y_base)
+                    + ", "
+                    + str(get_GT().phi_base)
+                )
+                if (
+                    get_GT().phi_base < offset_phi + offset_phi_tol
+                    and get_GT().phi_base > offset_phi - offset_phi_tol
+                ):
+                    if abs(get_GT().x_base) > 1.2875 - offset_d_tol and abs(get_GT().x_base) < 1.2875 + offset_d_tol:
+                        offset_x = 1.2875
+                    else:
+                        offset_x = get_GT().x_base
+                    get_GT().update_pose(
+                        sign(get_GT().x_base) * abs(offset_x), 0.0, offset_phi, 101
+                    )
+                    tactic_state = 3050
+                else:
+                    tactic_state = 3070
+            elif move_success() or move_failed() or move_interrupted():
+                tactic_state = 3050
+        case 3050:
+            if get_update_pose_result() == -1:
+                tactic_state = 3070
+        case 3070:
+            if not is_mech_running():
+                mechanism_thread(1)
+                tactic_state = 3072
+        case 3072:
+            move_on_direction(dist=0.2, dir=-1)
+            tactic_state = 3075
+        case 3075:
+            if move_success() or move_stacked() or move_failed() or move_interrupted():
+                tactic_state = 3080
+        case 3080:
+            if get_side() == 1:
+                move_to_xy(x=1.0, y=-0.2, dir=1)
+            else:
+                move_to_xy(x=1.0, y=-0.2, dir=1)
+            tactic_state = 3081
+        case 3081:
+            if move_success() or move_stacked() or move_failed():
+                tactic_state = 500
+            elif move_interrupted():
+                time.sleep(0.1)
+                tactic_state = 3080
         
         case 9800:
             move_to_xy(0.0, -0.45, 1)

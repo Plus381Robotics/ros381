@@ -72,7 +72,7 @@ ros381/csi_camera:
     format: "YUYV"
     height: 480
     width: 640
-    framerate: 10.0
+    framerate: 15.0
     camera: "/base/soc/i2c0mux/i2c@1/ov5647@36"
 
 ros381/usb_camera:
@@ -81,7 +81,7 @@ ros381/usb_camera:
     image_width: 640
     image_height: 480
     # pixel_format: "yuyv"
-    framerate: 10.0
+    framerate: 15.0
     camera_name: "back_camera"
 
 ros381/aruco_detection_front:
@@ -97,7 +97,7 @@ ros381/aruco_detection_front:
                            0.0, 0.0, 0.0, 1.0]
    pub_cv_image: False
    target_height: 0.03
-   height_tolerance: 0.02
+   height_tolerance: 0.01
    angle_tolerance: 0.2
    enable_height_check: False
    enable_angle_check: False
@@ -115,7 +115,7 @@ ros381/aruco_detection_back:
                 0.0, 0.0, 0.0, 1.0]
     pub_cv_image: False
     target_height: 0.03
-    height_tolerance: 0.02
+    height_tolerance: 0.03
     angle_tolerance: 0.2    # rad (±11.44°)
     enable_height_check: False
     enable_angle_check: False

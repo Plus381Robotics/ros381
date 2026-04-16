@@ -61,7 +61,7 @@ def tactic_0():
         # Prilazna za 3
         case 11:
             if get_side() == 1: # plava
-                move_to_xy(x=-0.375, y=0.15, dir=1)
+                move_to_xy(x=-0.38, y=0.15, dir=1)
             else: #zuta
                 move_to_xy(x=-0.36, y=0.15, dir=1)
             tactic_state = 12
@@ -106,7 +106,7 @@ def tactic_0():
         # Prilazna za 4
         case 60:
             if get_side() == 1: # plava
-                move_to_xy(x=-0.43, y=-0.45, dir=-1)
+                move_to_xy(x=-0.425, y=-0.5, dir=-1)
             else: # zuta
                 move_to_xy(x=-0.375, y=-0.45, dir=-1)
             tactic_state = 65
@@ -123,7 +123,7 @@ def tactic_0():
             if move_success() or move_stacked() or move_failed() or move_interrupted():
                 tactic_state = 75
         case 75:
-            if snapshot_fsm(-1, 10) < 0:
+            if snapshot_fsm(-1, 30) < 0:
                 if cb_empty():
                     tactic_state = 100
                     flag_skip_back = True
@@ -134,7 +134,10 @@ def tactic_0():
         # Hvata 4
         case 76: # 0.2375
             # move_on_angle(dist=0.2275, dir=-1, phi=math.pi * 0.5)
-            move_to_xy_unsided(x=get_GT().x_base, y=-0.678, dir=-1)
+            if get_side() == 1:
+                move_to_xy_unsided(x=get_GT().x_base, y=-0.688, dir=-1)
+            else:
+                move_to_xy_unsided(x=get_GT().x_base, y=-0.678, dir=-1)
             tactic_state = 77
         case 77:
             if move_success() or move_stacked() or move_failed():
@@ -234,9 +237,10 @@ def tactic_0():
             direction = 0
             if get_side() == 1:
                 direction = -1
+                move_to_xy(x=-0.255, y=-0.79, dir=direction)
             else:
                 direction = 1
-            move_to_xy(x=-0.2, y=-0.79, dir=direction)
+                move_to_xy(x=-0.2, y=-0.79, dir=direction)
             tactic_state = 125
         case 125:
             if move_success() or move_stacked() or move_failed():
@@ -255,7 +259,7 @@ def tactic_0():
                 tactic_state = 140
         case 140:
             if get_side() == 1:
-                move_cursor(dist=0.6, phi=cursor_phi)
+                move_cursor(dist=0.55, phi=cursor_phi)
             else:
                 move_cursor(dist=0.58, phi=cursor_phi)
             tactic_state = 145
@@ -283,7 +287,7 @@ def tactic_0():
         # Prilazna za 2
         case 170:
             if get_side() == 1:
-                move_to_xy(x=-1.05, y=-0.615, dir=-1)
+                move_to_xy(x=-1.05, y=-0.61, dir=-1)
             else:
                 move_to_xy(x=-1.0, y=-0.615, dir=-1)
             tactic_state = 175
@@ -452,7 +456,7 @@ def tactic_0():
         # Prilazna za 1
         case 310:
             if get_side() == 1:
-                move_to_xy(x=-1.05, y=0.2, dir=1)
+                move_to_xy(x=-1.055, y=0.185, dir=1)
             else:
                 move_to_xy(x=-1.0, y=0.18, dir=1)
             tactic_state = 315
@@ -476,7 +480,7 @@ def tactic_0():
         case 340:
             # move_on_angle(dist=0.1525, dir=1, phi=math.pi)
             if get_side() == 1:
-                move_to_xy(x=-1.1525, y=get_GT().y_base, dir=1)
+                move_to_xy(x=-1.1975, y=get_GT().y_base, dir=1)
             else:
                 move_to_xy(x=-1.1725, y=get_GT().y_base, dir=1)
             tactic_state = 341
@@ -541,7 +545,10 @@ def tactic_0():
             if move_success() or move_stacked() or move_failed() or move_interrupted():
                 tactic_state = 380
         case 380:
-            move_to_xy(-1.0, -0.55, -1)
+            if get_side() == 1:
+                move_to_xy(-1.0, -0.41, -1)
+            else:
+                move_to_xy(-1.0, -0.55, -1)
             tactic_state = 385
         case 385:
             if move_success() or move_stacked() or move_failed():
@@ -551,7 +558,10 @@ def tactic_0():
                 tactic_state = 380
         # Prilazna za 8
         case 390:
-            move_to_xy(x=0.9, y=-0.575, dir=1)
+            if get_side() == 1:
+                move_to_xy(x=0.9, y=-0.66, dir=1)
+            else:
+                move_to_xy(x=0.9, y=-0.575, dir=1)
             tactic_state = 395
         case 395:
             if move_success()or move_stacked() or move_failed() :
@@ -575,7 +585,10 @@ def tactic_0():
                     tactic_state = 420
         # Hvata 8
         case 420:
-            move_on_angle(dist=0.29, dir=-1, phi=math.pi)
+            if get_side() == 1:
+                move_on_angle(dist=0.27, dir=-1, phi=math.pi)
+            else:
+                move_on_angle(dist=0.29, dir=-1, phi=math.pi)
             tactic_state = 425
         case 425:
             if move_success() or move_stacked() or move_failed():
@@ -689,7 +702,7 @@ def tactic_0():
 
         case 570:
             if get_side() == 1: # plava
-                move_to_xy(x=0.375, y=-0.48, dir=-1)
+                move_to_xy(x=0.39, y=-0.48, dir=-1)
             else: # zuta
                 move_to_xy(x=0.43, y=-0.48, dir=-1)     
             tactic_state = 575
@@ -715,7 +728,10 @@ def tactic_0():
                     deploy_ff(1)          
                     tactic_state = 590 
         case 590:
-            move_to_xy_unsided(x=get_GT().x_base, y=-0.678, dir=1)
+            if get_side() == 1:
+                move_to_xy_unsided(x=get_GT().x_base, y=-0.7, dir=1)
+            else:
+                move_to_xy_unsided(x=get_GT().x_base, y=-0.678, dir=1)
             tactic_state = 600
         case 600:
             if move_success() or move_stacked() or move_failed():
@@ -877,7 +893,7 @@ def tactic_0():
                 tactic_state = 10000
 
         case 10000:
-            move_to_xy(-1.05, -0.62, -1)
+            move_to_xy(-1.0, -0.6, -1)
             tactic_state = 10100
         case 10100:
             if move_success()or move_failed()or move_stacked():
@@ -886,7 +902,7 @@ def tactic_0():
                 time.sleep(0.1)
                 tactic_state = 10000
         case 10200:
-            move_to_xy(-1.175, 0.74, 1)
+            move_to_xy(-1.15, 0.76, 1)
             tactic_state = 10300
         case 10300:
             if move_success()or move_failed()or move_stacked():

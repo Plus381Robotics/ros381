@@ -3,7 +3,7 @@ ros381/minimbp:
     # Control loop frequency [Hz]
     FREQ: 10.0
     # Max base velocities: [m/s], [rad/s]
-    V_MAX: 1.75
+    V_MAX: 1.5
     V_MIN: 0.05
     W_MAX: 12.57
     W_MIN: 0.314
@@ -72,7 +72,7 @@ ros381/csi_camera:
     format: "YUYV"
     height: 480
     width: 640
-    framerate: 15.0
+    framerate: 30.0
     camera: "/base/soc/i2c0mux/i2c@1/ov5647@36"
 
 ros381/usb_camera:
@@ -81,7 +81,7 @@ ros381/usb_camera:
     image_width: 640
     image_height: 480
     # pixel_format: "yuyv"
-    framerate: 15.0
+    framerate: 30.0
     camera_name: "back_camera"
 
 ros381/aruco_detection_front:

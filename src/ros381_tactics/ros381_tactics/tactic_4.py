@@ -183,9 +183,9 @@ def tactic_4():
                     get_GT().update_pose(0.0, offset_y, offset_phi, 11)
                     tactic_state = 86
                 else:
-                    tactic_state = 90
+                    tactic_state = 95
             elif move_success() or move_failed() or move_interrupted():
-                tactic_state = 90
+                tactic_state = 95
         case 86:
             if get_update_pose_result() == -1:
                 tactic_state = 95

@@ -181,9 +181,9 @@ def tactic_0():
                     get_GT().update_pose(0.0, offset_y, offset_phi, 11)
                     tactic_state = 86
                 else:
-                    tactic_state = 90
+                    tactic_state = 95
             elif move_success() or move_failed() or move_interrupted():
-                tactic_state = 90
+                tactic_state = 95
         case 86:
             if get_update_pose_result() == -1:
                 tactic_state = 95
@@ -610,7 +610,7 @@ def tactic_0():
             if get_side() == 1:
                 move_on_angle(dist=0.27, dir=-1, phi=math.pi)
             else:
-                move_on_angle(dist=0.29, dir=-1, phi=math.pi)
+                move_on_angle(dist=0.31, dir=-1, phi=math.pi)
             tactic_state = 425
         case 425:
             if move_success() or move_stacked() or move_failed():
@@ -908,9 +908,9 @@ def tactic_0():
         # Prilazna za 7
         case 3000:
             if get_side() == 1:
-                move_to_xy(x=1.0, y=0.12, dir=1)
+                move_to_xy(x=0.95, y=0.12, dir=1)
             else:
-                move_to_xy(x=1.0, y=0.23, dir=1)
+                move_to_xy(x=0.95, y=0.23, dir=1)
             tactic_state = 3015
         case 3015:
             if move_success() or move_stacked() or move_failed():
@@ -938,7 +938,7 @@ def tactic_0():
             if get_side() == 1:
                 move_to_xy(x=1.1975, y=get_GT().y_base, dir=1)
             else:
-                move_to_xy(x=1.1775, y=get_GT().y_base, dir=1)
+                move_to_xy(x=1.1975, y=get_GT().y_base, dir=1)
             tactic_state = 3041
         case 3041:
             if move_success() or move_stacked() or move_failed():

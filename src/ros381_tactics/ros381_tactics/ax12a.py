@@ -342,12 +342,12 @@ def lift(side, state):
                 lcl4_id = clan4_back_id
             if state == 1:
                 lift_pos = lift_up_pos
-                lift_dpos = -400
+                lift_dpos = -300
                 vf = False
                 vb = False
             else:
                 lift_pos = lift_down_pos
-                lift_dpos = 400
+                lift_dpos = 500
             lift_state = 5
         case 5:
             ax_bulk_move(

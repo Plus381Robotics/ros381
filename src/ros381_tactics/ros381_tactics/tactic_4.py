@@ -585,6 +585,7 @@ def tactic_4():
         case 390:
             if get_side() == 1:
                 move_to_xy(x=0.9, y=-0.57, dir=1)
+                # move_to_xy(x=0.9, y=-0.62, dir=1)
             else:
                  move_to_xy(x=0.9, y=-0.54, dir=1)
             tactic_state = 395

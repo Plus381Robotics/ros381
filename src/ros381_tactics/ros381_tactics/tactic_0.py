@@ -63,7 +63,7 @@ def tactic_0():
         # Prilazna za 3
         case 11:
             if get_side() == 1: # plava
-                move_to_xy(x=-0.395, y=0.15, dir=1)
+                move_to_xy(x=-0.39, y=0.15, dir=1)
             else: #zuta
                 move_to_xy(x=-0.36, y=0.15, dir=1)
             tactic_state = 12
@@ -472,7 +472,7 @@ def tactic_0():
         # Prilazna za 1
         case 310:
             if get_side() == 1:
-                move_to_xy(x=-1.0, y=0.19, dir=1)
+                move_to_xy(x=-1.0, y=0.185, dir=1)
             else:
                 move_to_xy(x=-1.0, y=0.175, dir=1)
             tactic_state = 315
@@ -583,7 +583,7 @@ def tactic_0():
             if get_side() == 1:
                 move_to_xy(x=0.9, y=-0.645, dir=1)
             else:
-                move_to_xy(x=0.905, y=-0.54, dir=1)
+                move_to_xy(x=0.905, y=-0.52, dir=1)
             tactic_state = 395
         case 395:
             if move_success()or move_stacked() or move_failed() :
@@ -908,7 +908,7 @@ def tactic_0():
         # Prilazna za 7
         case 3000:
             if get_side() == 1:
-                move_to_xy(x=1.0, y=0.15, dir=1)
+                move_to_xy(x=1.0, y=0.12, dir=1)
             else:
                 move_to_xy(x=1.0, y=0.23, dir=1)
             tactic_state = 3015

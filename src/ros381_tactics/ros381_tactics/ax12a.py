@@ -250,7 +250,7 @@ def cursor(position):
             if get_ax_move_result() < 0:
                 cursor_state = -1
         case 20:
-            ax_hybrid_move(cursor_id, 1000, 0.4, 300)
+            ax_hybrid_move(cursor_id, 1000, 0.3, 300)
             cursor_state = 21
         case 21:
             if get_ax_hybrid_move_result() < 0:
@@ -342,12 +342,12 @@ def lift(side, state):
                 lcl4_id = clan4_back_id
             if state == 1:
                 lift_pos = lift_up_pos
-                lift_dpos = -300
+                lift_dpos = -400
                 vf = False
                 vb = False
             else:
                 lift_pos = lift_down_pos
-                lift_dpos = 300
+                lift_dpos = 400
             lift_state = 5
         case 5:
             ax_bulk_move(
@@ -372,7 +372,7 @@ def lift(side, state):
             get_GT().add_vacuum(vf, vb)
             lift_state = 40
         case 40:
-            ax_hybrid_move(lift_id, 1000, 0.4, lift_dpos)
+            ax_hybrid_move(lift_id, 1000, 0.3, lift_dpos)
             lift_state = 50
         case 50:
             if get_ax_hybrid_move_result() < 0:

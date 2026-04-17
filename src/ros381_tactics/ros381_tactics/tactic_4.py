@@ -27,7 +27,7 @@ cursor_phi = 0.0
 offset_x = start_x
 offset_y = start_y
 offset_phi = start_phi
-offset_phi_tol = 0.034  # oko 2 stepena
+offset_phi_tol = 0.017  # oko 1 stepen
 offset_d_tol = 0.02
 
 flag_skip_back = False
@@ -584,7 +584,7 @@ def tactic_4():
         # Prilazna za 8
         case 390:
             if get_side() == 1:
-                move_to_xy(x=0.9, y=-0.57, dir=1)
+                move_to_xy(x=0.9, y=-0.6, dir=1)
                 # move_to_xy(x=0.9, y=-0.62, dir=1)
             else:
                  move_to_xy(x=0.9, y=-0.54, dir=1)
@@ -761,9 +761,9 @@ def tactic_4():
                     tactic_state = 590 
         case 590:
             if get_side() == 1:
-                move_to_xy_unsided(x=get_GT().x_base, y=-0.678, dir=1)
+                move_to_xy_unsided(x=get_GT().x_base, y=-0.71, dir=1)
             else:
-                move_to_xy_unsided(x=get_GT().x_base, y=-0.678, dir=1)
+                move_to_xy_unsided(x=get_GT().x_base, y=-0.71, dir=1)
             tactic_state = 600
         case 600:
             if move_success() or move_stacked() or move_failed():
@@ -878,7 +878,7 @@ def tactic_4():
                 tactic_state = 910
         # Ostavlja u 5
         case 1000:
-            move_to_xy(x=-0.15, y=-0.35, dir=-1)
+            move_to_xy(x=0.2, y=-0.4, dir=-1)
             tactic_state = 1010
         case 1010:
             if move_success() or move_stacked() or move_failed():
@@ -887,7 +887,7 @@ def tactic_4():
                 time.sleep(0.1)
                 tactic_state = 1000
         case 1015:
-            rotate_to_phi(phi=0.33*math.pi)
+            rotate_to_phi(phi=0.67*math.pi)
             tactic_state = 1020
         case 1020:
             if move_success() or move_stacked() or move_failed() or move_interrupted():
@@ -896,7 +896,7 @@ def tactic_4():
             if mechanism_drop(1) < 0:
                 tactic_state = 1030
         case 1030:
-            move_to_xy(x=-0.25, y=-0.45, dir= -1)
+            move_to_xy(x=0.25, y=-0.45, dir= -1)
             tactic_state = 1040
         case 1040:
             if move_success() or move_stacked() or move_failed():

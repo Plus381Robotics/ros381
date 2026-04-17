@@ -27,7 +27,7 @@ cursor_phi = 0.0
 offset_x = start_x
 offset_y = start_y
 offset_phi = start_phi
-offset_phi_tol = 0.034  # oko 2 stepena
+offset_phi_tol = 0.017  # oko 1 stepen
 offset_d_tol = 0.02
 
 flag_skip_back = False
@@ -874,7 +874,7 @@ def tactic_0():
                 tactic_state = 910
         # Ostavlja u 5
         case 1000:
-            move_to_xy(x=0.125, y=-0.35, dir=-1)
+            move_to_xy(x=0.2, y=-0.4, dir=-1)
             tactic_state = 1010
         case 1010:
             if move_success() or move_stacked() or move_failed():

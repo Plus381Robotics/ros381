@@ -34,6 +34,7 @@ flag_skip_back = False
 flag_skip_front_1 = False
 flag_skip_front_2 = False
 flag_back_skipped = False
+flag_skip_cursor = False
 
 def load_t0():
     global start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
@@ -42,7 +43,7 @@ def load_t0():
 
 
 def tactic_0():
-    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir, offset_x, offset_y, offset_phi, prev_state, flag_skip_back, flag_back_skipped, flag_skip_front_1, flag_skip_front_2
+    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir, offset_x, offset_y, offset_phi, prev_state, flag_skip_back, flag_back_skipped, flag_skip_front_1, flag_skip_front_2, flag_skip_cursor
 
     if prev_state != tactic_state:
         prev_state = tactic_state
@@ -249,7 +250,8 @@ def tactic_0():
                 tactic_state = 130
             elif move_interrupted():
                 time.sleep(0.1)
-                tactic_state = 124
+                flag_skip_cursor = True
+                tactic_state = 170
         case 130:
             rotate_to_phi_unsided(phi=cursor_phi)
             tactic_state = 135
@@ -279,7 +281,7 @@ def tactic_0():
                 tactic_state = 170
             elif move_interrupted():
                 time.sleep(0.1)
-                tactic_state = 160 # TODO
+                tactic_state = 170 # TODO
         case 166:
             move_cursor(dist=0.16, phi=cursor_phi)
             tactic_state = 167

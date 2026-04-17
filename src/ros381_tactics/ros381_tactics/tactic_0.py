@@ -108,7 +108,7 @@ def tactic_0():
         # Prilazna za 4
         case 60:
             if get_side() == 1: # plava
-                move_to_xy(x=-0.425, y=-0.5, dir=-1)
+                move_to_xy(x=-0.4, y=-0.5, dir=-1)
             else: # zuta
                 move_to_xy(x=-0.375, y=-0.45, dir=-1)
             tactic_state = 65

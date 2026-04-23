@@ -187,12 +187,12 @@ def generate_launch_description():
             tactics_node_1,
             tactics_node_2,
             chinch_trigger_node,
-            uc_node_1,
-            uc_node_2,
+            # uc_node_1,
+            # uc_node_2,
             # visualization_node,
             gridmap_node_1,
             gridmap_node_2,
-            # obstacle_node_1,
+            obstacle_node_1,
             obstacle_node_2,
             launch.actions.RegisterEventHandler(
                 event_handler=launch.event_handlers.OnProcessExit(

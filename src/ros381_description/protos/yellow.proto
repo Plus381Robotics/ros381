@@ -356,6 +356,74 @@ PROTO yellow [
         }
       }
 
+      Solid {
+        name "teflon4"
+        contactMaterial "teflon"
+        boundingObject Pose {
+          translation -0.1203 -0.1241 0.002
+          children [
+            Cylinder {
+              radius 0.015
+              height 0.005
+            }
+          ]
+        }
+        physics Physics {
+          mass 1.0
+        }
+      }
+      
+      Solid {
+        name "teflon3"
+        contactMaterial "teflon"
+        boundingObject Pose {
+          translation -0.1203 0.1241 0.002
+          children [
+            Cylinder {
+              radius 0.015
+              height 0.005
+            }
+          ]
+        }
+        physics Physics {
+          mass 1.0
+        }
+      }
+      
+      Solid {
+        name "teflon2"
+        contactMaterial "teflon"
+        boundingObject Pose {
+          translation 0.1203 -0.1241 0.002
+          children [
+            Cylinder {
+              radius 0.015
+              height 0.005
+            }
+          ]
+        }
+        physics Physics {
+          mass 1.0
+        }
+      }
+      
+      Solid {
+        name "teflon1"
+        contactMaterial "teflon"
+        boundingObject Pose {
+          translation 0.1203 0.1241 0.002
+          children [
+            Cylinder {
+              radius 0.015
+              height 0.005
+            }
+          ]
+        }
+        physics Physics {
+          mass 1.0
+        }
+      }
+
 	  RPLidarS2{
 		translation 0.0 0.0 0.336
 	  }
@@ -377,17 +445,9 @@ PROTO yellow [
           ]
       }
     ]
+    
     name IS name
-	contactMaterial "teflon"
-    boundingObject Pose {
-      translation 0.000000 0.000000 0.000000
-      children [
-        Cylinder {
-      radius 0.14
-      height 0.004
-        }
-      ]
-    }
+	  contactMaterial "teflon"
     physics Physics {
       density -1
       mass 2.000000

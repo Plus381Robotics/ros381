@@ -1,9 +1,5 @@
 #include "ros381_tactics/global.hpp"
 
-using namespace std::placeholders;
-using Move = ros381_interfaces::action::Move;
-using GoalHandleMove = rclcpp_action::ClientGoalHandle<Move>;
-
 TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
 {
     guard_ = std::make_unique<py::scoped_interpreter>();
@@ -31,11 +27,160 @@ TacticGlobalNode::TacticGlobalNode() : Node("tactic_global"), guard_{}
         "chinch_trigger", 10, std::bind(&TacticGlobalNode::callback_chinch_state, this, _1));
     switches_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
         "switches", 10, std::bind(&TacticGlobalNode::callback_switches, this, _1));
+    vacuum_pub_ = this->create_publisher<example_interfaces::msg::UInt8>("vacuum", 10);
     pose_offs_pub_ = this->create_publisher<ros381_interfaces::msg::Float3>("pose_offset", 10);
+    ax_move_client_ = rclcpp_action::create_client<AxMove>(this, "ax_move");
+    ax_bulk_move_client_ = rclcpp_action::create_client<AxBulkMove>(this, "ax_bulk_move");
+    ax_hybrid_move_client_ = rclcpp_action::create_client<AxHybridMove>(this, "ax_hybrid_move");
+    crate_stack_front_sub_ = this->create_subscription<ros381_interfaces::msg::CrateStack>(
+        "crate_stack_front", 10, std::bind(&TacticGlobalNode::callback_crate_stack_front, this, _1));
+    crate_stack_back_sub_ = this->create_subscription<ros381_interfaces::msg::CrateStack>(
+        "crate_stack_back", 10, std::bind(&TacticGlobalNode::callback_crate_stack_back, this, _1));
+    
+    odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "odom", 10, std::bind(&TacticGlobalNode::callback_odometry, this, _1));
 
     init_python(this);
+    declare_ax_params();
 
     RCLCPP_INFO(this->get_logger(), "Global tactic node is running.");
+}
+
+void TacticGlobalNode::callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)
+    {
+        x_base_ = msg->pose.pose.position.x;
+        y_base_ = msg->pose.pose.position.y;
+        phi_base_ = tf2::getYaw(msg->pose.pose.orientation);
+        v_base_ = msg->twist.twist.linear.x;
+        w_base_ = msg->twist.twist.angular.z;
+    }
+
+
+void TacticGlobalNode::callback_crate_stack_back(const ros381_interfaces::msg::CrateStack msg)
+{
+    if (consuming_back_)
+    {
+        cs_back_full = msg.valid;
+        if (msg.valid)
+        {
+            cs_back_x = msg.x;
+            cs_back_y = msg.y;
+            cs_back_phi = msg.phi;
+            for (int i = 0; i < 4; i++)
+                crates_back_[i] = msg.crate_list[i].color;
+        }
+        else
+        {
+            crates_back_[0] = -1;
+            crates_back_[1] = -1;
+            crates_back_[2] = -1;
+            crates_back_[3] = -1;
+            double x_sum = 0, y_sum = 0, phi_sum = 0, valid_crates = 0;
+            for (int i = 0; i < msg.crate_list.size(); i++)
+            {
+                uint8_t idx = crate_position(msg.crate_list[i].y);
+                if (idx < 255)
+                {
+                    crates_back_[idx] = msg.crate_list[i].color;
+                    x_sum += msg.crate_list[i].x + (2 - (double)idx) * 0.05 - 0.025;
+                    y_sum += msg.crate_list[i].y;
+                    phi_sum += msg.crate_list[i].phi;
+                    valid_crates += 1;
+                }
+            }
+            if (valid_crates > 0)
+            {
+                cs_back_x = x_sum / valid_crates;
+                cs_back_y = y_sum / valid_crates;
+                cs_back_phi = phi_sum / valid_crates;
+            }
+        }
+    }
+}
+
+void TacticGlobalNode::callback_crate_stack_front(const ros381_interfaces::msg::CrateStack msg)
+{
+    if (consuming_front_)
+    {
+        cs_front_full = msg.valid;
+        if (msg.valid)
+        {
+            cs_front_x = msg.x;
+            cs_front_y = msg.y;
+            cs_front_phi = msg.phi;
+            for (int i = 0; i < 4; i++)
+                crates_front_[i] = msg.crate_list[i].color;
+        }
+        else
+        {
+            crates_front_[0] = -1;
+            crates_front_[1] = -1;
+            crates_front_[2] = -1;
+            crates_front_[3] = -1;
+            double x_sum = 0, y_sum = 0, phi_sum = 0, valid_crates = 0;
+            for (int i = 0; i < msg.crate_list.size(); i++)
+            {
+                uint8_t idx = crate_position(msg.crate_list[i].y);
+                if (idx < 255)
+                {
+                    crates_front_[idx] = msg.crate_list[i].color;
+                    x_sum += msg.crate_list[i].x + (2 - (double)idx) * 0.05 - 0.025;
+                    y_sum += msg.crate_list[i].y;
+                    phi_sum += msg.crate_list[i].phi;
+                    valid_crates += 1;
+                }
+            }
+            if (valid_crates > 0)
+            {
+                cs_front_x = x_sum / valid_crates;
+                cs_front_y = y_sum / valid_crates;
+                cs_front_phi = phi_sum / valid_crates;
+            }
+        }
+    }
+}
+
+uint8_t TacticGlobalNode::crate_position(double x)
+{
+    // 25mm tolerancija
+    if (std::fabs(x) > 0.1)
+        return 255;
+    if (x < -0.05)
+        return 0;
+    if (x < 0.0)
+        return 1;
+    if (x < 0.05)
+        return 2;
+    return 3;
+}
+
+void TacticGlobalNode::set_vacuum(bool front, bool back)
+{
+    vacuum_ = vacuum_mask(front, back);
+    auto msg = example_interfaces::msg::UInt8();
+    msg.data = vacuum_;
+    vacuum_pub_->publish(msg);
+}
+
+void TacticGlobalNode::add_vacuum(bool front, bool back)
+{
+    vacuum_ |= vacuum_mask(front, back);
+    auto msg = example_interfaces::msg::UInt8();
+    msg.data = vacuum_;
+    vacuum_pub_->publish(msg);
+}
+
+void TacticGlobalNode::remove_vacuum(bool front, bool back)
+{
+    vacuum_ &= ~vacuum_mask(front, back);
+    auto msg = example_interfaces::msg::UInt8();
+    msg.data = vacuum_;
+    vacuum_pub_->publish(msg);
+}
+
+uint8_t TacticGlobalNode::vacuum_mask(bool front, bool back)
+{
+    return (front ? 0b1100 : 0) | (back ? 0b0011 : 0);
 }
 
 void TacticGlobalNode::publish_pose_offset(double x, double y, double phi)
@@ -49,8 +194,8 @@ void TacticGlobalNode::publish_pose_offset(double x, double y, double phi)
 
 void TacticGlobalNode::callback_switches(const example_interfaces::msg::UInt8::SharedPtr msg)
 {
-    reset_on_ = (bool)((msg->data >> 4) & 0b1);
-    tactic_side_ = ((msg->data >> 3) & 0b1) ? 1 : -1;
+    // reset_on_ = (bool)((msg->data >> 4) & 0b1);
+    tactic_side_ = ((msg->data >> 4) & 0b1) ? 1 : -1;
     tactic_num_ = msg->data & 0b111;
 }
 
@@ -77,12 +222,210 @@ void TacticGlobalNode::pub_chinch_waiting()
     }
 }
 
+void TacticGlobalNode::ax_bulk_move_goal(const std::vector<AxMoveGoal> &goals)
+{
+    ax_bulk_move_result_ = 0;
+    rclcpp::Rate rate(std::chrono::milliseconds(100));
+
+    auto start = this->now();
+    while (rclcpp::ok() && (this->now() - start) < rclcpp::Duration::from_seconds(0.5))
+    {
+        if (this->ax_bulk_move_client_->wait_for_action_server())
+        {
+            break;
+        }
+        RCLCPP_WARN(this->get_logger(), "Waiting for action server...");
+        rate.sleep();
+    }
+    if (!this->ax_bulk_move_client_->wait_for_action_server())
+    {
+        RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting.");
+        return;
+    }
+
+    auto goal_msg = AxBulkMove::Goal();
+    goal_msg.id.resize(goals.size());
+    goal_msg.position.resize(goals.size());
+    goal_msg.velocity.resize(goals.size());
+    goal_msg.position_tolerance.resize(goals.size());
+    uint8_t cnt = 0;
+    for (auto &goal : goals)
+    {
+        goal_msg.id[cnt] = goal.id;
+        goal_msg.position[cnt] = goal.position;
+        goal_msg.velocity[cnt] = goal.velocity;
+        goal_msg.position_tolerance[cnt] = goal.position_tolerance;
+        cnt++;
+    }
+
+    RCLCPP_INFO(this->get_logger(), "Sending ax bulk move goal...");
+
+    auto send_goal_options = rclcpp_action::Client<AxBulkMove>::SendGoalOptions();
+    send_goal_options.goal_response_callback =
+        std::bind(&TacticGlobalNode::ax_bulk_move_goal_response_callback, this, _1);
+    send_goal_options.feedback_callback = std::bind(&TacticGlobalNode::ax_bulk_move_feedback_callback, this, _1, _2);
+    send_goal_options.result_callback = std::bind(&TacticGlobalNode::ax_bulk_move_result_callback, this, _1);
+    this->ax_bulk_move_client_->async_send_goal(goal_msg, send_goal_options);
+}
+
+void TacticGlobalNode::ax_bulk_move_goal_response_callback(const AxBulkMoveGoalHandle::SharedPtr &goal_handle)
+{
+    if (!goal_handle)
+    {
+        RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server.");
+    }
+    else
+    {
+        RCLCPP_INFO(this->get_logger(), "Goal accepted by server, waiting for result.");
+    }
+}
+
+void TacticGlobalNode::ax_bulk_move_feedback_callback(AxBulkMoveGoalHandle::SharedPtr,
+                                                      const std::shared_ptr<const AxBulkMove::Feedback> feedback)
+{
+    for (size_t i = 0; i < feedback->current_position.size(); ++i)
+    {
+        RCLCPP_DEBUG(this->get_logger(), "  Motor %zu: Pos=%d, Err=%d, Vel=%d", i, feedback->current_position[i],
+                     feedback->position_error[i], feedback->current_velocity[i]);
+    }
+}
+
+void TacticGlobalNode::ax_bulk_move_result_callback(const AxBulkMoveGoalHandle::WrappedResult &result)
+{
+    ax_bulk_move_result_ = result.result->status;
+    RCLCPP_INFO(this->get_logger(), "Move status: %d", ax_bulk_move_result_);
+}
+
+void TacticGlobalNode::ax_move_goal(AxMoveGoal goal)
+{
+    ax_move_result_ = 0;
+    rclcpp::Rate rate(std::chrono::milliseconds(100));
+
+    auto start = this->now();
+    while (rclcpp::ok() && (this->now() - start) < rclcpp::Duration::from_seconds(0.5))
+    {
+        if (this->ax_move_client_->wait_for_action_server())
+        {
+            break;
+        }
+        RCLCPP_WARN(this->get_logger(), "Waiting for action server...");
+        rate.sleep();
+    }
+    if (!this->ax_move_client_->wait_for_action_server())
+    {
+        RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting.");
+        return;
+    }
+
+    auto goal_msg = AxMove::Goal();
+    goal_msg.id = goal.id;
+    goal_msg.position = goal.position;
+    goal_msg.velocity = goal.velocity;
+    goal_msg.position_tolerance = goal.position_tolerance;
+
+    RCLCPP_INFO(this->get_logger(), "Sending ax move goal...");
+
+    auto send_goal_options = rclcpp_action::Client<AxMove>::SendGoalOptions();
+    send_goal_options.goal_response_callback = std::bind(&TacticGlobalNode::ax_move_goal_response_callback, this, _1);
+    send_goal_options.feedback_callback = std::bind(&TacticGlobalNode::ax_move_feedback_callback, this, _1, _2);
+    send_goal_options.result_callback = std::bind(&TacticGlobalNode::ax_move_result_callback, this, _1);
+    this->ax_move_client_->async_send_goal(goal_msg, send_goal_options);
+}
+
+void TacticGlobalNode::ax_move_goal_response_callback(const AxMoveGoalHandle::SharedPtr &goal_handle)
+{
+    if (!goal_handle)
+    {
+        RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server.");
+    }
+    else
+    {
+        RCLCPP_INFO(this->get_logger(), "Goal accepted by server, waiting for result.");
+    }
+}
+
+void TacticGlobalNode::ax_move_feedback_callback(AxMoveGoalHandle::SharedPtr,
+                                                 const std::shared_ptr<const AxMove::Feedback> feedback)
+{
+    RCLCPP_DEBUG(this->get_logger(), "Current position: %d\t Position error: %d\t Current velocity: %d",
+                 feedback->current_position, feedback->position_error, feedback->current_velocity);
+}
+
+void TacticGlobalNode::ax_move_result_callback(const AxMoveGoalHandle::WrappedResult &result)
+{
+    ax_move_result_ = result.result->status;
+    RCLCPP_INFO(this->get_logger(), "Move status: %d", ax_move_result_);
+}
+
+void TacticGlobalNode::ax_hybrid_move_goal(uint8_t id, uint16_t velocity, float zero_time, int16_t delta_pos)
+{
+    ax_hybrid_move_result_ = 0;
+    rclcpp::Rate rate(std::chrono::milliseconds(100));
+
+    auto start = this->now();
+    while (rclcpp::ok() && (this->now() - start) < rclcpp::Duration::from_seconds(0.5))
+    {
+        if (this->ax_hybrid_move_client_->wait_for_action_server())
+        {
+            break;
+        }
+        RCLCPP_WARN(this->get_logger(), "Waiting for action server...");
+        rate.sleep();
+    }
+    if (!this->ax_hybrid_move_client_->wait_for_action_server())
+    {
+        RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting.");
+        return;
+    }
+
+    auto goal_msg = AxHybridMove::Goal();
+    goal_msg.id = id;
+    goal_msg.velocity = velocity;
+    goal_msg.zero_time = zero_time;
+    goal_msg.delta_pos = delta_pos;
+
+    RCLCPP_INFO(this->get_logger(), "Sending ax hybrid move goal...");
+
+    auto send_goal_options = rclcpp_action::Client<AxHybridMove>::SendGoalOptions();
+    send_goal_options.goal_response_callback =
+        std::bind(&TacticGlobalNode::ax_hybrid_move_goal_response_callback, this, _1);
+    send_goal_options.feedback_callback = std::bind(&TacticGlobalNode::ax_hybrid_move_feedback_callback, this, _1, _2);
+    send_goal_options.result_callback = std::bind(&TacticGlobalNode::ax_hybrid_move_result_callback, this, _1);
+    this->ax_hybrid_move_client_->async_send_goal(goal_msg, send_goal_options);
+}
+
+void TacticGlobalNode::ax_hybrid_move_goal_response_callback(const AxHybridMoveGoalHandle::SharedPtr &goal_handle)
+{
+    if (!goal_handle)
+    {
+        RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server.");
+    }
+    else
+    {
+        RCLCPP_INFO(this->get_logger(), "Goal accepted by server, waiting for result.");
+    }
+}
+
+void TacticGlobalNode::ax_hybrid_move_feedback_callback(AxHybridMoveGoalHandle::SharedPtr,
+                                                        const std::shared_ptr<const AxHybridMove::Feedback> feedback)
+{
+    RCLCPP_DEBUG(this->get_logger(), "Current position: %d\tCurrent velocity: %d", feedback->current_position,
+                 feedback->current_velocity);
+}
+
+void TacticGlobalNode::ax_hybrid_move_result_callback(const AxHybridMoveGoalHandle::WrappedResult &result)
+{
+    ax_hybrid_move_result_ = result.result->status;
+    ax_hybrid_end_position_ = result.result->position;
+    RCLCPP_INFO(this->get_logger(), "Move status: %d, Position: %d", ax_hybrid_move_result_, ax_hybrid_end_position_);
+}
+
 void TacticGlobalNode::send_goal(int type, double x, double y, double phi, int8_t direction, double v_max, double w_max,
                                  double distance_tolerance_percentage, double angle_tolerance_percentage,
                                  double start_coeff_v, double start_coeff_w, double stop_coeff_v, double stop_coeff_w)
 {
     move_result_ = 0;
-    rclcpp::Rate rate(std::chrono::milliseconds(100));
+    rclcpp::Rate rate(std::chrono::milliseconds(10));
 
     auto start = this->now();
     while (rclcpp::ok() && (this->now() - start) < rclcpp::Duration::from_seconds(0.5))
@@ -181,7 +524,7 @@ void TacticGlobalNode::global_fsm()
             global_state_ = GL_TACTIC;
             chinch_waiting_ = false;
             chinch_trigger_ = false;
-            match_started_ = !match_started_;
+            match_started_ = true;
             start_time_ = this->get_clock()->now();
             RCLCPP_INFO(this->get_logger(), "Going to GL_TACTIC");
         }
@@ -192,14 +535,49 @@ void TacticGlobalNode::global_fsm()
         if (tactic_result_.cast<int>() == -1)
         {
             RCLCPP_INFO(this->get_logger(), "Tactic completed successfully");
+            RCLCPP_INFO(this->get_logger(), "Time: %.3f", time_);
             global_state_ = GL_END;
         }
         break;
     case GL_END:
-        RCLCPP_INFO(this->get_logger(), "Tactic ended.");
-        rclcpp::shutdown();
+        cancel_goal();
+        ax_move_client_->async_cancel_all_goals();
+        ax_bulk_move_client_->async_cancel_all_goals();
+        ax_hybrid_move_client_->async_cancel_all_goals();
+        remove_vacuum(true, true);
+        RCLCPP_INFO(this->get_logger(), "Match ended.");
+        RCLCPP_INFO(this->get_logger(), "Time: %.3f", time_);
+        // rclcpp::shutdown();
+        global_state_ = GL_END_1;
+        break;
+    case GL_END_1:
+        send_goal(0, x_base_, y_base_, phi_base_, 0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        global_state_ = GL_END_2;
+        break;
+    case GL_END_2:
+        send_goal(10, x_base_, y_base_, phi_base_, 0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        global_state_ = GL_OVER;
+        break;
+    case GL_OVER:
         break;
     }
+    
+    if (!consuming_front_)
+        {
+            cs_front_full = false;
+            crates_front_[0] = -1;
+            crates_front_[1] = -1;
+            crates_front_[2] = -1;
+            crates_front_[3] = -1;
+        }
+    if (!consuming_back_)
+        {
+            cs_back_full = false;
+            crates_back_[0] = -1;
+            crates_back_[1] = -1;
+            crates_back_[2] = -1;
+            crates_back_[3] = -1;
+        }
 }
 
 void TacticGlobalNode::goal_response_callback(const GoalHandleMove::SharedPtr &goal_handle)
@@ -242,6 +620,12 @@ void TacticGlobalNode::tactic_tick()
         pub_time();
     }
     global_fsm();
+    if (time_ > 100.0 && match_started_)
+    {
+        global_state_ = GL_END;
+        RCLCPP_INFO(this->get_logger(), "Time ran out.");
+        match_started_ = false;
+    }
 }
 
 void TacticGlobalNode::update_pose(double x, double y, double phi, uint16_t type)
@@ -280,6 +664,57 @@ void TacticGlobalNode::update_pose_callback(rclcpp::Client<ros381_interfaces::sr
     auto response = future.get();
     RCLCPP_INFO(this->get_logger(), "Pose updated");
     update_pose_result_ = -1;
+}
+
+void TacticGlobalNode::declare_ax_params()
+{
+    this->declare_parameter<uint8_t>("lift_front_id", 15);
+    this->declare_parameter<uint8_t>("lift_back_id", 5);
+    this->declare_parameter<uint8_t>("clan1_front_id", 11);
+    this->declare_parameter<uint8_t>("clan2_front_id", 12);
+    this->declare_parameter<uint8_t>("clan3_front_id", 13);
+    this->declare_parameter<uint8_t>("clan4_front_id", 14);
+    this->declare_parameter<uint8_t>("clan1_back_id", 1);
+    this->declare_parameter<uint8_t>("clan2_back_id", 2);
+    this->declare_parameter<uint8_t>("clan3_back_id", 3);
+    this->declare_parameter<uint8_t>("clan4_back_id", 4);
+    this->declare_parameter<uint8_t>("cursor_id", 6);
+    lift_front_id_ = static_cast<uint8_t>(this->get_parameter("lift_front_id").as_int());
+    lift_back_id_ = static_cast<uint8_t>(this->get_parameter("lift_back_id").as_int());
+    clan1_front_id_ = static_cast<uint8_t>(this->get_parameter("clan1_front_id").as_int());
+    clan2_front_id_ = static_cast<uint8_t>(this->get_parameter("clan2_front_id").as_int());
+    clan3_front_id_ = static_cast<uint8_t>(this->get_parameter("clan3_front_id").as_int());
+    clan4_front_id_ = static_cast<uint8_t>(this->get_parameter("clan4_front_id").as_int());
+    clan1_back_id_ = static_cast<uint8_t>(this->get_parameter("clan1_back_id").as_int());
+    clan2_back_id_ = static_cast<uint8_t>(this->get_parameter("clan2_back_id").as_int());
+    clan3_back_id_ = static_cast<uint8_t>(this->get_parameter("clan3_back_id").as_int());
+    clan4_back_id_ = static_cast<uint8_t>(this->get_parameter("clan4_back_id").as_int());
+    cursor_id_ = static_cast<uint8_t>(this->get_parameter("cursor_id").as_int());
+
+    this->declare_parameter<uint16_t>("lift_up_pos", 900);
+    this->declare_parameter<uint16_t>("lift_down_pos", 300);
+    this->declare_parameter<uint16_t>("lift_carry_pos", 400);
+    this->declare_parameter<uint16_t>("lift_rotating_pos", 750);
+    this->declare_parameter<uint16_t>("lift_dropoff_pos", 450);
+    this->declare_parameter<uint16_t>("cursor_up_pos", 950);
+    this->declare_parameter<uint16_t>("clanL_up_pos", 701);
+    this->declare_parameter<uint16_t>("clanL_down_pos", 0);
+    this->declare_parameter<uint16_t>("clanR_up_pos", 322);
+    this->declare_parameter<uint16_t>("clanR_down_pos", 1023);
+    this->declare_parameter<uint16_t>("clanL_undep_pos", 511);
+    this->declare_parameter<uint16_t>("clanR_undep_pos", 511);
+    lift_up_pos_ = static_cast<uint16_t>(this->get_parameter("lift_up_pos").as_int());
+    lift_down_pos_ = static_cast<uint16_t>(this->get_parameter("lift_down_pos").as_int());
+    lift_carry_pos_ = static_cast<uint16_t>(this->get_parameter("lift_carry_pos").as_int());
+    lift_rotating_pos_ = static_cast<uint16_t>(this->get_parameter("lift_rotating_pos").as_int());
+    lift_dropoff_pos_ = static_cast<uint16_t>(this->get_parameter("lift_dropoff_pos").as_int());
+    cursor_up_pos_ = static_cast<uint16_t>(this->get_parameter("cursor_up_pos").as_int());
+    clanL_up_pos_ = static_cast<uint16_t>(this->get_parameter("clanL_up_pos").as_int());
+    clanL_down_pos_ = static_cast<uint16_t>(this->get_parameter("clanL_down_pos").as_int());
+    clanR_up_pos_ = static_cast<uint16_t>(this->get_parameter("clanR_up_pos").as_int());
+    clanR_down_pos_ = static_cast<uint16_t>(this->get_parameter("clanR_down_pos").as_int());
+    clanL_undep_pos_ = static_cast<uint16_t>(this->get_parameter("clanL_undep_pos").as_int());
+    clanR_undep_pos_ = static_cast<uint16_t>(this->get_parameter("clanR_undep_pos").as_int());
 }
 
 int main(int argc, char **argv)

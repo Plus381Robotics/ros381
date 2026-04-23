@@ -5,6 +5,7 @@
 #include "ros381_interfaces/action/move.hpp"
 #include "ros381_interfaces/msg/float2.hpp"
 #include "tf2/utils.h"
+#include <example_interfaces/msg/int8.hpp>
 #include <example_interfaces/msg/u_int8.hpp>
 #include <functional>
 #include <memory>
@@ -22,8 +23,8 @@ class ControlLoopNode : public rclcpp::Node
     {
 
         this->declare_parameters();
-        timer_ = this->create_wall_timer(std::chrono::microseconds(period_),
-                                         std::bind(&ControlLoopNode::control_loop, this));
+        // timer_ = this->create_wall_timer(std::chrono::microseconds(period_),
+        //                                  std::bind(&ControlLoopNode::control_loop, this));
         motor_cmd_publisher_ = this->create_publisher<ros381_interfaces::msg::Float2>("motor_cmd", 10);
         odometry_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "odom", 10, std::bind(&ControlLoopNode::callback_odometry, this, _1));
@@ -33,6 +34,8 @@ class ControlLoopNode : public rclcpp::Node
                                                std::bind(&ControlLoopNode::handle_accepted, this, _1));
         obstacle_sub_ = this->create_subscription<example_interfaces::msg::UInt8>(
             "obstacle_status", 10, std::bind(&ControlLoopNode::callback_obstacle, this, _1));
+
+        obstacle_dir_pub_ = this->create_publisher<example_interfaces::msg::Int8>("obstacle_direction", 10);
 
         RCLCPP_INFO(this->get_logger(), "Control loop node is running.");
     }
@@ -62,10 +65,11 @@ class ControlLoopNode : public rclcpp::Node
     double a_, alpha_;                       // [m/s^2], [rad/s^2]
     double J_MAX_, j_max_temp_, J_MAX_STOP_; // [m/s^3]
     double J_ROT_MAX_, j_rot_max_temp_,
-        J_ROT_MAX_STOP_;                // [rad/s^3]
-    unsigned long time_ns_, prev_time_; // [ns]
-    double dt_;                         // [s]
-    double freq_;                       // [Hz]
+        J_ROT_MAX_STOP_;                          // [rad/s^3]
+    unsigned long ctrl_time_ns_, ctrl_prev_time_; // [ns]
+    unsigned long odom_time_ns_, odom_prev_time_; // [ns]
+    double dt_;                                   // [s]
+    double freq_;                                 // [Hz]
     short reg_type_ = 0, reg_phase_ = 0, movement_state_ = 0, direction_ = 1;
     unsigned long period_;                // [us]
     double v_right_ = 0.0, v_left_ = 0.0; // [m/s]
@@ -75,12 +79,14 @@ class ControlLoopNode : public rclcpp::Node
     bool was_slowed_ = false;
     unsigned short obstacle_ = 0;
     bool obstacle_status_changed_ = false;
+    int8_t obstacle_dir_ = 0;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<ros381_interfaces::msg::Float2>::SharedPtr motor_cmd_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_subscription_;
     rclcpp_action::Server<Move>::SharedPtr move_action_server_;
     std::shared_ptr<GoalHandleMove> current_goal_handle_;
     rclcpp::Subscription<example_interfaces::msg::UInt8>::SharedPtr obstacle_sub_;
+    rclcpp::Publisher<example_interfaces::msg::Int8>::SharedPtr obstacle_dir_pub_;
 
     void callback_obstacle(const example_interfaces::msg::UInt8::SharedPtr msg)
     {
@@ -227,13 +233,17 @@ class ControlLoopNode : public rclcpp::Node
         else
             result->status = -100;
     }
-
+    
+    // TODO: delete
+    // int i = 0;
     void control_loop()
     {
         if (odom_initialized_)
         {
-            L_ = correct_param(L_, fabs(w_ref_) - fabs(w_base_), eta_, L_MIN_, L_MAX_);
+            ctrl_time_ns_ = now().nanoseconds();
 
+            L_ = correct_param(L_, fabs(w_ref_) - fabs(w_base_), eta_, L_MIN_, L_MAX_);
+            obstacle_dir_ = 0;
             switch (reg_type_)
             {
             case -1:
@@ -254,15 +264,24 @@ class ControlLoopNode : public rclcpp::Node
             v_ref_ *= scale_factor;
             w_ref_ *= scale_factor;
 
-            dt_ = (time_ns_ - prev_time_) * 0.000000001;
+            dt_ = (ctrl_time_ns_ - ctrl_prev_time_) * 0.000000001;
             a_ = (v_base_ - prev_v_) / dt_;
             alpha_ = (w_base_ - prev_w_) / dt_;
 
             prev_v_ = v_base_;
             prev_w_ = w_base_;
-            prev_time_ = time_ns_;
+            ctrl_prev_time_ = ctrl_time_ns_;
 
             this->publish_motor_cmd();
+            this->publish_obstacle_dir();
+
+            // if (i < 40)
+            // {
+            //     i++;
+            //     RCLCPP_INFO(this->get_logger(), "odom time: %.3f us, ctrl time: %.3f us", odom_time_ns_ / 1000.0,
+            //                     ctrl_time_ns_ / 1000.0);
+            //     RCLCPP_INFO(this->get_logger(), "Difference: %.3f us", (-odom_time_ns_ + ctrl_time_ns_) / 1000.0);
+            // }
         }
     }
 
@@ -356,6 +375,8 @@ class ControlLoopNode : public rclcpp::Node
                                         v_max_temp_, V_MIN_, dt_, v0_, obstacle_, V_SLOWED_MAX_);
             w_ref_ =
                 P_w_ * std::clamp((distance_ - D_SHORT_TOL_) / (D_LONG_TOL_ - D_SHORT_TOL_), 0.0, 1.0) * phi_error_;
+
+            obstacle_dir_ = get_sign(v_ref_);
             if (distance_proj_ < D_PROJ_TOL_ * d_tol_perc_ && fabs(distance_) < D_TOL_ * d_tol_perc_)
             {
                 reset_movement();
@@ -383,6 +404,13 @@ class ControlLoopNode : public rclcpp::Node
         motor_cmd_publisher_->publish(msg);
     }
 
+    void publish_obstacle_dir()
+    {
+        auto msg = example_interfaces::msg::Int8();
+        msg.data = obstacle_dir_;
+        obstacle_dir_pub_->publish(msg);
+    }
+
     void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg)
     {
         x_base_ = msg->pose.pose.position.x;
@@ -390,9 +418,28 @@ class ControlLoopNode : public rclcpp::Node
         phi_base_ = tf2::getYaw(msg->pose.pose.orientation);
         v_base_ = msg->twist.twist.linear.x;
         w_base_ = msg->twist.twist.angular.z;
-        time_ns_ = rclcpp::Time(msg->header.stamp).nanoseconds();
+        // odom_time_ns_ = rclcpp::Time(msg->header.stamp).nanoseconds();
+        odom_time_ns_ = now().nanoseconds();
         if (!odom_initialized_)
+        {
             odom_initialized_ = true;
+            odom_prev_time_ = odom_time_ns_;
+            prev_v_ = v_base_;
+            prev_w_ = w_base_;
+            // }
+
+            // if (!timer_)
+            // {
+            // Small delay to ensure odom just arrived
+            rclcpp::sleep_for(std::chrono::microseconds(750));
+            ctrl_prev_time_ = now().nanoseconds();
+            control_loop();
+
+            timer_ = this->create_wall_timer(std::chrono::microseconds(period_),
+                                             std::bind(&ControlLoopNode::control_loop, this));
+
+            RCLCPP_INFO(this->get_logger(), "Control timer started with 750µs delay after first odom");
+        }
     }
 
     void reset_movement()

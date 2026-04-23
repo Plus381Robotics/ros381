@@ -12,7 +12,7 @@ find_package(ament_cmake REQUIRED)
 # find_package(<dependency> REQUIRED)
 
 install(
-  DIRECTORY urdf protos worlds meshes
+  DIRECTORY urdf protos worlds meshes photos
   DESTINATION share/${PROJECT_NAME}
 )
 

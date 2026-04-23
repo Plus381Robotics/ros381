@@ -1,4 +1,70 @@
-build/*
-install/*
-log/*
+**/build/**
+**/install/**
+**/log/**
+build/**
+install/**
+log/**
+*.log
+
 **/__pycache__/*
+
+# Visual Studio
+src/DynamixelSDK/*.VC.db
+src/DynamixelSDK/*.VC.opendb
+
+# Compiled Object files
+src/DynamixelSDK/*.slo
+src/DynamixelSDK/*.lo
+src/DynamixelSDK/*.o
+src/DynamixelSDK/*.obj
+src/DynamixelSDK/*.exp
+src/DynamixelSDK/*.iobj
+src/DynamixelSDK/*.ipdb
+src/DynamixelSDK/*.pdb
+
+# Logs
+src/DynamixelSDK/*.lastbuildstate
+src/DynamixelSDK/*.tlog
+src/DynamixelSDK/*.log
+
+# Precompiled Headers
+src/DynamixelSDK/*.gch
+src/DynamixelSDK/*.pch
+
+# Compiled Dynamic libraries
+src/DynamixelSDK/*.so
+src/DynamixelSDK/*.dylib
+
+# Fortran module files
+src/DynamixelSDK/*.mod
+
+# Python cache files
+src/DynamixelSDK/*.pyc
+
+# Compiled Static libraries
+src/DynamixelSDK/*.lai
+src/DynamixelSDK/*.la
+src/DynamixelSDK/*.a
+
+# Executables
+src/DynamixelSDK/*.exe
+src/DynamixelSDK/*.out
+src/DynamixelSDK/*.app
+
+# HTML
+src/DynamixelSDK/*.html
+
+# Mac
+src/DynamixelSDK/.DS_Store
+
+# Visual Studio Code
+src/DynamixelSDK/.vscode/
+
+# Python Install Build Files
+src/DynamixelSDK/python/build/
+src/DynamixelSDK/python/dist/
+src/DynamixelSDK/python/src/dynamixel_sdk.egg-info/
+
+
+**/.vscode/**
+.vscode/browse.vc.db

@@ -1,0 +1,12 @@
+{
+	"python.autoComplete.extraPaths": [
+		"/home/hostuser/ros381/install/ros381_webots/lib/python3.10/site-packages",
+		"/home/hostuser/ros381/install/ros381_visualization/lib/python3.10/site-packages",
+		"/home/hostuser/ros381/install/ros381_tactics/local/lib/python3.10/dist-packages",
+		"/home/hostuser/ros381/install/ros381_interfaces/local/lib/python3.10/dist-packages",
+		"/home/hostuser/ros381/install/dynamixel_sdk_custom_interfaces/local/lib/python3.10/dist-packages",
+		"/home/hostuser/ros381/install/dynamixel_sdk/local/lib/python3.10/dist-packages",
+		"/opt/ros/humble/lib/python3.10/site-packages",
+		"/opt/ros/humble/local/lib/python3.10/dist-packages"
+	]
+}

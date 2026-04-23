@@ -1,40 +1,121 @@
-control_loop:
+ros381/minimbp:
   ros__parameters:
     # Control loop frequency [Hz]
-    FREQ: 50.0
+    FREQ: 10.0
     # Max base velocities: [m/s], [rad/s]
-    V_MAX: 2.0
-    V_MIN: 0.1
+    V_MAX: 1.5
+    V_MIN: 0.05
     W_MAX: 12.57
     W_MIN: 0.314
     # Max motor velocities: [m/s]
     MOTOR_V_MAX: 2.0
     # Distance between drive wheels: [m]
     L: 0.1545
-    L_MAX: 0.1935
-    L_MIN: 0.1155
+    L_MAX: 0.1545
+    L_MIN: 0.1545
     eta: 0.01
     # P value for rotation during translation
-    P_w: 10.0
+    P_w: 15.0
     # Max base jerk values: [m/s^3], [rad/s^3]
-    J_MAX: 25.0
-    J_MAX_STOP: 50.0
-    J_ROT_MAX: 500.0
-    J_ROT_MAX_STOP: 1000.0
+    J_MAX: 20.0
+    J_MAX_STOP: 20.0
+    J_ROT_MAX: 60.0
+    J_ROT_MAX_STOP: 60.0
     # End of movement tolerances: [m], [rad]
-    D_TOL: 0.005 # absolute distance from target
-    D_PROJ_TOL: 0.0025 # projected distance from target
+    D_TOL: 0.01 # absolute distance from target
+    D_PROJ_TOL: 0.005 # projected distance from target
     D_LONG_TOL: 0.1 # distance before rotation is used fully
-    D_SHORT_TOL: 0.05 # minimal distance for rotation during translation
+    D_SHORT_TOL: 0.04 # minimal distance for rotation during translation
     PHI_TOL: 0.0157 # absolute angle from target
 
-odometry:
+ros381/odometry:
   ros__parameters:
     use_sim_time: False
     # Distance between encoder wheels: [m]
     L: 0.297
 
-tactic_global:
+ros381/tactic_global:
   ros__parameters:
     # Desired frequency for tactics tick: [Hz]
-    tick_freq: 100.0
+    tick_freq: 30.0
+    default_tactic: 0
+    default_side: yellow
+    # AX parameters
+    # IDs
+    lift_front_id: 15
+    lift_back_id: 5
+    clan1_front_id: 11
+    clan2_front_id: 12
+    clan3_front_id: 13
+    clan4_front_id: 14
+    clan1_back_id: 6
+    clan2_back_id: 7
+    clan3_back_id: 8
+    clan4_back_id: 9
+    cursor_id: 4
+    # Positions
+    lift_up_pos: 140  # 120 je skroz gore
+    lift_down_pos: 500 # 1000 je skroz dole
+    lift_carry_pos: 500
+    lift_rotating_pos: 140
+    lift_dropoff_pos: 500
+    cursor_up_pos: 60
+    clanL_up_pos: 0
+    clanL_down_pos: 805
+    clanL_undep_pos: 285
+    clanR_up_pos: 1023
+    clanR_down_pos: 205
+    clanR_undep_pos: 720
+
+ros381/csi_camera:
+  ros__parameters:
+    format: "YUYV"
+    height: 480
+    width: 640
+    framerate: 30.0
+    camera: "/base/soc/i2c0mux/i2c@1/ov5647@36"
+
+ros381/usb_camera:
+  ros__parameters:
+    video_device: "/dev/video1"
+    image_width: 640
+    image_height: 480
+    # pixel_format: "yuyv"
+    framerate: 30.0
+    camera_name: "back_camera"
+
+ros381/aruco_detection_front:
+ ros__parameters:
+   topic_suffix: "_front"
+   camera_matrix: [612.9738, 0.0, 327.512,
+                   0.0, 615.1446, 229.2179,
+                   0.0, 0.0, 1.0]
+   dist_coeffs: [0.271, -1.4433, -0.0093, 0.0062, 2.5272]
+   camera2base_transform: [0.0, 0.707107, 0.707107, 0.164,
+                           1.0, 0.0, 0.0, 0.0,
+                           0.0, 0.707107, -0.707107, 0.225,
+                           0.0, 0.0, 0.0, 1.0]
+   pub_cv_image: False
+   target_height: 0.03
+   height_tolerance: 0.01
+   angle_tolerance: 0.2
+   enable_height_check: False
+   enable_angle_check: False
+
+ros381/aruco_detection_back:
+ ros__parameters:
+    topic_suffix: "_back"
+    camera_matrix: [612.9738, 0.0, 327.512, 
+                    0.0, 615.1446, 229.2179, 
+                    0.0, 0.0, 1.0]
+    dist_coeffs: [0.271, -1.4433, -0.0093, 0.0062, 2.5272]
+    camera2base_transform: [0.0, 0.707107, 0.707107, 0.164,
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 0.707107, -0.707107, 0.225,
+                0.0, 0.0, 0.0, 1.0]
+    pub_cv_image: False
+    target_height: 0.03
+    height_tolerance: 0.03
+    angle_tolerance: 0.2    # rad (±11.44°)
+    enable_height_check: False
+    enable_angle_check: False

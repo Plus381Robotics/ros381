@@ -43,7 +43,8 @@
     <collision>
       <origin xyz="0 0 0.000" rpy="0 0 0"/>
       <geometry>
-		<cylinder radius="0.14" length="0.004"/>
+		    <!-- <cylinder radius="0.14" length="0.004"/> -->
+        <box size="0.125 0.21 0.004"/>
       </geometry>
     </collision>
   </link>
@@ -308,5 +309,6 @@
     <plugin type="ros381_webots.motor_driver.MotorDriver"/>
     <plugin type="ros381_webots.encoder_reader.EncoderReader"/>
     <plugin type="ros381_webots.lidar_reader.LidarReader"/>
+    <!-- <plugin type="ros381_webots.odometry.OdometryW"/> -->
   </webots>
 </robot>

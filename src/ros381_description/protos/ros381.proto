@@ -51,8 +51,8 @@ PROTO ros381 [
         device [
           RotationalMotor {
             name "wheel_right"
-			acceleration 600
-            maxTorque 10
+			acceleration 6000
+            maxTorque 1000
             maxVelocity 60
           }
           PositionSensor {
@@ -100,8 +100,8 @@ PROTO ros381 [
         device [
           RotationalMotor {
             name "wheel_left"
-			acceleration 600
-            maxTorque 10
+			acceleration 6000
+            maxTorque 1000
             maxVelocity 60
           }
           PositionSensor {
@@ -356,6 +356,74 @@ PROTO ros381 [
         }
       }
 
+      Solid {
+        name "teflon4"
+        contactMaterial "teflon"
+        boundingObject Pose {
+          translation -0.1203 -0.1241 0.002
+          children [
+            Cylinder {
+              radius 0.015
+              height 0.005
+            }
+          ]
+        }
+        physics Physics {
+          mass 1.0
+        }
+      }
+      
+      Solid {
+        name "teflon3"
+        contactMaterial "teflon"
+        boundingObject Pose {
+          translation -0.1203 0.1241 0.002
+          children [
+            Cylinder {
+              radius 0.015
+              height 0.005
+            }
+          ]
+        }
+        physics Physics {
+          mass 1.0
+        }
+      }
+      
+      Solid {
+        name "teflon2"
+        contactMaterial "teflon"
+        boundingObject Pose {
+          translation 0.1203 -0.1241 0.002
+          children [
+            Cylinder {
+              radius 0.015
+              height 0.005
+            }
+          ]
+        }
+        physics Physics {
+          mass 1.0
+        }
+      }
+      
+      Solid {
+        name "teflon1"
+        contactMaterial "teflon"
+        boundingObject Pose {
+          translation 0.1203 0.1241 0.002
+          children [
+            Cylinder {
+              radius 0.015
+              height 0.005
+            }
+          ]
+        }
+        physics Physics {
+          mass 1.0
+        }
+      }
+
 	  RPLidarS2{
 		translation 0.0 0.0 0.336
 	  }
@@ -377,17 +445,9 @@ PROTO ros381 [
           ]
         }
     ]
+    
     name IS name
 	contactMaterial "teflon"
-    boundingObject Pose {
-      translation 0.000000 0.000000 0.000000
-      children [
-        Cylinder {
-      radius 0.14
-      height 0.004
-        }
-      ]
-    }
     physics Physics {
       density -1
       mass 2.000000

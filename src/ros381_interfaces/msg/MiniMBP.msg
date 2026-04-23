@@ -1,0 +1,11 @@
+int8 type
+float64 x
+float64 y
+float64 phi
+int8 direction
+uint8 obstacle
+uint8 v_max_100
+uint8 w_max_10
+uint8 tol_perc
+uint8 coeff
+uint16 checksum

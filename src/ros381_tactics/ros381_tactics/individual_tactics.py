@@ -86,21 +86,21 @@ def load_tactic(GT, tactic_number, tactic_side):
                 load_state = 12
         # 2)
         case 12:
-            move_to_xy(-1.2, 0.8, -1, v_max=0.2, w_max=3.14)
+            move_to_xy(-1.3, 0.8, -1, v_max=0.2, w_max=3.14)
             load_state = 13
         case 13:
             if GT.move_result_ < 0:
                 load_state = 14
         # 3)
         case 14:
-            move_to_xy(-1.2, 1.0, 1, v_max=0.2, w_max=3.14)
+            move_to_xy(-1.3, 1.0, 1, v_max=0.2, w_max=3.14)
             load_state = 15
         case 15:
             if GT.move_result_ < 0:
                 load_state = 16
         # 4)
         case 16:
-            move_to_xy(-1.2, 0.8, -1, v_max=0.2, w_max=3.14)
+            move_to_xy(-1.3, 0.8, -1, v_max=0.2, w_max=3.14)
             load_state = 17
         case 17:
             if GT.move_result_ < 0:

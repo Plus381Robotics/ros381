@@ -63,7 +63,8 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:
-                load_state = 3
+                load_state = 10
+            # Izbacen ax i vacuum init
         case 3:
             GT.set_vacuum(False, False)
             load_state = 4
@@ -76,6 +77,42 @@ def load_tactic(GT, tactic_number, tactic_side):
         case 6:
             if GT.move_result_ < 0:
                 load_state = -1
+        # 1)
+        case 10:
+            move_to_xy(-0.9, 0.8, 1, v_max=0.2, w_max=3.14)
+            load_state = 11
+        case 11:
+            if GT.move_result_ < 0:
+                load_state = 12
+        # 2)
+        case 12:
+            move_to_xy(-1.2, 0.8, -1, v_max=0.2, w_max=3.14)
+            load_state = 13
+        case 13:
+            if GT.move_result_ < 0:
+                load_state = 14
+        # 3)
+        case 14:
+            move_to_xy(-1.2, 1.0, 1, v_max=0.2, w_max=3.14)
+            load_state = 15
+        case 15:
+            if GT.move_result_ < 0:
+                load_state = 16
+        # 4)
+        case 16:
+            move_to_xy(-1.2, 0.8, -1, v_max=0.2, w_max=3.14)
+            load_state = 17
+        case 17:
+            if GT.move_result_ < 0:
+                load_state = 18
+        # 5)
+        case 18:
+            rotate_to_phi(0.0)
+            load_state = 19
+        case 19:
+            if GT.move_result_ < 0:
+                load_state = -1
+                
     return load_state
 
 

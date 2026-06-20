@@ -172,6 +172,25 @@ def move_to_xy(
         stop_coeff_w=stop_coeff_w,
     )
 
+def move_on_curve(
+    x,
+    y,
+    phi,
+    dir,
+    v_max=99.0,
+    w_max=99.0,
+):
+    _send_goal(
+        get_GT(),
+        2,
+        x=x,
+        y=y,
+        phi=phi,
+        dir=dir,
+        v_max=v_max,
+        w_max=w_max,
+    )
+
 
 def move_on_direction(
     dist,

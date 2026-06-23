@@ -27,7 +27,7 @@ def load_t1():
 
 
 def tactic_1():
-    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir
+    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir, prev_state
 
     if prev_state != tactic_state:
         prev_state = tactic_state

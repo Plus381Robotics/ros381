@@ -27,7 +27,7 @@ def load_t2():
 
 
 def tactic_2():
-    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir
+    global tactic_state, temp_x, temp_y, temp_dir, temp_phi, first_x, first_y, first_dir, prev_state
 
     if prev_state != tactic_state:
         prev_state = tactic_state
@@ -38,6 +38,12 @@ def tactic_2():
     match tactic_state:
     # 1)
         case 0:
+            rotate_to_phi(-math.pi*0.5)
+            tactic_state = 1
+        case 1:
+            if move_success():
+                tactic_state = 10
+        case 10:
             move_on_curve(x=-1.3, y=-0.8, phi=-math.pi, dir=1)
             tactic_state = 11
         case 11:

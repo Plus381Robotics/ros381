@@ -185,7 +185,7 @@ class MiniMBP : public rclcpp::Node
             phi_ref_ = goal->phi;
             RCLCPP_INFO(this->get_logger(), "Move on Curve:\n\nx = %.4f, y = %.4f, phi = %.4f; Direction = ", goal->x, goal->y,
                         phi_ref_, goal->direction);
-            reg_type_ = 1;
+            reg_type_ = 2;
             break;
         case 222:
             x_ref_ = x_base_ + goal->direction * goal->y * cos(phi_base_);

@@ -5,8 +5,8 @@ from ros381_tactics.get_set import *
 tactic_state = 0
 prev_state = -1
 
-start_x = -1.3
-start_y = 0.8
+start_x = -1.3    # + (robot_len * 0.5)
+start_y = 0.8     # - (robot_len * 0.5)
 start_phi = 0.0
 start_x_offset = 0.0
 

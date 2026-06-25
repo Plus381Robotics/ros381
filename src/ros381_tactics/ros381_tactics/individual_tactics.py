@@ -48,35 +48,9 @@ def load_tactic(GT, tactic_number, tactic_side):
                 f"load_t{tactic_number}"
             ]()
             start_x, start_phi = sided_coords(start_x, start_phi)
-            if tactic_side == -1:
-                print("Yellow side chosen.")
-            else:
-                print("Blue side chosen.")
-            # TODO: vrati na 1
-            load_state = 1
-        case 1:
-            if tactic_side == 1: # plava strana
-                GT.update_pose(start_x + start_x_offset, start_y, start_phi, 111)
-            else:
-                GT.update_pose(start_x - start_x_offset, start_y, start_phi, 111)
-            # GT.publish_pose_offset(start_x, start_y, start_phi)
-            load_state = 2
-        case 2:
-            if get_update_pose_result() == -1:
-                load_state = 10
-            # Izbacen ax i vacuum init
-        case 3:
-            GT.set_vacuum(False, False)
-            load_state = 4
-        case 4:
-            if init_ax():
-                load_state = -1  # namerno iskljucen rotate
-        case 5:
-            rotate_to_xy(first_x, first_y, first_dir)
-            load_state = 6
-        case 6:
-            if GT.move_result_ < 0:
-                load_state = -1
+            tactic_side = -1
+            print("Yellow side chosen.")
+            load_state = 10
         # 1)
         case 10:
             move_to_xy(-0.9, 0.8, 1, v_max=0.2, w_max=3.14)
@@ -84,6 +58,9 @@ def load_tactic(GT, tactic_number, tactic_side):
         case 11:
             if GT.move_result_ < 0:
                 load_state = 12
+        # TODO: ovde ide prvo resetovanje pozicije (x i phi):
+        #    GT.update_pose(start_x, start_y, start_phi, 101)
+        # if get_update_pose_result() == -1:
         # 2)
         case 12:
             move_to_xy(-1.3, 0.8, -1, v_max=0.2, w_max=3.14)
@@ -98,6 +75,9 @@ def load_tactic(GT, tactic_number, tactic_side):
         case 15:
             if GT.move_result_ < 0:
                 load_state = 16
+        # TODO: ovde ide drugo resetovanje pozicije (y i phi):
+        #    GT.update_pose(start_x, start_y, start_phi, 011)
+        # if get_update_pose_result() == -1:
         # 4)
         case 16:
             move_to_xy(-1.3, 0.8, -1, v_max=0.2, w_max=3.14)

@@ -76,7 +76,7 @@ def load_tactic(GT, tactic_number, tactic_side):
             if GT.move_result_ < 0:
                 load_state = 16
         # TODO: ovde ide drugo resetovanje pozicije (y i phi):
-        #    GT.update_pose(start_x, start_y, start_phi, 011)
+        #    GT.update_pose(start_x, start_y, start_phi + math.pi*0.5, 011)
         # if get_update_pose_result() == -1:
         # 4)
         case 16:

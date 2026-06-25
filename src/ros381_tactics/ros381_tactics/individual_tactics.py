@@ -50,7 +50,13 @@ def load_tactic(GT, tactic_number, tactic_side):
             start_x, start_phi = sided_coords(start_x, start_phi)
             tactic_side = -1
             print("Yellow side chosen.")
-            load_state = 10
+            load_state = 1
+        case 1:
+            GT.update_pose(-1.3, 0.8, 0.0, 111)
+            load_state = 2
+        case 2:
+            if get_update_pose_result() == -1:
+                load_state = 10
         # 1)
         case 10:
             move_to_xy(-0.9, 0.8, 1, v_max=0.2, w_max=3.14)
@@ -58,38 +64,44 @@ def load_tactic(GT, tactic_number, tactic_side):
         case 11:
             if GT.move_result_ < 0:
                 load_state = 12
-        # TODO: ovde ide prvo resetovanje pozicije (x i phi):
-        #    GT.update_pose(start_x, start_y, start_phi, 101)
-        # if get_update_pose_result() == -1:
-        # 2)
         case 12:
-            move_to_xy(-1.3, 0.8, -1, v_max=0.2, w_max=3.14)
+            GT.update_pose(start_x, start_y, start_phi, 101)
             load_state = 13
         case 13:
-            if GT.move_result_ < 0:
-                load_state = 14
-        # 3)
-        case 14:
-            move_to_xy(-1.3, 1.0, 1, v_max=0.2, w_max=3.14)
-            load_state = 15
-        case 15:
-            if GT.move_result_ < 0:
-                load_state = 16
-        # TODO: ovde ide drugo resetovanje pozicije (y i phi):
-        #    GT.update_pose(start_x, start_y, start_phi + math.pi*0.5, 011)
-        # if get_update_pose_result() == -1:
-        # 4)
-        case 16:
+            if get_update_pose_result() == -1:
+                load_state = 20
+        # 2)
+        case 20:
             move_to_xy(-1.3, 0.8, -1, v_max=0.2, w_max=3.14)
-            load_state = 17
-        case 17:
+            load_state = 21
+        case 21:
             if GT.move_result_ < 0:
-                load_state = 18
+                load_state = 99
+        # 3)
+        case 30:
+            move_to_xy(-1.3, 1.0, 1, v_max=0.2, w_max=3.14)
+            load_state = 31
+        case 31:
+            if GT.move_result_ < 0:
+                load_state = 32
+        case 32:
+            GT.update_pose(start_x, start_y, start_phi + math.pi*0.5, 11)
+            load_state = 33
+        case 33:
+            if get_update_pose_result() == -1:
+                load_state = 40
+        # 4)
+        case 40:
+            move_to_xy(-1.3, 0.8, -1, v_max=0.2, w_max=3.14)
+            load_state = 41
+        case 41:
+            if GT.move_result_ < 0:
+                load_state = 50
         # 5)
-        case 18:
+        case 50:
             rotate_to_phi(0.0)
-            load_state = 19
-        case 19:
+            load_state = 51
+        case 51:
             if GT.move_result_ < 0:
                 load_state = -1
                 

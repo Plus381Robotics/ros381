@@ -5,8 +5,10 @@ from ros381_tactics.get_set import *
 tactic_state = 0
 prev_state = -1
 
-start_x = -1.3    # + (robot_len * 0.5)
-start_y = 0.8     # - (robot_len * 0.5)
+# robot je sirok 0.2726 m
+# ovo su zapravo stack pozicije
+start_x = -1.0363
+start_y = 0.8637
 start_phi = 0.0
 start_x_offset = 0.0
 

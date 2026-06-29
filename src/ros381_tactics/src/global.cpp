@@ -620,7 +620,7 @@ void TacticGlobalNode::tactic_tick()
         pub_time();
     }
     global_fsm();
-    if (time_ > 100.0 && match_started_)
+    if (time_ > 100.0 && match_started_ && 0)
     {
         global_state_ = GL_END;
         RCLCPP_INFO(this->get_logger(), "Time ran out.");

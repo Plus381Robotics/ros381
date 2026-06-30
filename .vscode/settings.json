@@ -8,5 +8,6 @@
 		"/home/hostuser/ros381/install/dynamixel_sdk/local/lib/python3.10/dist-packages",
 		"/opt/ros/humble/lib/python3.10/site-packages",
 		"/opt/ros/humble/local/lib/python3.10/dist-packages"
-	]
+	],
+	"C_Cpp.intelliSenseCacheSize": 512
 }

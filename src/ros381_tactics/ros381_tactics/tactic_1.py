@@ -21,8 +21,8 @@ temp_y = 0.0
 temp_dir = 0
 temp_phi = 0.0
 
-v_des = 0.2
-w_des = 1.57
+v_des = 1.0
+w_des = 12.68
 
 
 def load_t1():
@@ -41,7 +41,7 @@ def tactic_1():
         print("Current time = " + str(get_GT().time))
 
     match tactic_state:
-    # 1)
+        # 1)
         case 0:
             move_to_xy(x=-1.3, y=-0.8, dir=1, v_max=v_des, w_max=w_des)
             tactic_state = 11
@@ -61,7 +61,7 @@ def tactic_1():
         case 15:
             if move_success():
                 tactic_state = 20
-    # 2)
+        # 2)
         case 20:
             move_to_xy(x=-1.5, y=-0.8, dir=1, v_max=0.2, w_max=1.57)
             tactic_state = 21
@@ -75,7 +75,7 @@ def tactic_1():
         case 23:
             if move_success():
                 tactic_state = 30
-    # 3)
+        # 3)
         case 30:
             move_to_xy(x=1.3, y=-0.8, dir=1, v_max=v_des, w_max=w_des)
             tactic_state = 31
@@ -95,7 +95,7 @@ def tactic_1():
         case 35:
             if move_success():
                 tactic_state = 40
-    # 4)
+        # 4)
         case 40:
             move_to_xy(x=1.3, y=-1.0, dir=1, v_max=0.2, w_max=1.57)
             tactic_state = 41
@@ -109,7 +109,7 @@ def tactic_1():
         case 43:
             if move_success():
                 tactic_state = 50
-    # 5)
+        # 5)
         case 50:
             move_to_xy(x=1.3, y=0.8, dir=1, v_max=v_des, w_max=w_des)
             tactic_state = 51
@@ -129,7 +129,7 @@ def tactic_1():
         case 55:
             if move_success():
                 tactic_state = 60
-    # 6)
+        # 6)
         case 60:
             move_to_xy(x=1.5, y=0.45, dir=1, v_max=0.2, w_max=1.57)
             tactic_state = 61
@@ -143,7 +143,7 @@ def tactic_1():
         case 63:
             if move_success():
                 tactic_state = 70
-    # 7)
+        # 7)
         case 70:
             move_to_xy(x=-1.3, y=0.45, dir=1, v_max=v_des, w_max=w_des)
             tactic_state = 71
@@ -163,7 +163,7 @@ def tactic_1():
         case 75:
             if move_success():
                 tactic_state = 80
-    # 8)
+        # 8)
         case 80:
             move_to_xy(x=-1.3, y=1.0, dir=1, v_max=0.2, w_max=1.57)
             tactic_state = 81

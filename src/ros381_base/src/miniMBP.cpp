@@ -166,8 +166,6 @@ class MiniMBP : public rclcpp::Node
             phi_ref_ =
                 wrap(atan2(goal->y - y_base_, goal->x - x_base_) + (goal->direction - 1) * M_PI * 0.5, -M_PI, M_PI);
 
-            RCLCPP_INFO(this->get_logger(), "Rotate from XY:\nx = %.4f, y = %.4f, phi = %.4f", x_base_, y_base_,
-                        phi_base_);
             RCLCPP_INFO(this->get_logger(), "Rotate to XY:\nx = %.4f, y = %.4f, phi = %.4f", goal->x, goal->y,
                         phi_ref_);
             reg_type_ = -1;
@@ -214,6 +212,8 @@ class MiniMBP : public rclcpp::Node
             reg_type_ = 1;
             break;
         }
+
+        RCLCPP_INFO(this->get_logger(), "Starting from XY:\nx = %.4f, y = %.4f, phi = %.4f", x_base_, y_base_, phi_base_);
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     }
 

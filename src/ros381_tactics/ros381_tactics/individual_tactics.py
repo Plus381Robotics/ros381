@@ -64,7 +64,8 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:
-                load_state = 10
+                # TODO: vrati kada hoces resetovanje na 10
+                load_state = -1
         # 1)
         case 10:
             move_to_xy(-0.9, 0.8, 1, v_max=0.2, w_max=3.14)

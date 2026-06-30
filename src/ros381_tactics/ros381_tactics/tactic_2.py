@@ -21,7 +21,7 @@ temp_y = 0.0
 temp_dir = 0
 temp_phi = 0.0
 
-v_des = 1.0
+v_des = 1.5
 
 
 def load_t2():

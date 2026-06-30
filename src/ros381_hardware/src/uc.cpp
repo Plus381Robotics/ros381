@@ -268,6 +268,10 @@ class uCNode : public rclcpp::Node
 
             bool log = false;
 
+            double s = (int16_t)((uint32_t)rxba[22] << 8 | (uint32_t)rxba[21]) / 1000.0;
+            double dis = (int16_t)((uint32_t)rxba[24] << 8 | (uint32_t)rxba[23]) / 1000.0;
+            // RCLCPP_INFO(this->get_logger(), "S = %.3f, distance = %.3f", s, dis);
+
             if (set_phi.exchange(false))
             {
                 phi_base_offs_ = req_phi.load() - phi_raw;

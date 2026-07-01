@@ -22,6 +22,12 @@ temp_dir = 0
 temp_phi = 0.0
 
 v_des = 1.0
+# I     Sporo:
+#           v = 0.2
+# II    Srednje:
+#           v = 0.5
+# III   Brzo:
+#           v = 1.0
 
 
 def load_t2():
@@ -81,7 +87,7 @@ def tactic_2():
             if move_success():
                 tactic_state = 24
         case 24:
-            rotate_to_phi(math.pi * 0.5)
+            rotate_to_phi(math.pi * 0.5, w_max=1.57)
             tactic_state = 25
         case 25:
             if move_success():
@@ -121,7 +127,7 @@ def tactic_2():
             if move_success():
                 tactic_state = 44
         case 44:
-            rotate_to_phi(math.pi)
+            rotate_to_phi(math.pi, w_max=1.57)
             tactic_state = 45
         case 45:
             if move_success():
@@ -161,7 +167,7 @@ def tactic_2():
             if move_success():
                 tactic_state = 64
         case 64:
-            rotate_to_phi(-math.pi * 0.5)
+            rotate_to_phi(-math.pi * 0.5, w_max=1.57)
             tactic_state = 65
         case 65:
             if move_success():

@@ -22,7 +22,7 @@ temp_dir = 0
 temp_phi = 0.0
 
 v_des = 1.0
-w_des = 12.68
+w_des = 6.28
 
 
 def load_t1():

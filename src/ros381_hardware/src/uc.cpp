@@ -272,7 +272,7 @@ class uCNode : public rclcpp::Node
             double dis = (int16_t)((uint32_t)rxba[24] << 8 | (uint32_t)rxba[23]) / 1000.0;
             double v_ref = (int16_t)((uint32_t)rxba[26] << 8 | (uint32_t)rxba[25]) / 1000.0;
             double w_ref = (int16_t)((uint32_t)rxba[28] << 8 | (uint32_t)rxba[27]) / 1000.0;
-            RCLCPP_INFO(this->get_logger(), "v = %.2f, v_ref = %.2f,", v_base_, v_ref);
+            // RCLCPP_INFO(this->get_logger(), "v = %.2f, v_ref = %.2f,", v_base_, v_ref);
             // RCLCPP_INFO(this->get_logger(), "w = %.2f, w_ref = %.2f", w_base_, w_ref);
             // RCLCPP_INFO(this->get_logger(), "s = %.2f, distance = %.3f", s, dis);
 

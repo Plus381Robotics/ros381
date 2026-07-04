@@ -21,18 +21,22 @@ temp_y = 0.0
 temp_dir = 0
 temp_phi = 0.0
 
+    # I     Sporo:
+    #           v = 0.2, w = 1.57
 v_des = 0.2
 w_des = 1.57
-# I     Sporo:
-#           v = 0.2, w = 1.57
-# II    Srednje:
-#           v = 0.5, w = 3.14
-# III   Brzo:
-#           v = 1.0, w = 6.28
+    # II    Srednje:
+    #           v = 0.5, w = 3.14
+# v_des = 0.6
+# w_des = 3.14
+    # III   Brzo:
+    #           v = 1.0, w = 6.28
+# v_des = 1.0
+# w_des = 6.28
 
 def load_t1():
     global start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
-    print("Tactic 1 loaded.")
+    print("Tactic 1 loaded - Straight sequence")
     return start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
 
 

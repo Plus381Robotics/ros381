@@ -21,7 +21,7 @@ temp_y = 0.0
 temp_dir = 0
 temp_phi = 0.0
 
-v_des = 1.0
+v_des = 0.2
 # I     Sporo:
 #           v = 0.2
 # II    Srednje:
@@ -32,7 +32,7 @@ v_des = 1.0
 
 def load_t2():
     global start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
-    print("Tactic 2 loaded.")
+    print("Tactic 2 loaded - Curve sequence")
     return start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset
 
 
@@ -134,7 +134,7 @@ def tactic_2():
                 tactic_state = 50
         # 5)
         case 50:
-            move_on_curve(x=1.3, y=0.8, dir=1, v_max=v_des)
+            move_on_curve(x=1.3, y=0.8, phi=math.pi * 0.5, dir=1, v_max=v_des)
             tactic_state = 51
         case 51:
             if move_success():

@@ -9,15 +9,16 @@ from launch.actions import IncludeLaunchDescription
 
 def generate_launch_description():
 
+    config_dir = "/home/hostuser/ros381/src/ros381_bringup/config"
+    calibration_file = os.path.join(config_dir, "ov9281_3mm.yaml")
+
     mini_mbp_node = Node(
         package="ros381_base",
         executable="miniMBP",
         name="mini_mbp",
         namespace="ros381",
         output="screen",
-        parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
-        ],
+        parameters=[os.path.join(config_dir, "hardware.params.yaml")],
     )
 
     tactics_node = Node(
@@ -26,9 +27,7 @@ def generate_launch_description():
         name="tactic_global",
         namespace="ros381",
         output="screen",
-        parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
-        ],
+        parameters=[os.path.join(config_dir, "hardware.params.yaml")],
     )
 
     uc_node = Node(
@@ -36,9 +35,7 @@ def generate_launch_description():
         executable="uc",
         name="uc",
         namespace="ros381",
-        parameters=[
-            "/home/hostuser/ros381/src/ros381_bringup/config/hardware.params.yaml"
-        ],
+        parameters=[os.path.join(config_dir, "hardware.params.yaml")],
     )
 
     # ros2 run usb_cam usb_cam_node_exe --ros-args   -p image_width:=1280   -p image_height:=720   -p framerate:=30.0   -p pixel_format:="mjpeg2rgb"
@@ -48,11 +45,13 @@ def generate_launch_description():
         name="camera",
         namespace="ros381",
         parameters=[
+            {"camera_name": "ov9281_3mm"},
             {"image_width": 1280},
             {"image_height": 720},
             {"framerate": 30.0},
-            {"pixel_format": "mjpeg2rgb"}
-        ]
+            {"pixel_format": "mjpeg2rgb"},
+            {"camera_info_url": f"file://{calibration_file}"},
+        ],
     )
 
     return LaunchDescription(

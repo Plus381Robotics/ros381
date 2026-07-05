@@ -38,7 +38,6 @@ def generate_launch_description():
         parameters=[os.path.join(config_dir, "hardware.params.yaml")],
     )
 
-    # ros2 run usb_cam usb_cam_node_exe --ros-args   -p image_width:=1280   -p image_height:=720   -p framerate:=30.0   -p pixel_format:="mjpeg2rgb"
     cam_node = Node(
         package="usb_cam",
         executable="usb_cam_node_exe",
@@ -48,7 +47,7 @@ def generate_launch_description():
             {"camera_name": "ov9281_3mm"},
             {"image_width": 1280},
             {"image_height": 720},
-            {"framerate": 30.0},
+            {"framerate": 120.0},
             {"pixel_format": "mjpeg2rgb"},
             {"camera_info_url": f"file://{calibration_file}"},
         ],

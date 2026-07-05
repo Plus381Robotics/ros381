@@ -48,13 +48,13 @@ def tactic_5():
             if move_success():
                 tactic_state = 30
         case 30:
-            move_to_xy(x=-1.0, y=-0.5, dir=1, v_max=v_des, w_max=w_des)
+            move_to_xy(x=-0.7, y=-0.5, dir=1, v_max=v_des, w_max=w_des)
             tactic_state = 31
         case 31:
             if move_success():
                 tactic_state = 50
         case 50:
-            move_to_xy(x=-1.0, y=0.5, dir=1, v_max=v_des, w_max=w_des)
+            move_to_xy(x=-0.7, y=0.5, dir=1, v_max=v_des, w_max=w_des)
             tactic_state = 51
         case 51:
             if move_success():

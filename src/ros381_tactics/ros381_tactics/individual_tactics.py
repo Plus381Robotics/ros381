@@ -23,11 +23,7 @@ chosen_tactic = -1
 start_x = 0.0
 start_y = 0.0
 start_phi = 0.0
-first_x = 0.0
-first_y = 0.0
-first_dir = 0
 
-start_x_offset = 0.0
 prev_state = -1
 
 
@@ -37,7 +33,7 @@ def execute_tactic():
 
 
 def load_tactic(GT, tactic_number, tactic_side):
-    global load_state, chosen_tactic, start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset, prev_state
+    global load_state, chosen_tactic, start_x, start_y, start_phi, prev_state
 
     if prev_state != load_state:
         prev_state = load_state
@@ -51,14 +47,15 @@ def load_tactic(GT, tactic_number, tactic_side):
 
             chosen_tactic = tactic_number
             set_side(tactic_side)
-            start_x, start_y, start_phi, first_x, first_y, first_dir, start_x_offset = globals()[
+            start_x, start_y, start_phi = globals()[
                 f"load_t{tactic_number}"
             ]()
-            start_x, start_phi = sided_coords(start_x, start_phi)
+            # start_x, start_phi = sided_coords(start_x, start_phi)
             tactic_side = -1
             print("Yellow side chosen.")
             # load_state = -1
-            load_state = 1
+            # load_state = 1
+            load_state = 99
         case 1:
             GT.update_pose(-1.3, 0.8, 0.0, 111)
             load_state = 2
@@ -112,6 +109,14 @@ def load_tactic(GT, tactic_number, tactic_side):
             load_state = 51
         case 51:
             if GT.move_result_ < 0:
+                load_state = -1
+
+        # 99
+        case 99:
+            GT.update_pose(start_x, start_y, start_phi, 111)
+            load_state = 100
+        case 100:
+            if get_update_pose_result() == -1:
                 load_state = -1
                 
     return load_state

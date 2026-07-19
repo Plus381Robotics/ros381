@@ -15,7 +15,7 @@ away_from_edge = 0.25
 
 # I     Sporo:
 #           v = 0.5, w = 1.57
-v_des = 0.2
+v_des = 0.5
 w_des = 1.57
 # III   Brzo:
 #           v = 1.0, w = 3.14

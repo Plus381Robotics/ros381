@@ -28,7 +28,7 @@ def load_t5():
     start_x = 0.6 - robot_width / 2
     start_y = 2.0 - robot_length / 2
     start_phi = -math.pi / 2
-    print("Tactic 5 loaded - Straight sequence")
+    print("Tactic 5 loaded - Straight sequence V2")
     print(f"Starting position = ( {start_x}, {start_y}, {start_phi} )")
     print(f"Desired velocities = ( {v_des}, {w_des} )")
     print(f"Edge offset  = {edge_offset}")

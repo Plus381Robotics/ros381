@@ -60,15 +60,15 @@ def load_tactic(GT, tactic_number, tactic_side):
             # load_state = -1
             load_state = 1
         case 1:
-            GT.update_pose(-1.3, 0.8, 0.0, 111)
+            GT.update_pose(-1.25, 0.75, 0.0, 111)
             load_state = 2
         case 2:
             if get_update_pose_result() == -1:
                 # TODO: vrati kada hoces resetovanje na 10
-                load_state = -1
+                load_state = 10
         # 1)
         case 10:
-            move_to_xy(-0.9, 0.8, 1, v_max=0.2, w_max=3.14)
+            move_to_xy(-0.9, 0.75, 1, v_max=0.2, w_max=1.57)
             load_state = 11
         case 11:
             if GT.move_result_ < 0:
@@ -81,14 +81,14 @@ def load_tactic(GT, tactic_number, tactic_side):
                 load_state = 20
         # 2)
         case 20:
-            move_to_xy(-1.3, 0.8, -1, v_max=0.2, w_max=3.14)
+            move_to_xy(-1.25, 0.75, -1, v_max=0.2, w_max=1.57)
             load_state = 21
         case 21:
             if GT.move_result_ < 0:
                 load_state = 30
         # 3)
         case 30:
-            move_to_xy(-1.3, 1.0, 1, v_max=0.2, w_max=3.14)
+            move_to_xy(-1.25, 1.0, 1, v_max=0.2, w_max=1.57)
             load_state = 31
         case 31:
             if GT.move_result_ < 0:
@@ -101,14 +101,14 @@ def load_tactic(GT, tactic_number, tactic_side):
                 load_state = 40
         # 4)
         case 40:
-            move_to_xy(-1.3, 0.8, -1, v_max=0.2, w_max=3.14)
+            move_to_xy(-1.25, 0.75, -1, v_max=0.2, w_max=1.57)
             load_state = 41
         case 41:
             if GT.move_result_ < 0:
                 load_state = 50
         # 5)
         case 50:
-            rotate_to_phi(0.0)
+            rotate_to_phi(-math.pi*0.5, w_max=1.57)
             load_state = 51
         case 51:
             if GT.move_result_ < 0:

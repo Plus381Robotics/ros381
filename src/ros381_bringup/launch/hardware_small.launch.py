@@ -49,6 +49,24 @@ def generate_launch_description():
             {"image_height": 720},
             {"framerate": 120.0},
             {"pixel_format": "mjpeg2rgb"},
+            {"brightness": 0},
+            {"contrast": 32},
+            {"saturation": 0}, # irrelevant for monochrome OV9281 
+            {"sharpness": 0},
+            {"gain": 64}, # low as possible
+            {"auto_white_balance": False},
+            {"white_balance": 4000}, # ignored on mono sensor
+            # mora rucno da se menja svaki put, ne prihvata parametre
+            # v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1
+            # v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=15
+            # v4l2-ctl -d /dev/video0 --set-ctrl=gamma=200
+            # {"auto_exposure": 1},
+            # {"exposure": 15}, # tune manually 
+            # {"exposure_time": 15},
+            {"gamma": 200},
+            # {"exposure_time_absolute": 15},
+            {"autofocus": False},
+            {"focus": -1},
             {"camera_info_url": f"file://{calibration_file}"},
         ],
     )

@@ -15,12 +15,12 @@ away_from_edge = 0.25
 
 # I     Sporo:
 #           v = 0.5, w = 1.57
-v_des = 0.5
-w_des = 1.57
+# v_des = 0.5
+# w_des = 1.57
 # III   Brzo:
 #           v = 1.0, w = 3.14
-# v_des = 1.0
-# w_des = 3.14
+v_des = 1.0
+w_des = 3.14
 
 
 def load_t6():
@@ -47,7 +47,7 @@ def tactic_6():
     match tactic_state:
         case 0:
             move_on_curve(
-                x=3.0 - robot_length / 2 + 2 * edge_offset,
+                x=3.0 - robot_length / 2 + 3.4 * edge_offset,
                 y=away_from_edge,
                 phi=0.0,
                 dir=1,
@@ -93,13 +93,27 @@ def tactic_6():
         case 40:
             move_on_curve(
                 x=away_from_edge,
-                y=0.0 + robot_length / 2 - 2 * edge_offset,
+                y=0.0 + robot_length / 2 - 1.0 * edge_offset,
                 phi=-math.pi / 2,
                 dir=1,
                 v_max=v_des,
             )
             tactic_state = 41
         case 41:
+            if move_stacked():
+                tactic_state = 42
+            elif move_success():
+                tactic_state = 42
+                print("DID NOT STACK!")
+        case 42:
+            move_to_xy(
+                x=get_GT().x_base,
+                y=0.0 + robot_length / 2 - 1.0 * edge_offset,
+                dir=1,
+                v_max=v_des,
+            )
+            tactic_state = 43
+        case 43:
             if move_stacked():
                 tactic_state = 50
             elif move_success():
@@ -108,7 +122,7 @@ def tactic_6():
 
         case 50:
             move_to_xy(
-                x=away_from_edge,
+                x=get_GT().x_base,
                 y=away_from_edge,
                 dir=-1,
                 v_max=v_des,
@@ -138,7 +152,7 @@ def tactic_6():
         case 70:
             move_on_curve(
                 x=3.0 - away_from_edge,
-                y=2.0 - robot_length / 2 + 2 * edge_offset,
+                y=2.0 - robot_length / 2 + 3.4 * edge_offset,
                 phi=math.pi / 2,
                 dir=1,
                 v_max=v_des,
@@ -183,7 +197,7 @@ def tactic_6():
         case 100:
             move_on_curve(
                 x=away_from_edge,
-                y=2.0 - robot_length / 2 + 2 * edge_offset,
+                y=2.0 - robot_length / 2 + 3.4 * edge_offset,
                 phi=math.pi / 2,
                 dir=1,
                 v_max=v_des,
@@ -198,7 +212,7 @@ def tactic_6():
 
         case 110:
             move_to_xy(
-                x=0.0 + away_from_edge,
+                x=get_GT().x_base,
                 y=2.0 - away_from_edge,
                 dir=-1,
                 v_max=v_des,

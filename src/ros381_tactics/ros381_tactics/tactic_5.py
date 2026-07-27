@@ -15,12 +15,12 @@ away_from_edge = 0.25
 
 # I     Sporo:
 #           v = 0.5, w = 1.57
-v_des = 0.5
-w_des = 1.57
+# v_des = 0.5
+# w_des = 1.57
 # III   Brzo:
 #           v = 1.0, w = 3.14
-# v_des = 1.0
-# w_des = 3.14
+v_des = 1.0
+w_des = 3.14
 
 
 def load_t5():
